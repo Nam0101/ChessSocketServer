@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package nam; 
+
+message LoginRequest {
+    bytes  messagetype =1;
+  string username = 2;
+  string password = 3;
+}
+
+message SignupRequest {
+  string username = 1;
+  string password = 2;
+  string email = 3;
+}
+
+message AuthenticationResponse {
+  bool success = 1;
+  string message = 2;
+}
