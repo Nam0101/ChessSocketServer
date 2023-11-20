@@ -4,51 +4,73 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
+#include "sqlite3.h"
 #include "authentication.pb-c.h"
-
+#include <pthread.h>
 #define PORT 12345
 #define MAX_BUFFER_SIZE 4096
+#define THREAD_POOL_SIZE 10
 
-void handle_login(int client_socket)
+typedef struct
 {
-    char buffer[MAX_BUFFER_SIZE];
-    ssize_t num_bytes = recv(client_socket, buffer, sizeof(buffer), 0);
+    int client_socket;
+} ThreadArg;
 
-    if (num_bytes <= 0)
+void *handle_client(void *arg)
+{
+    ThreadArg *thread_arg = (ThreadArg *)arg;
+    int client_socket = thread_arg->client_socket;
+    free(arg);
+
+    char *buffer = malloc(MAX_BUFFER_SIZE);
+    while (1)
     {
-        perror("Error reading from client");
-        close(client_socket);
-        return;
+        ssize_t num_bytes = recv(client_socket, buffer, MAX_BUFFER_SIZE, 0);
+
+        Nam__BaseMessage *base_message = nam__base_message__unpack(NULL, num_bytes, (const uint8_t *)buffer);
+        if (!base_message)
+        {
+            perror("Error unpacking base message");
+            close(client_socket);
+            pthread_exit(NULL);
+        }
+
+        printf("Message type: %d\n", base_message->messagetype);
+
+        switch (base_message->messagetype)
+        {
+        case 1:
+        {
+            Nam__LoginRequest *login_request = base_message->loginrequest;
+            if (!login_request)
+            {
+                perror("Error unpacking login request");
+                close(client_socket);
+                pthread_exit(NULL);
+            }
+            printf("Received login request:\n");
+            printf("Username: %s\n", login_request->username);
+            printf("Password: %s\n", login_request->password);
+            break;
+        }
+        case 2:
+        {
+            Nam__LogoutRequest *logout_request = base_message->logoutrequest;
+            if (!logout_request)
+            {
+                perror("Error unpacking logout request");
+                close(client_socket);
+                pthread_exit(NULL);
+            }
+            printf("Received logout request:\n");
+            printf("Username: %s\n", logout_request->username);
+            break;
+        }
+        }
     }
-
-    // Parse the LoginRequest
-    LoginRequest *login_request = login_request__unpack(NULL, num_bytes, (uint8_t *)buffer);
-    if (!login_request)
-    {
-        fprintf(stderr, "Error unpacking LoginRequest\n");
-        close(client_socket);
-        return;
-    }
-
-    printf("Received LoginRequest:\n");
-    printf("Username: %s\n", login_request->username);
-    printf("Password: %s\n", login_request->password);
-
-    // TODO: Perform authentication logic here
-
-    // Send a simple response for now
-    AuthenticationResponse login_response = AUTHENTICATION_RESPONSE__INIT;
-    login_response.success = 1;
-    login_response.message = "Login successful";
-    //send to client
-    int response_len = authentication_response__get_packed_size(&login_response);
-    uint8_t *response_buffer = malloc(response_len);
-    authentication_response__pack(&login_response, response_buffer);
-    send(client_socket, response_buffer, response_len, 0);
-    free(response_buffer);
-    // Clean up
-    login_request__free_unpacked(login_request, NULL);
     close(client_socket);
+    free(buffer);
+    pthread_exit(NULL);
 }
 
 int main()
@@ -78,7 +100,7 @@ int main()
     }
 
     // Listen for incoming connections
-    if (listen(server_socket, 5) == -1)
+    if (listen(server_socket, 10) == -1)
     {
         perror("Error listening");
         close(server_socket);
@@ -86,35 +108,42 @@ int main()
     }
 
     printf("Server is listening on port %d...\n", PORT);
+    pthread_t thread_pool[THREAD_POOL_SIZE];
 
     while (1)
     {
         // Accept connection from client
-        client_socket = accept(server_socket, (struct sockaddr *)&client_address, &client_address_len);
+        int client_socket = accept(server_socket, (struct sockaddr *)&client_address, &client_address_len);
         if (client_socket == -1)
         {
             perror("Error accepting connection");
             continue;
         }
 
-        // Fork a new process to handle the client
-        pid_t pid = fork();
-        if (pid < 0)
+        // Create thread argument
+        ThreadArg *thread_arg = (ThreadArg *)malloc(sizeof(ThreadArg));
+        if (!thread_arg)
         {
-            perror("Error forking");
+            perror("Error allocating memory for thread argument");
             close(client_socket);
             continue;
         }
-        else if (pid == 0)
+
+        thread_arg->client_socket = client_socket;
+
+        int i;
+        for (i = 0; i < THREAD_POOL_SIZE; ++i)
         {
-            // In child process
-            close(server_socket);
-            handle_login(client_socket);
-            exit(EXIT_SUCCESS);
+            if (pthread_create(&thread_pool[i], NULL, handle_client, thread_arg) == 0)
+            {
+                break;
+            }
         }
-        else
+
+        if (i == THREAD_POOL_SIZE)
         {
-            // In parent process
+            // All threads in the pool are busy
+            perror("Thread pool is full. Connection rejected.");
             close(client_socket);
         }
     }

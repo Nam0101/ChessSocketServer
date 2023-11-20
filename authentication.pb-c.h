@@ -15,9 +15,11 @@ PROTOBUF_C__BEGIN_DECLS
 #endif
 
 
-typedef struct _LoginRequest LoginRequest;
-typedef struct _SignupRequest SignupRequest;
-typedef struct _AuthenticationResponse AuthenticationResponse;
+typedef struct _Nam__LoginRequest Nam__LoginRequest;
+typedef struct _Nam__SignupRequest Nam__SignupRequest;
+typedef struct _Nam__LogoutRequest Nam__LogoutRequest;
+typedef struct _Nam__BaseMessage Nam__BaseMessage;
+typedef struct _Nam__AuthenticationResponse Nam__AuthenticationResponse;
 
 
 /* --- enums --- */
@@ -25,108 +27,175 @@ typedef struct _AuthenticationResponse AuthenticationResponse;
 
 /* --- messages --- */
 
-struct  _LoginRequest
+struct  _Nam__LoginRequest
 {
   ProtobufCMessage base;
-  ProtobufCBinaryData messagetype;
   char *username;
   char *password;
 };
-#define LOGIN_REQUEST__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&login_request__descriptor) \
-    , {0,NULL}, (char *)protobuf_c_empty_string, (char *)protobuf_c_empty_string }
+#define NAM__LOGIN_REQUEST__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&nam__login_request__descriptor) \
+    , (char *)protobuf_c_empty_string, (char *)protobuf_c_empty_string }
 
 
-struct  _SignupRequest
+struct  _Nam__SignupRequest
 {
   ProtobufCMessage base;
   char *username;
   char *password;
   char *email;
 };
-#define SIGNUP_REQUEST__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&signup_request__descriptor) \
+#define NAM__SIGNUP_REQUEST__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&nam__signup_request__descriptor) \
     , (char *)protobuf_c_empty_string, (char *)protobuf_c_empty_string, (char *)protobuf_c_empty_string }
 
 
-struct  _AuthenticationResponse
+struct  _Nam__LogoutRequest
+{
+  ProtobufCMessage base;
+  char *username;
+};
+#define NAM__LOGOUT_REQUEST__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&nam__logout_request__descriptor) \
+    , (char *)protobuf_c_empty_string }
+
+
+struct  _Nam__BaseMessage
+{
+  ProtobufCMessage base;
+  int32_t messagetype;
+  Nam__LoginRequest *loginrequest;
+  Nam__SignupRequest *signuprequest;
+  Nam__LogoutRequest *logoutrequest;
+  Nam__AuthenticationResponse *authenticationresponse;
+};
+#define NAM__BASE_MESSAGE__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&nam__base_message__descriptor) \
+    , 0, NULL, NULL, NULL, NULL }
+
+
+struct  _Nam__AuthenticationResponse
 {
   ProtobufCMessage base;
   protobuf_c_boolean success;
   char *message;
 };
-#define AUTHENTICATION_RESPONSE__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&authentication_response__descriptor) \
+#define NAM__AUTHENTICATION_RESPONSE__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&nam__authentication_response__descriptor) \
     , 0, (char *)protobuf_c_empty_string }
 
 
-/* LoginRequest methods */
-void   login_request__init
-                     (LoginRequest         *message);
-size_t login_request__get_packed_size
-                     (const LoginRequest   *message);
-size_t login_request__pack
-                     (const LoginRequest   *message,
+/* Nam__LoginRequest methods */
+void   nam__login_request__init
+                     (Nam__LoginRequest         *message);
+size_t nam__login_request__get_packed_size
+                     (const Nam__LoginRequest   *message);
+size_t nam__login_request__pack
+                     (const Nam__LoginRequest   *message,
                       uint8_t             *out);
-size_t login_request__pack_to_buffer
-                     (const LoginRequest   *message,
+size_t nam__login_request__pack_to_buffer
+                     (const Nam__LoginRequest   *message,
                       ProtobufCBuffer     *buffer);
-LoginRequest *
-       login_request__unpack
+Nam__LoginRequest *
+       nam__login_request__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data);
-void   login_request__free_unpacked
-                     (LoginRequest *message,
+void   nam__login_request__free_unpacked
+                     (Nam__LoginRequest *message,
                       ProtobufCAllocator *allocator);
-/* SignupRequest methods */
-void   signup_request__init
-                     (SignupRequest         *message);
-size_t signup_request__get_packed_size
-                     (const SignupRequest   *message);
-size_t signup_request__pack
-                     (const SignupRequest   *message,
+/* Nam__SignupRequest methods */
+void   nam__signup_request__init
+                     (Nam__SignupRequest         *message);
+size_t nam__signup_request__get_packed_size
+                     (const Nam__SignupRequest   *message);
+size_t nam__signup_request__pack
+                     (const Nam__SignupRequest   *message,
                       uint8_t             *out);
-size_t signup_request__pack_to_buffer
-                     (const SignupRequest   *message,
+size_t nam__signup_request__pack_to_buffer
+                     (const Nam__SignupRequest   *message,
                       ProtobufCBuffer     *buffer);
-SignupRequest *
-       signup_request__unpack
+Nam__SignupRequest *
+       nam__signup_request__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data);
-void   signup_request__free_unpacked
-                     (SignupRequest *message,
+void   nam__signup_request__free_unpacked
+                     (Nam__SignupRequest *message,
                       ProtobufCAllocator *allocator);
-/* AuthenticationResponse methods */
-void   authentication_response__init
-                     (AuthenticationResponse         *message);
-size_t authentication_response__get_packed_size
-                     (const AuthenticationResponse   *message);
-size_t authentication_response__pack
-                     (const AuthenticationResponse   *message,
+/* Nam__LogoutRequest methods */
+void   nam__logout_request__init
+                     (Nam__LogoutRequest         *message);
+size_t nam__logout_request__get_packed_size
+                     (const Nam__LogoutRequest   *message);
+size_t nam__logout_request__pack
+                     (const Nam__LogoutRequest   *message,
                       uint8_t             *out);
-size_t authentication_response__pack_to_buffer
-                     (const AuthenticationResponse   *message,
+size_t nam__logout_request__pack_to_buffer
+                     (const Nam__LogoutRequest   *message,
                       ProtobufCBuffer     *buffer);
-AuthenticationResponse *
-       authentication_response__unpack
+Nam__LogoutRequest *
+       nam__logout_request__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data);
-void   authentication_response__free_unpacked
-                     (AuthenticationResponse *message,
+void   nam__logout_request__free_unpacked
+                     (Nam__LogoutRequest *message,
+                      ProtobufCAllocator *allocator);
+/* Nam__BaseMessage methods */
+void   nam__base_message__init
+                     (Nam__BaseMessage         *message);
+size_t nam__base_message__get_packed_size
+                     (const Nam__BaseMessage   *message);
+size_t nam__base_message__pack
+                     (const Nam__BaseMessage   *message,
+                      uint8_t             *out);
+size_t nam__base_message__pack_to_buffer
+                     (const Nam__BaseMessage   *message,
+                      ProtobufCBuffer     *buffer);
+Nam__BaseMessage *
+       nam__base_message__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   nam__base_message__free_unpacked
+                     (Nam__BaseMessage *message,
+                      ProtobufCAllocator *allocator);
+/* Nam__AuthenticationResponse methods */
+void   nam__authentication_response__init
+                     (Nam__AuthenticationResponse         *message);
+size_t nam__authentication_response__get_packed_size
+                     (const Nam__AuthenticationResponse   *message);
+size_t nam__authentication_response__pack
+                     (const Nam__AuthenticationResponse   *message,
+                      uint8_t             *out);
+size_t nam__authentication_response__pack_to_buffer
+                     (const Nam__AuthenticationResponse   *message,
+                      ProtobufCBuffer     *buffer);
+Nam__AuthenticationResponse *
+       nam__authentication_response__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   nam__authentication_response__free_unpacked
+                     (Nam__AuthenticationResponse *message,
                       ProtobufCAllocator *allocator);
 /* --- per-message closures --- */
 
-typedef void (*LoginRequest_Closure)
-                 (const LoginRequest *message,
+typedef void (*Nam__LoginRequest_Closure)
+                 (const Nam__LoginRequest *message,
                   void *closure_data);
-typedef void (*SignupRequest_Closure)
-                 (const SignupRequest *message,
+typedef void (*Nam__SignupRequest_Closure)
+                 (const Nam__SignupRequest *message,
                   void *closure_data);
-typedef void (*AuthenticationResponse_Closure)
-                 (const AuthenticationResponse *message,
+typedef void (*Nam__LogoutRequest_Closure)
+                 (const Nam__LogoutRequest *message,
+                  void *closure_data);
+typedef void (*Nam__BaseMessage_Closure)
+                 (const Nam__BaseMessage *message,
+                  void *closure_data);
+typedef void (*Nam__AuthenticationResponse_Closure)
+                 (const Nam__AuthenticationResponse *message,
                   void *closure_data);
 
 /* --- services --- */
@@ -134,9 +203,11 @@ typedef void (*AuthenticationResponse_Closure)
 
 /* --- descriptors --- */
 
-extern const ProtobufCMessageDescriptor login_request__descriptor;
-extern const ProtobufCMessageDescriptor signup_request__descriptor;
-extern const ProtobufCMessageDescriptor authentication_response__descriptor;
+extern const ProtobufCMessageDescriptor nam__login_request__descriptor;
+extern const ProtobufCMessageDescriptor nam__signup_request__descriptor;
+extern const ProtobufCMessageDescriptor nam__logout_request__descriptor;
+extern const ProtobufCMessageDescriptor nam__base_message__descriptor;
+extern const ProtobufCMessageDescriptor nam__authentication_response__descriptor;
 
 PROTOBUF_C__END_DECLS
 

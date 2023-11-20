@@ -24,7 +24,6 @@ $root.nam = (function() {
          * Properties of a LoginRequest.
          * @memberof nam
          * @interface ILoginRequest
-         * @property {Uint8Array|null} [messagetype] LoginRequest messagetype
          * @property {string|null} [username] LoginRequest username
          * @property {string|null} [password] LoginRequest password
          */
@@ -43,14 +42,6 @@ $root.nam = (function() {
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
-
-        /**
-         * LoginRequest messagetype.
-         * @member {Uint8Array} messagetype
-         * @memberof nam.LoginRequest
-         * @instance
-         */
-        LoginRequest.prototype.messagetype = $util.newBuffer([]);
 
         /**
          * LoginRequest username.
@@ -92,12 +83,10 @@ $root.nam = (function() {
         LoginRequest.encode = function encode(message, writer) {
             if (!writer)
                 writer = $Writer.create();
-            if (message.messagetype != null && Object.hasOwnProperty.call(message, "messagetype"))
-                writer.uint32(/* id 1, wireType 2 =*/10).bytes(message.messagetype);
             if (message.username != null && Object.hasOwnProperty.call(message, "username"))
-                writer.uint32(/* id 2, wireType 2 =*/18).string(message.username);
+                writer.uint32(/* id 1, wireType 2 =*/10).string(message.username);
             if (message.password != null && Object.hasOwnProperty.call(message, "password"))
-                writer.uint32(/* id 3, wireType 2 =*/26).string(message.password);
+                writer.uint32(/* id 2, wireType 2 =*/18).string(message.password);
             return writer;
         };
 
@@ -133,12 +122,9 @@ $root.nam = (function() {
                 var tag = reader.uint32();
                 switch (tag >>> 3) {
                 case 1:
-                    message.messagetype = reader.bytes();
-                    break;
-                case 2:
                     message.username = reader.string();
                     break;
-                case 3:
+                case 2:
                     message.password = reader.string();
                     break;
                 default:
@@ -176,9 +162,6 @@ $root.nam = (function() {
         LoginRequest.verify = function verify(message) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
-            if (message.messagetype != null && message.hasOwnProperty("messagetype"))
-                if (!(message.messagetype && typeof message.messagetype.length === "number" || $util.isString(message.messagetype)))
-                    return "messagetype: buffer expected";
             if (message.username != null && message.hasOwnProperty("username"))
                 if (!$util.isString(message.username))
                     return "username: string expected";
@@ -200,11 +183,6 @@ $root.nam = (function() {
             if (object instanceof $root.nam.LoginRequest)
                 return object;
             var message = new $root.nam.LoginRequest();
-            if (object.messagetype != null)
-                if (typeof object.messagetype === "string")
-                    $util.base64.decode(object.messagetype, message.messagetype = $util.newBuffer($util.base64.length(object.messagetype)), 0);
-                else if (object.messagetype.length)
-                    message.messagetype = object.messagetype;
             if (object.username != null)
                 message.username = String(object.username);
             if (object.password != null)
@@ -226,18 +204,9 @@ $root.nam = (function() {
                 options = {};
             var object = {};
             if (options.defaults) {
-                if (options.bytes === String)
-                    object.messagetype = "";
-                else {
-                    object.messagetype = [];
-                    if (options.bytes !== Array)
-                        object.messagetype = $util.newBuffer(object.messagetype);
-                }
                 object.username = "";
                 object.password = "";
             }
-            if (message.messagetype != null && message.hasOwnProperty("messagetype"))
-                object.messagetype = options.bytes === String ? $util.base64.encode(message.messagetype, 0, message.messagetype.length) : options.bytes === Array ? Array.prototype.slice.call(message.messagetype) : message.messagetype;
             if (message.username != null && message.hasOwnProperty("username"))
                 object.username = message.username;
             if (message.password != null && message.hasOwnProperty("password"))
@@ -334,11 +303,11 @@ $root.nam = (function() {
             if (!writer)
                 writer = $Writer.create();
             if (message.username != null && Object.hasOwnProperty.call(message, "username"))
-                writer.uint32(/* id 1, wireType 2 =*/10).string(message.username);
+                writer.uint32(/* id 3, wireType 2 =*/26).string(message.username);
             if (message.password != null && Object.hasOwnProperty.call(message, "password"))
-                writer.uint32(/* id 2, wireType 2 =*/18).string(message.password);
+                writer.uint32(/* id 4, wireType 2 =*/34).string(message.password);
             if (message.email != null && Object.hasOwnProperty.call(message, "email"))
-                writer.uint32(/* id 3, wireType 2 =*/26).string(message.email);
+                writer.uint32(/* id 5, wireType 2 =*/42).string(message.email);
             return writer;
         };
 
@@ -373,13 +342,13 @@ $root.nam = (function() {
             while (reader.pos < end) {
                 var tag = reader.uint32();
                 switch (tag >>> 3) {
-                case 1:
+                case 3:
                     message.username = reader.string();
                     break;
-                case 2:
+                case 4:
                     message.password = reader.string();
                     break;
-                case 3:
+                case 5:
                     message.email = reader.string();
                     break;
                 default:
@@ -489,6 +458,489 @@ $root.nam = (function() {
         };
 
         return SignupRequest;
+    })();
+
+    nam.LogoutRequest = (function() {
+
+        /**
+         * Properties of a LogoutRequest.
+         * @memberof nam
+         * @interface ILogoutRequest
+         * @property {string|null} [username] LogoutRequest username
+         */
+
+        /**
+         * Constructs a new LogoutRequest.
+         * @memberof nam
+         * @classdesc Represents a LogoutRequest.
+         * @implements ILogoutRequest
+         * @constructor
+         * @param {nam.ILogoutRequest=} [properties] Properties to set
+         */
+        function LogoutRequest(properties) {
+            if (properties)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * LogoutRequest username.
+         * @member {string} username
+         * @memberof nam.LogoutRequest
+         * @instance
+         */
+        LogoutRequest.prototype.username = "";
+
+        /**
+         * Creates a new LogoutRequest instance using the specified properties.
+         * @function create
+         * @memberof nam.LogoutRequest
+         * @static
+         * @param {nam.ILogoutRequest=} [properties] Properties to set
+         * @returns {nam.LogoutRequest} LogoutRequest instance
+         */
+        LogoutRequest.create = function create(properties) {
+            return new LogoutRequest(properties);
+        };
+
+        /**
+         * Encodes the specified LogoutRequest message. Does not implicitly {@link nam.LogoutRequest.verify|verify} messages.
+         * @function encode
+         * @memberof nam.LogoutRequest
+         * @static
+         * @param {nam.ILogoutRequest} message LogoutRequest message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        LogoutRequest.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.username != null && Object.hasOwnProperty.call(message, "username"))
+                writer.uint32(/* id 6, wireType 2 =*/50).string(message.username);
+            return writer;
+        };
+
+        /**
+         * Encodes the specified LogoutRequest message, length delimited. Does not implicitly {@link nam.LogoutRequest.verify|verify} messages.
+         * @function encodeDelimited
+         * @memberof nam.LogoutRequest
+         * @static
+         * @param {nam.ILogoutRequest} message LogoutRequest message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        LogoutRequest.encodeDelimited = function encodeDelimited(message, writer) {
+            return this.encode(message, writer).ldelim();
+        };
+
+        /**
+         * Decodes a LogoutRequest message from the specified reader or buffer.
+         * @function decode
+         * @memberof nam.LogoutRequest
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {nam.LogoutRequest} LogoutRequest
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        LogoutRequest.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.nam.LogoutRequest();
+            while (reader.pos < end) {
+                var tag = reader.uint32();
+                switch (tag >>> 3) {
+                case 6:
+                    message.username = reader.string();
+                    break;
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Decodes a LogoutRequest message from the specified reader or buffer, length delimited.
+         * @function decodeDelimited
+         * @memberof nam.LogoutRequest
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @returns {nam.LogoutRequest} LogoutRequest
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        LogoutRequest.decodeDelimited = function decodeDelimited(reader) {
+            if (!(reader instanceof $Reader))
+                reader = new $Reader(reader);
+            return this.decode(reader, reader.uint32());
+        };
+
+        /**
+         * Verifies a LogoutRequest message.
+         * @function verify
+         * @memberof nam.LogoutRequest
+         * @static
+         * @param {Object.<string,*>} message Plain object to verify
+         * @returns {string|null} `null` if valid, otherwise the reason why it is not
+         */
+        LogoutRequest.verify = function verify(message) {
+            if (typeof message !== "object" || message === null)
+                return "object expected";
+            if (message.username != null && message.hasOwnProperty("username"))
+                if (!$util.isString(message.username))
+                    return "username: string expected";
+            return null;
+        };
+
+        /**
+         * Creates a LogoutRequest message from a plain object. Also converts values to their respective internal types.
+         * @function fromObject
+         * @memberof nam.LogoutRequest
+         * @static
+         * @param {Object.<string,*>} object Plain object
+         * @returns {nam.LogoutRequest} LogoutRequest
+         */
+        LogoutRequest.fromObject = function fromObject(object) {
+            if (object instanceof $root.nam.LogoutRequest)
+                return object;
+            var message = new $root.nam.LogoutRequest();
+            if (object.username != null)
+                message.username = String(object.username);
+            return message;
+        };
+
+        /**
+         * Creates a plain object from a LogoutRequest message. Also converts values to other types if specified.
+         * @function toObject
+         * @memberof nam.LogoutRequest
+         * @static
+         * @param {nam.LogoutRequest} message LogoutRequest
+         * @param {$protobuf.IConversionOptions} [options] Conversion options
+         * @returns {Object.<string,*>} Plain object
+         */
+        LogoutRequest.toObject = function toObject(message, options) {
+            if (!options)
+                options = {};
+            var object = {};
+            if (options.defaults)
+                object.username = "";
+            if (message.username != null && message.hasOwnProperty("username"))
+                object.username = message.username;
+            return object;
+        };
+
+        /**
+         * Converts this LogoutRequest to JSON.
+         * @function toJSON
+         * @memberof nam.LogoutRequest
+         * @instance
+         * @returns {Object.<string,*>} JSON object
+         */
+        LogoutRequest.prototype.toJSON = function toJSON() {
+            return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+        };
+
+        return LogoutRequest;
+    })();
+
+    nam.BaseMessage = (function() {
+
+        /**
+         * Properties of a BaseMessage.
+         * @memberof nam
+         * @interface IBaseMessage
+         * @property {number|null} [messageType] BaseMessage messageType
+         * @property {nam.ILoginRequest|null} [loginRequest] BaseMessage loginRequest
+         * @property {nam.ISignupRequest|null} [signupRequest] BaseMessage signupRequest
+         * @property {nam.ILogoutRequest|null} [logoutRequest] BaseMessage logoutRequest
+         * @property {nam.IAuthenticationResponse|null} [authenticationResponse] BaseMessage authenticationResponse
+         */
+
+        /**
+         * Constructs a new BaseMessage.
+         * @memberof nam
+         * @classdesc Represents a BaseMessage.
+         * @implements IBaseMessage
+         * @constructor
+         * @param {nam.IBaseMessage=} [properties] Properties to set
+         */
+        function BaseMessage(properties) {
+            if (properties)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * BaseMessage messageType.
+         * @member {number} messageType
+         * @memberof nam.BaseMessage
+         * @instance
+         */
+        BaseMessage.prototype.messageType = 0;
+
+        /**
+         * BaseMessage loginRequest.
+         * @member {nam.ILoginRequest|null|undefined} loginRequest
+         * @memberof nam.BaseMessage
+         * @instance
+         */
+        BaseMessage.prototype.loginRequest = null;
+
+        /**
+         * BaseMessage signupRequest.
+         * @member {nam.ISignupRequest|null|undefined} signupRequest
+         * @memberof nam.BaseMessage
+         * @instance
+         */
+        BaseMessage.prototype.signupRequest = null;
+
+        /**
+         * BaseMessage logoutRequest.
+         * @member {nam.ILogoutRequest|null|undefined} logoutRequest
+         * @memberof nam.BaseMessage
+         * @instance
+         */
+        BaseMessage.prototype.logoutRequest = null;
+
+        /**
+         * BaseMessage authenticationResponse.
+         * @member {nam.IAuthenticationResponse|null|undefined} authenticationResponse
+         * @memberof nam.BaseMessage
+         * @instance
+         */
+        BaseMessage.prototype.authenticationResponse = null;
+
+        /**
+         * Creates a new BaseMessage instance using the specified properties.
+         * @function create
+         * @memberof nam.BaseMessage
+         * @static
+         * @param {nam.IBaseMessage=} [properties] Properties to set
+         * @returns {nam.BaseMessage} BaseMessage instance
+         */
+        BaseMessage.create = function create(properties) {
+            return new BaseMessage(properties);
+        };
+
+        /**
+         * Encodes the specified BaseMessage message. Does not implicitly {@link nam.BaseMessage.verify|verify} messages.
+         * @function encode
+         * @memberof nam.BaseMessage
+         * @static
+         * @param {nam.IBaseMessage} message BaseMessage message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        BaseMessage.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.messageType != null && Object.hasOwnProperty.call(message, "messageType"))
+                writer.uint32(/* id 1, wireType 0 =*/8).int32(message.messageType);
+            if (message.loginRequest != null && Object.hasOwnProperty.call(message, "loginRequest"))
+                $root.nam.LoginRequest.encode(message.loginRequest, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
+            if (message.signupRequest != null && Object.hasOwnProperty.call(message, "signupRequest"))
+                $root.nam.SignupRequest.encode(message.signupRequest, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
+            if (message.logoutRequest != null && Object.hasOwnProperty.call(message, "logoutRequest"))
+                $root.nam.LogoutRequest.encode(message.logoutRequest, writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
+            if (message.authenticationResponse != null && Object.hasOwnProperty.call(message, "authenticationResponse"))
+                $root.nam.AuthenticationResponse.encode(message.authenticationResponse, writer.uint32(/* id 5, wireType 2 =*/42).fork()).ldelim();
+            return writer;
+        };
+
+        /**
+         * Encodes the specified BaseMessage message, length delimited. Does not implicitly {@link nam.BaseMessage.verify|verify} messages.
+         * @function encodeDelimited
+         * @memberof nam.BaseMessage
+         * @static
+         * @param {nam.IBaseMessage} message BaseMessage message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        BaseMessage.encodeDelimited = function encodeDelimited(message, writer) {
+            return this.encode(message, writer).ldelim();
+        };
+
+        /**
+         * Decodes a BaseMessage message from the specified reader or buffer.
+         * @function decode
+         * @memberof nam.BaseMessage
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {nam.BaseMessage} BaseMessage
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        BaseMessage.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.nam.BaseMessage();
+            while (reader.pos < end) {
+                var tag = reader.uint32();
+                switch (tag >>> 3) {
+                case 1:
+                    message.messageType = reader.int32();
+                    break;
+                case 2:
+                    message.loginRequest = $root.nam.LoginRequest.decode(reader, reader.uint32());
+                    break;
+                case 3:
+                    message.signupRequest = $root.nam.SignupRequest.decode(reader, reader.uint32());
+                    break;
+                case 4:
+                    message.logoutRequest = $root.nam.LogoutRequest.decode(reader, reader.uint32());
+                    break;
+                case 5:
+                    message.authenticationResponse = $root.nam.AuthenticationResponse.decode(reader, reader.uint32());
+                    break;
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Decodes a BaseMessage message from the specified reader or buffer, length delimited.
+         * @function decodeDelimited
+         * @memberof nam.BaseMessage
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @returns {nam.BaseMessage} BaseMessage
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        BaseMessage.decodeDelimited = function decodeDelimited(reader) {
+            if (!(reader instanceof $Reader))
+                reader = new $Reader(reader);
+            return this.decode(reader, reader.uint32());
+        };
+
+        /**
+         * Verifies a BaseMessage message.
+         * @function verify
+         * @memberof nam.BaseMessage
+         * @static
+         * @param {Object.<string,*>} message Plain object to verify
+         * @returns {string|null} `null` if valid, otherwise the reason why it is not
+         */
+        BaseMessage.verify = function verify(message) {
+            if (typeof message !== "object" || message === null)
+                return "object expected";
+            if (message.messageType != null && message.hasOwnProperty("messageType"))
+                if (!$util.isInteger(message.messageType))
+                    return "messageType: integer expected";
+            if (message.loginRequest != null && message.hasOwnProperty("loginRequest")) {
+                var error = $root.nam.LoginRequest.verify(message.loginRequest);
+                if (error)
+                    return "loginRequest." + error;
+            }
+            if (message.signupRequest != null && message.hasOwnProperty("signupRequest")) {
+                var error = $root.nam.SignupRequest.verify(message.signupRequest);
+                if (error)
+                    return "signupRequest." + error;
+            }
+            if (message.logoutRequest != null && message.hasOwnProperty("logoutRequest")) {
+                var error = $root.nam.LogoutRequest.verify(message.logoutRequest);
+                if (error)
+                    return "logoutRequest." + error;
+            }
+            if (message.authenticationResponse != null && message.hasOwnProperty("authenticationResponse")) {
+                var error = $root.nam.AuthenticationResponse.verify(message.authenticationResponse);
+                if (error)
+                    return "authenticationResponse." + error;
+            }
+            return null;
+        };
+
+        /**
+         * Creates a BaseMessage message from a plain object. Also converts values to their respective internal types.
+         * @function fromObject
+         * @memberof nam.BaseMessage
+         * @static
+         * @param {Object.<string,*>} object Plain object
+         * @returns {nam.BaseMessage} BaseMessage
+         */
+        BaseMessage.fromObject = function fromObject(object) {
+            if (object instanceof $root.nam.BaseMessage)
+                return object;
+            var message = new $root.nam.BaseMessage();
+            if (object.messageType != null)
+                message.messageType = object.messageType | 0;
+            if (object.loginRequest != null) {
+                if (typeof object.loginRequest !== "object")
+                    throw TypeError(".nam.BaseMessage.loginRequest: object expected");
+                message.loginRequest = $root.nam.LoginRequest.fromObject(object.loginRequest);
+            }
+            if (object.signupRequest != null) {
+                if (typeof object.signupRequest !== "object")
+                    throw TypeError(".nam.BaseMessage.signupRequest: object expected");
+                message.signupRequest = $root.nam.SignupRequest.fromObject(object.signupRequest);
+            }
+            if (object.logoutRequest != null) {
+                if (typeof object.logoutRequest !== "object")
+                    throw TypeError(".nam.BaseMessage.logoutRequest: object expected");
+                message.logoutRequest = $root.nam.LogoutRequest.fromObject(object.logoutRequest);
+            }
+            if (object.authenticationResponse != null) {
+                if (typeof object.authenticationResponse !== "object")
+                    throw TypeError(".nam.BaseMessage.authenticationResponse: object expected");
+                message.authenticationResponse = $root.nam.AuthenticationResponse.fromObject(object.authenticationResponse);
+            }
+            return message;
+        };
+
+        /**
+         * Creates a plain object from a BaseMessage message. Also converts values to other types if specified.
+         * @function toObject
+         * @memberof nam.BaseMessage
+         * @static
+         * @param {nam.BaseMessage} message BaseMessage
+         * @param {$protobuf.IConversionOptions} [options] Conversion options
+         * @returns {Object.<string,*>} Plain object
+         */
+        BaseMessage.toObject = function toObject(message, options) {
+            if (!options)
+                options = {};
+            var object = {};
+            if (options.defaults) {
+                object.messageType = 0;
+                object.loginRequest = null;
+                object.signupRequest = null;
+                object.logoutRequest = null;
+                object.authenticationResponse = null;
+            }
+            if (message.messageType != null && message.hasOwnProperty("messageType"))
+                object.messageType = message.messageType;
+            if (message.loginRequest != null && message.hasOwnProperty("loginRequest"))
+                object.loginRequest = $root.nam.LoginRequest.toObject(message.loginRequest, options);
+            if (message.signupRequest != null && message.hasOwnProperty("signupRequest"))
+                object.signupRequest = $root.nam.SignupRequest.toObject(message.signupRequest, options);
+            if (message.logoutRequest != null && message.hasOwnProperty("logoutRequest"))
+                object.logoutRequest = $root.nam.LogoutRequest.toObject(message.logoutRequest, options);
+            if (message.authenticationResponse != null && message.hasOwnProperty("authenticationResponse"))
+                object.authenticationResponse = $root.nam.AuthenticationResponse.toObject(message.authenticationResponse, options);
+            return object;
+        };
+
+        /**
+         * Converts this BaseMessage to JSON.
+         * @function toJSON
+         * @memberof nam.BaseMessage
+         * @instance
+         * @returns {Object.<string,*>} JSON object
+         */
+        BaseMessage.prototype.toJSON = function toJSON() {
+            return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+        };
+
+        return BaseMessage;
     })();
 
     nam.AuthenticationResponse = (function() {

@@ -7,162 +7,240 @@
 #endif
 
 #include "authentication.pb-c.h"
-void   login_request__init
-                     (LoginRequest         *message)
+void   nam__login_request__init
+                     (Nam__LoginRequest         *message)
 {
-  static const LoginRequest init_value = LOGIN_REQUEST__INIT;
+  static const Nam__LoginRequest init_value = NAM__LOGIN_REQUEST__INIT;
   *message = init_value;
 }
-size_t login_request__get_packed_size
-                     (const LoginRequest *message)
+size_t nam__login_request__get_packed_size
+                     (const Nam__LoginRequest *message)
 {
-  assert(message->base.descriptor == &login_request__descriptor);
+  assert(message->base.descriptor == &nam__login_request__descriptor);
   return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
 }
-size_t login_request__pack
-                     (const LoginRequest *message,
+size_t nam__login_request__pack
+                     (const Nam__LoginRequest *message,
                       uint8_t       *out)
 {
-  assert(message->base.descriptor == &login_request__descriptor);
+  assert(message->base.descriptor == &nam__login_request__descriptor);
   return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
 }
-size_t login_request__pack_to_buffer
-                     (const LoginRequest *message,
+size_t nam__login_request__pack_to_buffer
+                     (const Nam__LoginRequest *message,
                       ProtobufCBuffer *buffer)
 {
-  assert(message->base.descriptor == &login_request__descriptor);
+  assert(message->base.descriptor == &nam__login_request__descriptor);
   return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
 }
-LoginRequest *
-       login_request__unpack
+Nam__LoginRequest *
+       nam__login_request__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data)
 {
-  return (LoginRequest *)
-     protobuf_c_message_unpack (&login_request__descriptor,
+  return (Nam__LoginRequest *)
+     protobuf_c_message_unpack (&nam__login_request__descriptor,
                                 allocator, len, data);
 }
-void   login_request__free_unpacked
-                     (LoginRequest *message,
+void   nam__login_request__free_unpacked
+                     (Nam__LoginRequest *message,
                       ProtobufCAllocator *allocator)
 {
   if(!message)
     return;
-  assert(message->base.descriptor == &login_request__descriptor);
+  assert(message->base.descriptor == &nam__login_request__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-void   signup_request__init
-                     (SignupRequest         *message)
+void   nam__signup_request__init
+                     (Nam__SignupRequest         *message)
 {
-  static const SignupRequest init_value = SIGNUP_REQUEST__INIT;
+  static const Nam__SignupRequest init_value = NAM__SIGNUP_REQUEST__INIT;
   *message = init_value;
 }
-size_t signup_request__get_packed_size
-                     (const SignupRequest *message)
+size_t nam__signup_request__get_packed_size
+                     (const Nam__SignupRequest *message)
 {
-  assert(message->base.descriptor == &signup_request__descriptor);
+  assert(message->base.descriptor == &nam__signup_request__descriptor);
   return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
 }
-size_t signup_request__pack
-                     (const SignupRequest *message,
+size_t nam__signup_request__pack
+                     (const Nam__SignupRequest *message,
                       uint8_t       *out)
 {
-  assert(message->base.descriptor == &signup_request__descriptor);
+  assert(message->base.descriptor == &nam__signup_request__descriptor);
   return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
 }
-size_t signup_request__pack_to_buffer
-                     (const SignupRequest *message,
+size_t nam__signup_request__pack_to_buffer
+                     (const Nam__SignupRequest *message,
                       ProtobufCBuffer *buffer)
 {
-  assert(message->base.descriptor == &signup_request__descriptor);
+  assert(message->base.descriptor == &nam__signup_request__descriptor);
   return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
 }
-SignupRequest *
-       signup_request__unpack
+Nam__SignupRequest *
+       nam__signup_request__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data)
 {
-  return (SignupRequest *)
-     protobuf_c_message_unpack (&signup_request__descriptor,
+  return (Nam__SignupRequest *)
+     protobuf_c_message_unpack (&nam__signup_request__descriptor,
                                 allocator, len, data);
 }
-void   signup_request__free_unpacked
-                     (SignupRequest *message,
+void   nam__signup_request__free_unpacked
+                     (Nam__SignupRequest *message,
                       ProtobufCAllocator *allocator)
 {
   if(!message)
     return;
-  assert(message->base.descriptor == &signup_request__descriptor);
+  assert(message->base.descriptor == &nam__signup_request__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-void   authentication_response__init
-                     (AuthenticationResponse         *message)
+void   nam__logout_request__init
+                     (Nam__LogoutRequest         *message)
 {
-  static const AuthenticationResponse init_value = AUTHENTICATION_RESPONSE__INIT;
+  static const Nam__LogoutRequest init_value = NAM__LOGOUT_REQUEST__INIT;
   *message = init_value;
 }
-size_t authentication_response__get_packed_size
-                     (const AuthenticationResponse *message)
+size_t nam__logout_request__get_packed_size
+                     (const Nam__LogoutRequest *message)
 {
-  assert(message->base.descriptor == &authentication_response__descriptor);
+  assert(message->base.descriptor == &nam__logout_request__descriptor);
   return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
 }
-size_t authentication_response__pack
-                     (const AuthenticationResponse *message,
+size_t nam__logout_request__pack
+                     (const Nam__LogoutRequest *message,
                       uint8_t       *out)
 {
-  assert(message->base.descriptor == &authentication_response__descriptor);
+  assert(message->base.descriptor == &nam__logout_request__descriptor);
   return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
 }
-size_t authentication_response__pack_to_buffer
-                     (const AuthenticationResponse *message,
+size_t nam__logout_request__pack_to_buffer
+                     (const Nam__LogoutRequest *message,
                       ProtobufCBuffer *buffer)
 {
-  assert(message->base.descriptor == &authentication_response__descriptor);
+  assert(message->base.descriptor == &nam__logout_request__descriptor);
   return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
 }
-AuthenticationResponse *
-       authentication_response__unpack
+Nam__LogoutRequest *
+       nam__logout_request__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data)
 {
-  return (AuthenticationResponse *)
-     protobuf_c_message_unpack (&authentication_response__descriptor,
+  return (Nam__LogoutRequest *)
+     protobuf_c_message_unpack (&nam__logout_request__descriptor,
                                 allocator, len, data);
 }
-void   authentication_response__free_unpacked
-                     (AuthenticationResponse *message,
+void   nam__logout_request__free_unpacked
+                     (Nam__LogoutRequest *message,
                       ProtobufCAllocator *allocator)
 {
   if(!message)
     return;
-  assert(message->base.descriptor == &authentication_response__descriptor);
+  assert(message->base.descriptor == &nam__logout_request__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-static const ProtobufCFieldDescriptor login_request__field_descriptors[3] =
+void   nam__base_message__init
+                     (Nam__BaseMessage         *message)
 {
-  {
-    "messagetype",
-    1,
-    PROTOBUF_C_LABEL_NONE,
-    PROTOBUF_C_TYPE_BYTES,
-    0,   /* quantifier_offset */
-    offsetof(LoginRequest, messagetype),
-    NULL,
-    NULL,
-    0,             /* flags */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
+  static const Nam__BaseMessage init_value = NAM__BASE_MESSAGE__INIT;
+  *message = init_value;
+}
+size_t nam__base_message__get_packed_size
+                     (const Nam__BaseMessage *message)
+{
+  assert(message->base.descriptor == &nam__base_message__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t nam__base_message__pack
+                     (const Nam__BaseMessage *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &nam__base_message__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t nam__base_message__pack_to_buffer
+                     (const Nam__BaseMessage *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &nam__base_message__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+Nam__BaseMessage *
+       nam__base_message__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (Nam__BaseMessage *)
+     protobuf_c_message_unpack (&nam__base_message__descriptor,
+                                allocator, len, data);
+}
+void   nam__base_message__free_unpacked
+                     (Nam__BaseMessage *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &nam__base_message__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   nam__authentication_response__init
+                     (Nam__AuthenticationResponse         *message)
+{
+  static const Nam__AuthenticationResponse init_value = NAM__AUTHENTICATION_RESPONSE__INIT;
+  *message = init_value;
+}
+size_t nam__authentication_response__get_packed_size
+                     (const Nam__AuthenticationResponse *message)
+{
+  assert(message->base.descriptor == &nam__authentication_response__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t nam__authentication_response__pack
+                     (const Nam__AuthenticationResponse *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &nam__authentication_response__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t nam__authentication_response__pack_to_buffer
+                     (const Nam__AuthenticationResponse *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &nam__authentication_response__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+Nam__AuthenticationResponse *
+       nam__authentication_response__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (Nam__AuthenticationResponse *)
+     protobuf_c_message_unpack (&nam__authentication_response__descriptor,
+                                allocator, len, data);
+}
+void   nam__authentication_response__free_unpacked
+                     (Nam__AuthenticationResponse *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &nam__authentication_response__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+static const ProtobufCFieldDescriptor nam__login_request__field_descriptors[2] =
+{
   {
     "username",
-    2,
+    1,
     PROTOBUF_C_LABEL_NONE,
     PROTOBUF_C_TYPE_STRING,
     0,   /* quantifier_offset */
-    offsetof(LoginRequest, username),
+    offsetof(Nam__LoginRequest, username),
     NULL,
     &protobuf_c_empty_string,
     0,             /* flags */
@@ -170,51 +248,50 @@ static const ProtobufCFieldDescriptor login_request__field_descriptors[3] =
   },
   {
     "password",
+    2,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_STRING,
+    0,   /* quantifier_offset */
+    offsetof(Nam__LoginRequest, password),
+    NULL,
+    &protobuf_c_empty_string,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned nam__login_request__field_indices_by_name[] = {
+  1,   /* field[1] = password */
+  0,   /* field[0] = username */
+};
+static const ProtobufCIntRange nam__login_request__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 2 }
+};
+const ProtobufCMessageDescriptor nam__login_request__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "nam.LoginRequest",
+  "LoginRequest",
+  "Nam__LoginRequest",
+  "nam",
+  sizeof(Nam__LoginRequest),
+  2,
+  nam__login_request__field_descriptors,
+  nam__login_request__field_indices_by_name,
+  1,  nam__login_request__number_ranges,
+  (ProtobufCMessageInit) nam__login_request__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor nam__signup_request__field_descriptors[3] =
+{
+  {
+    "username",
     3,
     PROTOBUF_C_LABEL_NONE,
     PROTOBUF_C_TYPE_STRING,
     0,   /* quantifier_offset */
-    offsetof(LoginRequest, password),
-    NULL,
-    &protobuf_c_empty_string,
-    0,             /* flags */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-};
-static const unsigned login_request__field_indices_by_name[] = {
-  0,   /* field[0] = messagetype */
-  2,   /* field[2] = password */
-  1,   /* field[1] = username */
-};
-static const ProtobufCIntRange login_request__number_ranges[1 + 1] =
-{
-  { 1, 0 },
-  { 0, 3 }
-};
-const ProtobufCMessageDescriptor login_request__descriptor =
-{
-  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
-  "LoginRequest",
-  "LoginRequest",
-  "LoginRequest",
-  "",
-  sizeof(LoginRequest),
-  3,
-  login_request__field_descriptors,
-  login_request__field_indices_by_name,
-  1,  login_request__number_ranges,
-  (ProtobufCMessageInit) login_request__init,
-  NULL,NULL,NULL    /* reserved[123] */
-};
-static const ProtobufCFieldDescriptor signup_request__field_descriptors[3] =
-{
-  {
-    "username",
-    1,
-    PROTOBUF_C_LABEL_NONE,
-    PROTOBUF_C_TYPE_STRING,
-    0,   /* quantifier_offset */
-    offsetof(SignupRequest, username),
+    offsetof(Nam__SignupRequest, username),
     NULL,
     &protobuf_c_empty_string,
     0,             /* flags */
@@ -222,11 +299,11 @@ static const ProtobufCFieldDescriptor signup_request__field_descriptors[3] =
   },
   {
     "password",
-    2,
+    4,
     PROTOBUF_C_LABEL_NONE,
     PROTOBUF_C_TYPE_STRING,
     0,   /* quantifier_offset */
-    offsetof(SignupRequest, password),
+    offsetof(Nam__SignupRequest, password),
     NULL,
     &protobuf_c_empty_string,
     0,             /* flags */
@@ -234,43 +311,171 @@ static const ProtobufCFieldDescriptor signup_request__field_descriptors[3] =
   },
   {
     "email",
-    3,
+    5,
     PROTOBUF_C_LABEL_NONE,
     PROTOBUF_C_TYPE_STRING,
     0,   /* quantifier_offset */
-    offsetof(SignupRequest, email),
+    offsetof(Nam__SignupRequest, email),
     NULL,
     &protobuf_c_empty_string,
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
 };
-static const unsigned signup_request__field_indices_by_name[] = {
+static const unsigned nam__signup_request__field_indices_by_name[] = {
   2,   /* field[2] = email */
   1,   /* field[1] = password */
   0,   /* field[0] = username */
 };
-static const ProtobufCIntRange signup_request__number_ranges[1 + 1] =
+static const ProtobufCIntRange nam__signup_request__number_ranges[1 + 1] =
 {
-  { 1, 0 },
+  { 3, 0 },
   { 0, 3 }
 };
-const ProtobufCMessageDescriptor signup_request__descriptor =
+const ProtobufCMessageDescriptor nam__signup_request__descriptor =
 {
   PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "nam.SignupRequest",
   "SignupRequest",
-  "SignupRequest",
-  "SignupRequest",
-  "",
-  sizeof(SignupRequest),
+  "Nam__SignupRequest",
+  "nam",
+  sizeof(Nam__SignupRequest),
   3,
-  signup_request__field_descriptors,
-  signup_request__field_indices_by_name,
-  1,  signup_request__number_ranges,
-  (ProtobufCMessageInit) signup_request__init,
+  nam__signup_request__field_descriptors,
+  nam__signup_request__field_indices_by_name,
+  1,  nam__signup_request__number_ranges,
+  (ProtobufCMessageInit) nam__signup_request__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor authentication_response__field_descriptors[2] =
+static const ProtobufCFieldDescriptor nam__logout_request__field_descriptors[1] =
+{
+  {
+    "username",
+    6,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_STRING,
+    0,   /* quantifier_offset */
+    offsetof(Nam__LogoutRequest, username),
+    NULL,
+    &protobuf_c_empty_string,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned nam__logout_request__field_indices_by_name[] = {
+  0,   /* field[0] = username */
+};
+static const ProtobufCIntRange nam__logout_request__number_ranges[1 + 1] =
+{
+  { 6, 0 },
+  { 0, 1 }
+};
+const ProtobufCMessageDescriptor nam__logout_request__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "nam.LogoutRequest",
+  "LogoutRequest",
+  "Nam__LogoutRequest",
+  "nam",
+  sizeof(Nam__LogoutRequest),
+  1,
+  nam__logout_request__field_descriptors,
+  nam__logout_request__field_indices_by_name,
+  1,  nam__logout_request__number_ranges,
+  (ProtobufCMessageInit) nam__logout_request__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor nam__base_message__field_descriptors[5] =
+{
+  {
+    "messageType",
+    1,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    offsetof(Nam__BaseMessage, messagetype),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "loginRequest",
+    2,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_MESSAGE,
+    0,   /* quantifier_offset */
+    offsetof(Nam__BaseMessage, loginrequest),
+    &nam__login_request__descriptor,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "signupRequest",
+    3,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_MESSAGE,
+    0,   /* quantifier_offset */
+    offsetof(Nam__BaseMessage, signuprequest),
+    &nam__signup_request__descriptor,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "logoutRequest",
+    4,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_MESSAGE,
+    0,   /* quantifier_offset */
+    offsetof(Nam__BaseMessage, logoutrequest),
+    &nam__logout_request__descriptor,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "authenticationResponse",
+    5,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_MESSAGE,
+    0,   /* quantifier_offset */
+    offsetof(Nam__BaseMessage, authenticationresponse),
+    &nam__authentication_response__descriptor,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned nam__base_message__field_indices_by_name[] = {
+  4,   /* field[4] = authenticationResponse */
+  1,   /* field[1] = loginRequest */
+  3,   /* field[3] = logoutRequest */
+  0,   /* field[0] = messageType */
+  2,   /* field[2] = signupRequest */
+};
+static const ProtobufCIntRange nam__base_message__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 5 }
+};
+const ProtobufCMessageDescriptor nam__base_message__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "nam.BaseMessage",
+  "BaseMessage",
+  "Nam__BaseMessage",
+  "nam",
+  sizeof(Nam__BaseMessage),
+  5,
+  nam__base_message__field_descriptors,
+  nam__base_message__field_indices_by_name,
+  1,  nam__base_message__number_ranges,
+  (ProtobufCMessageInit) nam__base_message__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor nam__authentication_response__field_descriptors[2] =
 {
   {
     "success",
@@ -278,7 +483,7 @@ static const ProtobufCFieldDescriptor authentication_response__field_descriptors
     PROTOBUF_C_LABEL_NONE,
     PROTOBUF_C_TYPE_BOOL,
     0,   /* quantifier_offset */
-    offsetof(AuthenticationResponse, success),
+    offsetof(Nam__AuthenticationResponse, success),
     NULL,
     NULL,
     0,             /* flags */
@@ -290,34 +495,34 @@ static const ProtobufCFieldDescriptor authentication_response__field_descriptors
     PROTOBUF_C_LABEL_NONE,
     PROTOBUF_C_TYPE_STRING,
     0,   /* quantifier_offset */
-    offsetof(AuthenticationResponse, message),
+    offsetof(Nam__AuthenticationResponse, message),
     NULL,
     &protobuf_c_empty_string,
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
 };
-static const unsigned authentication_response__field_indices_by_name[] = {
+static const unsigned nam__authentication_response__field_indices_by_name[] = {
   1,   /* field[1] = message */
   0,   /* field[0] = success */
 };
-static const ProtobufCIntRange authentication_response__number_ranges[1 + 1] =
+static const ProtobufCIntRange nam__authentication_response__number_ranges[1 + 1] =
 {
   { 1, 0 },
   { 0, 2 }
 };
-const ProtobufCMessageDescriptor authentication_response__descriptor =
+const ProtobufCMessageDescriptor nam__authentication_response__descriptor =
 {
   PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "nam.AuthenticationResponse",
   "AuthenticationResponse",
-  "AuthenticationResponse",
-  "AuthenticationResponse",
-  "",
-  sizeof(AuthenticationResponse),
+  "Nam__AuthenticationResponse",
+  "nam",
+  sizeof(Nam__AuthenticationResponse),
   2,
-  authentication_response__field_descriptors,
-  authentication_response__field_indices_by_name,
-  1,  authentication_response__number_ranges,
-  (ProtobufCMessageInit) authentication_response__init,
+  nam__authentication_response__field_descriptors,
+  nam__authentication_response__field_indices_by_name,
+  1,  nam__authentication_response__number_ranges,
+  (ProtobufCMessageInit) nam__authentication_response__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
