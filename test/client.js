@@ -63,7 +63,7 @@ client.connect(PORT, SERVER_IP, () => {
       } else {
         sendLogoutRequest(client);
       }
-    }, i * 2000);
+    }, 1000* i);
   }
   // sendLogoutRequest(client);
   // Send a logout request to the server

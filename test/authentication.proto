@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package nam;
+enum MessageType {
+    LOGIN = 0;
+    REGISTER = 1;
+    LOGOUT = 2;
+    MOVE = 3;
+    SURRENDER = 4;
+}
+
+message Message {
+    MessageType type = 1;
+    bytes content = 2;  
+}
