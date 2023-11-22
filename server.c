@@ -6,20 +6,20 @@
 #include <sys/socket.h>
 #include "node.h"
 #include "sqlite3.h"
-#include "protos/message.pb-c.h"
+#include "message.pb-c.h"
+#include <protobuf-c/protobuf-c.h>
 #include <pthread.h>
 #include <semaphore.h>
 #define PORT 12345
 #define BACKLOG 100
 #define MAX_BUFFER_SIZE 4096
 #define THREAD_POOL_SIZE 8
+int total_clients = 0;
 
-//  condition and mutex
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 
-node_t *head = NULL;
-
+queue_t *client_queue;
 void check(int code)
 {
     if (code == -1)
@@ -29,21 +29,52 @@ void check(int code)
     }
 }
 
-void handle_connection(int client_socket)
+void handle_client(int client_socket)
 {
-    if (client_socket < 0)
+    uint8_t buffer[MAX_BUFFER_SIZE]; // Change this line
+    int message_size;
+    // read message
+    message_size = recv(client_socket, buffer, MAX_BUFFER_SIZE, 0);
+    if (message_size == -1)
     {
-        perror("Invalid socket descriptor");
+        perror("Error receiving message");
         return;
     }
+    // deserialize message
+    Chess__Message *message = chess__message__unpack(NULL, message_size, buffer);
+    if (message == NULL)
+    {
+        perror("Error deserializing message");
+        return;
+    }
+    // handle message
+    switch (message->type)
+    {
+        {
+        case CHESS__MESSAGE__MESSAGE_TYPE__LOGIN:
+            printf("Received login message\n");
+            // get login message
+            Chess__LoginMessage *login_message = message->login_message;
+            // get username and password
+            if (login_message == NULL)
+            {
+                perror("Error getting login message");
+                return;
+            }
+            char *username = login_message->username;
+            char *password = login_message->password;
+            printf("Username: %s\n", username);
+            printf("Password: %s\n", password);
 
-    char buffer[MAX_BUFFER_SIZE];
-    int message_size;
-    // Receive message from client
-    check(message_size = recv(client_socket, buffer, MAX_BUFFER_SIZE, 0));
-    printf("Message received from client: %s\n", buffer);
+            break;
+
+        default:
+            break;
+        }
+        printf("Total clients: %d\n", total_clients);
+        close(client_socket);
+    }
 }
-
 void *thread_function()
 {
     while (1)
@@ -53,21 +84,15 @@ void *thread_function()
         int client_socket;
         pthread_mutex_lock(&mutex);
         // wait if queue is empty
-        while ((client_socket = dequeue(&head)) == -1)
+        while ((client_socket = dequeue(client_queue)) == -1)
         {
+            printf("Thread %ld waiting...\n", pthread_self());
             pthread_cond_wait(&cond, &mutex);
-            client_socket = dequeue(&head);
         }
         // unlock mutex
         pthread_mutex_unlock(&mutex);
-        // handle connection
-        if (client_socket == -1)
-        {
-            continue;
-        }
-        // handle connection
-        handle_connection(client_socket);
-        close(client_socket);
+        // handle client
+        handle_client(client_socket);
     }
 }
 
@@ -91,6 +116,7 @@ int main()
     check(listen(server_socket, BACKLOG));
 
     printf("Server is listening on port %d...\n", PORT);
+    client_queue = create_queue();
 
     // Create thread pool
     pthread_t thread_pool[THREAD_POOL_SIZE];
@@ -116,13 +142,14 @@ int main()
         }
         // lock mutex
         pthread_mutex_lock(&mutex);
-        enqueue(&head, client_socket);
-        // unlock mutex
-        pthread_mutex_unlock(&mutex);
-        printf("Accepted connection from %s:%d\n", inet_ntoa(client_address.sin_addr), ntohs(client_address.sin_port));
+        // add client_socket to queue
+        enqueue(client_queue, client_socket);
 
-        // signal condition
+        // unlock mutex
         pthread_cond_signal(&cond);
+        pthread_mutex_unlock(&mutex);
+        // signal condition
+        printf("Accepted connection from %s:%d\n", inet_ntoa(client_address.sin_addr), ntohs(client_address.sin_port));
     }
 
     close(server_socket);

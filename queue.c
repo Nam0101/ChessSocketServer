@@ -5,42 +5,48 @@
 node_t *create_new_node(int socket_client)
 {
     node_t *new_node = (node_t *)malloc(sizeof(node_t));
-    if (new_node == NULL)
-    {
-        exit(-1); // Failed to allocate memory
-    }
     new_node->socket_client = socket_client;
     new_node->next = NULL;
     return new_node;
 }
 
 // Function to add a node to the end of the queue
-void enqueue(node_t **head, int socket_client)
+void enqueue(queue_t *list, int socket_client)
 {
     node_t *new_node = create_new_node(socket_client);
-    if (*head == NULL)
+    if (list->head == NULL)
     {
-        *head = new_node;
-        return;
+        list->head = new_node;
+        list->tail = new_node;
     }
-    node_t *current = *head;
-    while (current->next != NULL)
+    else
     {
-        current = current->next;
+        list->tail->next = new_node;
+        list->tail = new_node;
     }
-    current->next = new_node;
 }
 
-// Function to remove a node from the front of the queue
-int dequeue(node_t **head)
+// Function to remove a node from the beginning of the queue
+int dequeue(queue_t *list)
 {
-    if (*head == NULL)
+    if (list->head == NULL)
     {
-        return -1; // Queue is empty
+        return -1;
     }
-    node_t *next_node = (*head)->next;
-    int socket_client = (*head)->socket_client;
-    free(*head);
-    *head = next_node;
-    return socket_client;
+    else
+    {
+        node_t *temp = list->head;
+        int socket_client = temp->socket_client;
+        list->head = list->head->next;
+        free(temp);
+        return socket_client;
+    }
+}
+
+queue_t *create_queue()
+{
+    queue_t *list = (queue_t *)malloc(sizeof(queue_t));
+    list->head = NULL;
+    list->tail = NULL;
+    return list;
 }

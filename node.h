@@ -7,9 +7,14 @@ typedef struct node
     struct node *next;
 } node_t;
 
+typedef struct queue
+{
+    node_t *head;
+    node_t *tail;
+} queue_t;
 // Function declarations
 node_t *create_new_node(int socket_client);
-void enqueue(node_t **head, int socket_client);
-int dequeue(node_t **head);
-
+void enqueue(queue_t *list, int socket_client);
+int dequeue(queue_t *list);
+queue_t *create_queue();
 #endif

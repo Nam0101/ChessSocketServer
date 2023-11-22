@@ -4,6 +4,9 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
+#include "message.pb-c.h"
+#include <protobuf-c/protobuf-c.h>
+
 #define PORT 12345
 #define MAX_BUFFER_SIZE 4096
 
@@ -11,7 +14,6 @@ int main(int argc, char *argv[])
 {
     int client_socket;
     struct sockaddr_in server_address;
-    char buffer[MAX_BUFFER_SIZE];
 
     // Create socket
     client_socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -37,16 +39,51 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    // Send message to server
-    strcpy(buffer, "Hello, server!");
-    if (send(client_socket, buffer, strlen(buffer), 0) == -1)
+    // Create message
+    Chess__Message message = CHESS__MESSAGE__INIT;
+    message.type = CHESS__MESSAGE__MESSAGE_TYPE__LOGIN;
+
+    Chess__LoginMessage login_message = CHESS__LOGIN_MESSAGE__INIT;
+    login_message.username = "username";
+    login_message.password = "password";
+    message.login_message = &login_message;
+
+    int message_size = chess__message__get_packed_size(&message);
+    if (message_size <= 0)
     {
-        perror("Error sending message");
+        perror("Error getting packed size");
         exit(EXIT_FAILURE);
     }
 
-    printf("Message sent to server\n");
+    // Allocate memory for the packed message
+    uint8_t *buffer = malloc(message_size);
+    if (!buffer)
+    {
+        perror("Error allocating memory");
+        exit(EXIT_FAILURE);
+    }
 
+    // Pack the message
+    if (chess__message__pack(&message, buffer) != message_size)
+    {
+        perror("Error packing message");
+        free(buffer);
+        exit(EXIT_FAILURE);
+    }
+
+    // Send the packed message
+    int bytes_sent = send(client_socket, buffer, message_size, 0);
+    if (bytes_sent == -1)
+    {
+        perror("Error sending message");
+        free(buffer);
+        exit(EXIT_FAILURE);
+    }
+
+    printf("Sent %d-byte message\n", bytes_sent);
+
+    // Free resources
+    free(buffer);
     close(client_socket);
 
     return 0;

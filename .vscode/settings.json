@@ -1,0 +1,5 @@
+{
+    "files.associations": {
+        "protobuf-c.h": "c"
+    }
+}
