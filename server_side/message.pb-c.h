@@ -43,24 +43,15 @@ struct  _Chess__LoginMessage
     , (char *)protobuf_c_empty_string, (char *)protobuf_c_empty_string }
 
 
-typedef enum {
-  CHESS__MESSAGE__MESSAGE_CONTENT__NOT_SET = 0,
-  CHESS__MESSAGE__MESSAGE_CONTENT_LOGIN_MESSAGE = 2
-    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(CHESS__MESSAGE__MESSAGE_CONTENT)
-} Chess__Message__MessageContentCase;
-
 struct  _Chess__Message
 {
   ProtobufCMessage base;
   Chess__Message__MessageType type;
-  Chess__Message__MessageContentCase message_content_case;
-  union {
-    Chess__LoginMessage *login_message;
-  };
+  Chess__LoginMessage *login_message;
 };
 #define CHESS__MESSAGE__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&chess__message__descriptor) \
-    , CHESS__MESSAGE__MESSAGE_TYPE__LOGIN, CHESS__MESSAGE__MESSAGE_CONTENT__NOT_SET, {0} }
+    , CHESS__MESSAGE__MESSAGE_TYPE__LOGIN, NULL }
 
 
 /* Chess__LoginMessage methods */

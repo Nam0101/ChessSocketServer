@@ -10,7 +10,7 @@
 #define PORT 12345
 #define MAX_BUFFER_SIZE 4096
 
-int main(int argc, char *argv[])
+int main()
 {
     int client_socket;
     struct sockaddr_in server_address;
@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
     login_message.password = "password";
     message.login_message = &login_message;
 
-    int message_size = chess__message__get_packed_size(&message);
+    size_t message_size = chess__message__get_packed_size(&message);
     if (message_size <= 0)
     {
         perror("Error getting packed size");

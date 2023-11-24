@@ -1,5 +1,6 @@
 {
     "files.associations": {
-        "protobuf-c.h": "c"
+        "protobuf-c.h": "c",
+        "cstdlib": "c"
     }
 }

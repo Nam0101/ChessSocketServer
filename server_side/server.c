@@ -32,48 +32,49 @@ void check(int code)
 void handle_client(int client_socket)
 {
     uint8_t buffer[MAX_BUFFER_SIZE]; // Change this line
+    total_clients++;
     int message_size;
     // read message
     message_size = recv(client_socket, buffer, MAX_BUFFER_SIZE, 0);
     if (message_size == -1)
     {
-        perror("Error receiving message");
+        perror("Error reading message");
         return;
     }
     // deserialize message
     Chess__Message *message = chess__message__unpack(NULL, message_size, buffer);
     if (message == NULL)
     {
-        perror("Error deserializing message");
+        fprintf(stderr, "Error deserializing message\n");
         return;
     }
     // handle message
     switch (message->type)
     {
+    case CHESS__MESSAGE__MESSAGE_TYPE__LOGIN:
+        printf("Received login message\n");
+        // get login message
+        Chess__LoginMessage *login_message = message->login_message;
+        // get username and password
+        if (login_message == NULL)
         {
-        case CHESS__MESSAGE__MESSAGE_TYPE__LOGIN:
-            printf("Received login message\n");
-            // get login message
-            Chess__LoginMessage *login_message = message->login_message;
-            // get username and password
-            if (login_message == NULL)
-            {
-                perror("Error getting login message");
-                return;
-            }
-            char *username = login_message->username;
-            char *password = login_message->password;
-            printf("Username: %s\n", username);
-            printf("Password: %s\n", password);
-
-            break;
-
-        default:
-            break;
+            perror("Error getting login message");
+            return;
         }
-        printf("Total clients: %d\n", total_clients);
-        close(client_socket);
+        char *username = login_message->username;
+        char *password = login_message->password;
+        printf("Username: %s\n", username);
+        printf("Password: %s\n", password);
+
+        break;
+        
+    //other case
+
+    default:
+        break;
     }
+    printf("Total clients: %d\n", total_clients);
+    close(client_socket);
 }
 void *thread_function()
 {

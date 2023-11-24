@@ -5,6 +5,12 @@ message LoginMessage {
   string username = 1;
   string password = 2;
 }
+message RegisterMessage{
+  string username = 1;
+  string password =2 ;
+  string email = 3;
+  bool isMale = 4;
+}
 message Message {
   enum MessageType {
     LOGIN = 0;
@@ -14,7 +20,6 @@ message Message {
     SURRENDER = 4;
   }
   MessageType type = 1;
-  oneof message_content {
-    LoginMessage login_message = 2;
-  }
+  LoginMessage login_message = 2;
+  RegisterMessage registerMessage = 3;
 }

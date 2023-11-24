@@ -201,11 +201,11 @@ static const ProtobufCFieldDescriptor chess__message__field_descriptors[2] =
     2,
     PROTOBUF_C_LABEL_NONE,
     PROTOBUF_C_TYPE_MESSAGE,
-    offsetof(Chess__Message, message_content_case),
+    0,   /* quantifier_offset */
     offsetof(Chess__Message, login_message),
     &chess__login_message__descriptor,
     NULL,
-    0 | PROTOBUF_C_FIELD_FLAG_ONEOF,             /* flags */
+    0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
 };
