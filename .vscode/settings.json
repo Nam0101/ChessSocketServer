@@ -1,6 +1,8 @@
 {
     "files.associations": {
         "protobuf-c.h": "c",
-        "cstdlib": "c"
+        "cstdlib": "c",
+        "user.h": "c",
+        "sodium.h": "c"
     }
 }

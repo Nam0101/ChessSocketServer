@@ -16,6 +16,8 @@ PROTOBUF_C__BEGIN_DECLS
 
 
 typedef struct _Chess__LoginMessage Chess__LoginMessage;
+typedef struct _Chess__RegisterMessage Chess__RegisterMessage;
+typedef struct _Chess__LoginResponse Chess__LoginResponse;
 typedef struct _Chess__Message Chess__Message;
 
 
@@ -26,7 +28,8 @@ typedef enum _Chess__Message__MessageType {
   CHESS__MESSAGE__MESSAGE_TYPE__REGISTER = 1,
   CHESS__MESSAGE__MESSAGE_TYPE__LOGOUT = 2,
   CHESS__MESSAGE__MESSAGE_TYPE__MOVE = 3,
-  CHESS__MESSAGE__MESSAGE_TYPE__SURRENDER = 4
+  CHESS__MESSAGE__MESSAGE_TYPE__SURRENDER = 4,
+  CHESS__MESSAGE__MESSAGE_TYPE__LOGINRESPONSE = 5
     PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(CHESS__MESSAGE__MESSAGE_TYPE)
 } Chess__Message__MessageType;
 
@@ -43,15 +46,43 @@ struct  _Chess__LoginMessage
     , (char *)protobuf_c_empty_string, (char *)protobuf_c_empty_string }
 
 
+struct  _Chess__RegisterMessage
+{
+  ProtobufCMessage base;
+  char *username;
+  char *password;
+  char *email;
+};
+#define CHESS__REGISTER_MESSAGE__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&chess__register_message__descriptor) \
+    , (char *)protobuf_c_empty_string, (char *)protobuf_c_empty_string, (char *)protobuf_c_empty_string }
+
+
+struct  _Chess__LoginResponse
+{
+  ProtobufCMessage base;
+  protobuf_c_boolean success;
+  uint32_t user_id;
+  char *username;
+  char *email;
+  uint32_t elo;
+};
+#define CHESS__LOGIN_RESPONSE__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&chess__login_response__descriptor) \
+    , 0, 0, (char *)protobuf_c_empty_string, (char *)protobuf_c_empty_string, 0 }
+
+
 struct  _Chess__Message
 {
   ProtobufCMessage base;
   Chess__Message__MessageType type;
   Chess__LoginMessage *login_message;
+  Chess__RegisterMessage *register_message;
+  Chess__LoginResponse *login_response;
 };
 #define CHESS__MESSAGE__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&chess__message__descriptor) \
-    , CHESS__MESSAGE__MESSAGE_TYPE__LOGIN, NULL }
+    , CHESS__MESSAGE__MESSAGE_TYPE__LOGIN, NULL, NULL, NULL }
 
 
 /* Chess__LoginMessage methods */
@@ -72,6 +103,44 @@ Chess__LoginMessage *
                       const uint8_t       *data);
 void   chess__login_message__free_unpacked
                      (Chess__LoginMessage *message,
+                      ProtobufCAllocator *allocator);
+/* Chess__RegisterMessage methods */
+void   chess__register_message__init
+                     (Chess__RegisterMessage         *message);
+size_t chess__register_message__get_packed_size
+                     (const Chess__RegisterMessage   *message);
+size_t chess__register_message__pack
+                     (const Chess__RegisterMessage   *message,
+                      uint8_t             *out);
+size_t chess__register_message__pack_to_buffer
+                     (const Chess__RegisterMessage   *message,
+                      ProtobufCBuffer     *buffer);
+Chess__RegisterMessage *
+       chess__register_message__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   chess__register_message__free_unpacked
+                     (Chess__RegisterMessage *message,
+                      ProtobufCAllocator *allocator);
+/* Chess__LoginResponse methods */
+void   chess__login_response__init
+                     (Chess__LoginResponse         *message);
+size_t chess__login_response__get_packed_size
+                     (const Chess__LoginResponse   *message);
+size_t chess__login_response__pack
+                     (const Chess__LoginResponse   *message,
+                      uint8_t             *out);
+size_t chess__login_response__pack_to_buffer
+                     (const Chess__LoginResponse   *message,
+                      ProtobufCBuffer     *buffer);
+Chess__LoginResponse *
+       chess__login_response__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   chess__login_response__free_unpacked
+                     (Chess__LoginResponse *message,
                       ProtobufCAllocator *allocator);
 /* Chess__Message methods */
 void   chess__message__init
@@ -97,6 +166,12 @@ void   chess__message__free_unpacked
 typedef void (*Chess__LoginMessage_Closure)
                  (const Chess__LoginMessage *message,
                   void *closure_data);
+typedef void (*Chess__RegisterMessage_Closure)
+                 (const Chess__RegisterMessage *message,
+                  void *closure_data);
+typedef void (*Chess__LoginResponse_Closure)
+                 (const Chess__LoginResponse *message,
+                  void *closure_data);
 typedef void (*Chess__Message_Closure)
                  (const Chess__Message *message,
                   void *closure_data);
@@ -107,6 +182,8 @@ typedef void (*Chess__Message_Closure)
 /* --- descriptors --- */
 
 extern const ProtobufCMessageDescriptor chess__login_message__descriptor;
+extern const ProtobufCMessageDescriptor chess__register_message__descriptor;
+extern const ProtobufCMessageDescriptor chess__login_response__descriptor;
 extern const ProtobufCMessageDescriptor chess__message__descriptor;
 extern const ProtobufCEnumDescriptor    chess__message__message_type__descriptor;
 

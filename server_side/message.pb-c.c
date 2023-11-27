@@ -52,6 +52,96 @@ void   chess__login_message__free_unpacked
   assert(message->base.descriptor == &chess__login_message__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
+void   chess__register_message__init
+                     (Chess__RegisterMessage         *message)
+{
+  static const Chess__RegisterMessage init_value = CHESS__REGISTER_MESSAGE__INIT;
+  *message = init_value;
+}
+size_t chess__register_message__get_packed_size
+                     (const Chess__RegisterMessage *message)
+{
+  assert(message->base.descriptor == &chess__register_message__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t chess__register_message__pack
+                     (const Chess__RegisterMessage *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &chess__register_message__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t chess__register_message__pack_to_buffer
+                     (const Chess__RegisterMessage *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &chess__register_message__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+Chess__RegisterMessage *
+       chess__register_message__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (Chess__RegisterMessage *)
+     protobuf_c_message_unpack (&chess__register_message__descriptor,
+                                allocator, len, data);
+}
+void   chess__register_message__free_unpacked
+                     (Chess__RegisterMessage *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &chess__register_message__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   chess__login_response__init
+                     (Chess__LoginResponse         *message)
+{
+  static const Chess__LoginResponse init_value = CHESS__LOGIN_RESPONSE__INIT;
+  *message = init_value;
+}
+size_t chess__login_response__get_packed_size
+                     (const Chess__LoginResponse *message)
+{
+  assert(message->base.descriptor == &chess__login_response__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t chess__login_response__pack
+                     (const Chess__LoginResponse *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &chess__login_response__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t chess__login_response__pack_to_buffer
+                     (const Chess__LoginResponse *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &chess__login_response__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+Chess__LoginResponse *
+       chess__login_response__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (Chess__LoginResponse *)
+     protobuf_c_message_unpack (&chess__login_response__descriptor,
+                                allocator, len, data);
+}
+void   chess__login_response__free_unpacked
+                     (Chess__LoginResponse *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &chess__login_response__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
 void   chess__message__init
                      (Chess__Message         *message)
 {
@@ -148,20 +238,176 @@ const ProtobufCMessageDescriptor chess__login_message__descriptor =
   (ProtobufCMessageInit) chess__login_message__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCEnumValue chess__message__message_type__enum_values_by_number[5] =
+static const ProtobufCFieldDescriptor chess__register_message__field_descriptors[3] =
+{
+  {
+    "username",
+    1,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_STRING,
+    0,   /* quantifier_offset */
+    offsetof(Chess__RegisterMessage, username),
+    NULL,
+    &protobuf_c_empty_string,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "password",
+    2,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_STRING,
+    0,   /* quantifier_offset */
+    offsetof(Chess__RegisterMessage, password),
+    NULL,
+    &protobuf_c_empty_string,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "email",
+    3,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_STRING,
+    0,   /* quantifier_offset */
+    offsetof(Chess__RegisterMessage, email),
+    NULL,
+    &protobuf_c_empty_string,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned chess__register_message__field_indices_by_name[] = {
+  2,   /* field[2] = email */
+  1,   /* field[1] = password */
+  0,   /* field[0] = username */
+};
+static const ProtobufCIntRange chess__register_message__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 3 }
+};
+const ProtobufCMessageDescriptor chess__register_message__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "Chess.RegisterMessage",
+  "RegisterMessage",
+  "Chess__RegisterMessage",
+  "Chess",
+  sizeof(Chess__RegisterMessage),
+  3,
+  chess__register_message__field_descriptors,
+  chess__register_message__field_indices_by_name,
+  1,  chess__register_message__number_ranges,
+  (ProtobufCMessageInit) chess__register_message__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor chess__login_response__field_descriptors[5] =
+{
+  {
+    "success",
+    1,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_BOOL,
+    0,   /* quantifier_offset */
+    offsetof(Chess__LoginResponse, success),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "user_id",
+    2,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    offsetof(Chess__LoginResponse, user_id),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "username",
+    3,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_STRING,
+    0,   /* quantifier_offset */
+    offsetof(Chess__LoginResponse, username),
+    NULL,
+    &protobuf_c_empty_string,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "email",
+    4,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_STRING,
+    0,   /* quantifier_offset */
+    offsetof(Chess__LoginResponse, email),
+    NULL,
+    &protobuf_c_empty_string,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "elo",
+    5,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    offsetof(Chess__LoginResponse, elo),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned chess__login_response__field_indices_by_name[] = {
+  4,   /* field[4] = elo */
+  3,   /* field[3] = email */
+  0,   /* field[0] = success */
+  1,   /* field[1] = user_id */
+  2,   /* field[2] = username */
+};
+static const ProtobufCIntRange chess__login_response__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 5 }
+};
+const ProtobufCMessageDescriptor chess__login_response__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "Chess.LoginResponse",
+  "LoginResponse",
+  "Chess__LoginResponse",
+  "Chess",
+  sizeof(Chess__LoginResponse),
+  5,
+  chess__login_response__field_descriptors,
+  chess__login_response__field_indices_by_name,
+  1,  chess__login_response__number_ranges,
+  (ProtobufCMessageInit) chess__login_response__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCEnumValue chess__message__message_type__enum_values_by_number[6] =
 {
   { "LOGIN", "CHESS__MESSAGE__MESSAGE_TYPE__LOGIN", 0 },
   { "REGISTER", "CHESS__MESSAGE__MESSAGE_TYPE__REGISTER", 1 },
   { "LOGOUT", "CHESS__MESSAGE__MESSAGE_TYPE__LOGOUT", 2 },
   { "MOVE", "CHESS__MESSAGE__MESSAGE_TYPE__MOVE", 3 },
   { "SURRENDER", "CHESS__MESSAGE__MESSAGE_TYPE__SURRENDER", 4 },
+  { "LOGINRESPONSE", "CHESS__MESSAGE__MESSAGE_TYPE__LOGINRESPONSE", 5 },
 };
 static const ProtobufCIntRange chess__message__message_type__value_ranges[] = {
-{0, 0},{0, 5}
+{0, 0},{0, 6}
 };
-static const ProtobufCEnumValueIndex chess__message__message_type__enum_values_by_name[5] =
+static const ProtobufCEnumValueIndex chess__message__message_type__enum_values_by_name[6] =
 {
   { "LOGIN", 0 },
+  { "LOGINRESPONSE", 5 },
   { "LOGOUT", 2 },
   { "MOVE", 3 },
   { "REGISTER", 1 },
@@ -174,15 +420,15 @@ const ProtobufCEnumDescriptor chess__message__message_type__descriptor =
   "MessageType",
   "Chess__Message__MessageType",
   "Chess",
-  5,
+  6,
   chess__message__message_type__enum_values_by_number,
-  5,
+  6,
   chess__message__message_type__enum_values_by_name,
   1,
   chess__message__message_type__value_ranges,
   NULL,NULL,NULL,NULL   /* reserved[1234] */
 };
-static const ProtobufCFieldDescriptor chess__message__field_descriptors[2] =
+static const ProtobufCFieldDescriptor chess__message__field_descriptors[4] =
 {
   {
     "type",
@@ -208,15 +454,41 @@ static const ProtobufCFieldDescriptor chess__message__field_descriptors[2] =
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
+  {
+    "register_message",
+    3,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_MESSAGE,
+    0,   /* quantifier_offset */
+    offsetof(Chess__Message, register_message),
+    &chess__register_message__descriptor,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "login_response",
+    4,
+    PROTOBUF_C_LABEL_NONE,
+    PROTOBUF_C_TYPE_MESSAGE,
+    0,   /* quantifier_offset */
+    offsetof(Chess__Message, login_response),
+    &chess__login_response__descriptor,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
 };
 static const unsigned chess__message__field_indices_by_name[] = {
   1,   /* field[1] = login_message */
+  3,   /* field[3] = login_response */
+  2,   /* field[2] = register_message */
   0,   /* field[0] = type */
 };
 static const ProtobufCIntRange chess__message__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 2 }
+  { 0, 4 }
 };
 const ProtobufCMessageDescriptor chess__message__descriptor =
 {
@@ -226,7 +498,7 @@ const ProtobufCMessageDescriptor chess__message__descriptor =
   "Chess__Message",
   "Chess",
   sizeof(Chess__Message),
-  2,
+  4,
   chess__message__field_descriptors,
   chess__message__field_indices_by_name,
   1,  chess__message__number_ranges,

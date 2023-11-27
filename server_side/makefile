@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -Wextra
-LIBS = -lprotobuf-c -lpthread
+LIBS = -lprotobuf-c -lpthread -lsqlite3
 PROTO_DIR = .
 PROTO_FILES = $(PROTO_DIR)/message.pb-c.c
 

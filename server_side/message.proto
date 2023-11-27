@@ -9,8 +9,16 @@ message RegisterMessage{
   string username = 1;
   string password =2 ;
   string email = 3;
-  bool isMale = 4;
 }
+
+message LoginResponse{
+    bool success = 1;
+    uint32 user_id = 2;
+    string username =3;
+    string email = 4;
+    uint32 elo = 5;
+}
+
 message Message {
   enum MessageType {
     LOGIN = 0;
@@ -18,8 +26,10 @@ message Message {
     LOGOUT = 2;
     MOVE = 3;
     SURRENDER = 4;
+    LOGINRESPONSE = 5 ;
   }
   MessageType type = 1;
   LoginMessage login_message = 2;
-  RegisterMessage registerMessage = 3;
+  RegisterMessage register_message = 3;
+  LoginResponse login_response =4;
 }
