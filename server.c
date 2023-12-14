@@ -72,14 +72,13 @@ user_t *login(char *username, char *password)
 {
     // open database
     sqlite3 *db;
-    char *err_msg = 0;
     // mutex lock
     int rc = sqlite3_open("database.db", &db);
     if (rc != SQLITE_OK)
     {
         fprintf(stderr, "Cannot open database: %s\n", sqlite3_errmsg(db));
         sqlite3_close(db);
-        return;
+        return NULL;
     }
     // create query
     char *sql = "SELECT * FROM user WHERE username = ? AND password = ?;";
@@ -104,11 +103,6 @@ user_t *login(char *username, char *password)
         char *username = sqlite3_column_text(stmt, 1);
         char *password = sqlite3_column_text(stmt, 2);
         int elo = sqlite3_column_int(stmt, 3);
-        printf("User ID: %d\n", user_id);
-        printf("Username: %s\n", username);
-        printf("Password: %s\n", password);
-        printf("Elo: %d\n", elo);
-        // create user
         user_t *user = (user_t *)malloc(sizeof(user_t));
         user->user_id = user_id;
         user->username = (char *)malloc(strlen(username) + 1);
@@ -116,14 +110,6 @@ user_t *login(char *username, char *password)
         user->password = (char *)malloc(strlen(password) + 1);
         strcpy(user->password, password);
         user->elo = elo;
-        if (user == NULL)
-        {
-            printf("User is NULL\n");
-        }
-        else
-        {
-            printf("User is not NULL\n");
-        }
         // close statement
         sqlite3_finalize(stmt);
         // close database
@@ -142,15 +128,39 @@ void print_user(user_t *user)
     printf("Elo: %d\n", user->elo);
 }
 
-void handle_login(const int client_socket, const LoginData *message)
+void handle_login(const int client_socket, const LoginData *loginData)
 {
     printf("Received login message\n");
     // get login message
-    char *username = message->username;
-    char *password = message->password;
-    // login
+    char *username = (char *)malloc(20);
+    char *password = (char *)malloc(10);
+    strcpy(username, loginData->username);
+    strcpy(password, loginData->password);
     user_t *user = login(username, password);
-    // create response
+    Message *response = (Message *)malloc(sizeof(Message));
+    response->type = LOGIN_RESPONSE;
+    if (user == NULL)
+    {
+        response->data.loginResponse.is_success = 0;
+        printf("Login failed\n");
+    }
+    else
+    {
+        response->data.loginResponse.is_success = 1;
+        response->data.loginResponse.user_id = user->user_id;
+        response->data.loginResponse.elo = user->elo;
+        printf("Login success\n");
+    }
+    // send response
+    int bytes_sent = send(client_socket, response, sizeof(Message), 0);
+    if (bytes_sent <= 0)
+    {
+        printf("Connection closed\n");
+    }
+    free(username);
+    free(password);
+    free(response);
+    free(user);
 }
 
 void handle_client(int client_socket)
@@ -160,39 +170,7 @@ void handle_client(int client_socket)
     switch (message.type)
     {
     case LOGIN:
-        printf("Received login message\n");
-        // get login message
-        char *username = message.data.loginData.username;
-        char *password = message.data.loginData.password;
-        printf("Username: %s\n", username);
-        printf("Password: %s\n", password);
-        // login
-        user_t *user = login(username, password);
-        // create response
-        Message response;
-        response.type = LOGIN_RESPONSE;
-        if (user == NULL)
-        {
-            response.data.loginResponse.is_success = 0;
-            printf("Login failed\n");
-        }
-        else
-        {
-            response.data.loginResponse.is_success = 1;
-            response.data.loginResponse.user_id = user->user_id;
-            response.data.loginResponse.elo = user->elo;
-            printf("Login success\n");
-        }
-        // send response
-        int bytes_sent = send(client_socket, &response, sizeof(response), 0);
-        if (bytes_sent <= 0)
-        {
-            printf("Connection closed\n");
-        }
-        else
-        {
-            printf("Sent: %d bytes\n", bytes_sent);
-        }
+        handle_login(client_socket, &message.data.loginData);
         break;
 
     default:

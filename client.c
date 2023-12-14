@@ -103,7 +103,8 @@ int main()
         if (response.data.loginResponse.is_success == 1)
         {
             printf("Login success\n");
-        }
+            printf("User id: %d\n", response.data.loginResponse.user_id);
+            printf("Elo: %d\n", response.data.loginResponse.elo);}
         else
         {
             printf("Login failed\n");
@@ -111,6 +112,7 @@ int main()
         break;
 
     default:
+        printf("Invalid response\n");
         break;
     }
 
