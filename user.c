@@ -4,30 +4,11 @@
 #include <string.h>
 #include <openssl/sha.h>
 #include "sqlite3.h"
-#include <pthread.h>
 #include "user.h"
-// mutex lock for database
-static __thread sqlite3 *db = NULL;
+#include "database.h"
+int total_sucess = 0;
 
-// Function to open the database connection
-static sqlite3 *get_database_connection()
-{
-    if (db == NULL)
-    {
-        sqlite3_open("database.db", &db);
-    }
-    return db;
-}
 
-// Function to close the database connection
-static void close_database_connection()
-{
-    if (db != NULL)
-    {
-        sqlite3_close(db);
-        db = NULL;
-    }
-}
 
 void hash_password(const char *password, char *hashed_password)
 {
@@ -82,11 +63,11 @@ user_t *login(char *username, char *password)
         // close statement
         sqlite3_finalize(stmt);
         // close database
-        close_database_connection();
+        close_database_connection(db);
         return user;
     }
     sqlite3_finalize(stmt);
-    close_database_connection();
+    close_database_connection(db);
     return NULL;
 }
 
@@ -121,6 +102,8 @@ void handle_login(const int client_socket, const LoginData *loginData)
         response->data.loginResponse.user_id = user->user_id;
         response->data.loginResponse.elo = user->elo;
         printf("Login success\n");
+        total_sucess++;
+        printf("Total clients: %d\n", total_sucess);
     }
     // send response
     int bytes_sent = send(client_socket, response, sizeof(Message), 0);
