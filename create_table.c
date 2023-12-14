@@ -27,7 +27,6 @@ int main()
                 "userId INTEGER PRIMARY KEY AUTOINCREMENT,"
                 "username TEXT NOT NULL,"
                 "password TEXT NOT NULL,"
-                "email TEXT NOT NULL,"
                 "elo INTEGER NOT NULL);";
     rc = sqlite3_exec(db, sql, 0, 0, &err_msg);
     if (rc != SQLITE_OK)
@@ -38,7 +37,7 @@ int main()
         return 1;
     }
     // insert data
-    char *sql2 = "INSERT INTO user (username, password, email, elo) VALUES ('username', 'password', 'email', 0);";
+    char *sql2 = "INSERT INTO user (username, password, elo) VALUES ('Nam', '123', 0);";
     rc = sqlite3_exec(db, sql2, 0, 0, &err_msg);
     if (rc != SQLITE_OK)
     {

@@ -6,9 +6,7 @@
 #include <sys/socket.h>
 #include "node.h"
 #include "sqlite3.h"
-#include "message.pb-c.h"
 #include "user.h"
-#include <protobuf-c/protobuf-c.h>
 #include <pthread.h>
 #include <sodium.h>
 #include <semaphore.h>
@@ -22,6 +20,45 @@ pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 
 queue_t *client_queue;
+
+typedef struct
+{
+    char username[20];
+    char password[10];
+} LoginData;
+
+typedef struct
+{
+    char username[20];
+    char password[10];
+    char name[20];
+} RegisterData;
+
+typedef struct
+{
+    short is_success;
+    int user_id;
+    int elo;
+} LoginResponse;
+
+typedef enum
+{
+    LOGIN,
+    REGISTER,
+    LOGIN_RESPONSE
+} MessageType;
+
+typedef struct
+{
+    MessageType type;
+    union
+    {
+        LoginData loginData;
+        RegisterData registerData;
+        LoginResponse loginResponse;
+    } data;
+} Message;
+
 void check(int code)
 {
     if (code == -1)
@@ -30,19 +67,7 @@ void check(int code)
         exit(EXIT_FAILURE);
     }
 }
-user_t *create_user(int user_id, char *username, char *password, char *email, int elo)
-{
-    user_t *user = malloc(sizeof(user_t));
-    user->user_id = user_id;
-    user->username = malloc(strlen(username) + 1);
-    strcpy(user->username, username);
-    user->password = malloc(strlen(password) + 1);
-    strcpy(user->password, password);
-    user->email = malloc(strlen(email) + 1);
-    strcpy(user->email, email);
-    user->elo = elo;
-    return user;
-}
+
 user_t *login(char *username, char *password)
 {
     // open database
@@ -78,10 +103,27 @@ user_t *login(char *username, char *password)
         int user_id = sqlite3_column_int(stmt, 0);
         char *username = sqlite3_column_text(stmt, 1);
         char *password = sqlite3_column_text(stmt, 2);
-        char *email = sqlite3_column_text(stmt, 3);
-        int elo = sqlite3_column_int(stmt, 4);
+        int elo = sqlite3_column_int(stmt, 3);
+        printf("User ID: %d\n", user_id);
+        printf("Username: %s\n", username);
+        printf("Password: %s\n", password);
+        printf("Elo: %d\n", elo);
         // create user
-        user_t *user = create_user(user_id, username, password, email, elo);
+        user_t *user = (user_t *)malloc(sizeof(user_t));
+        user->user_id = user_id;
+        user->username = (char *)malloc(strlen(username) + 1);
+        strcpy(user->username, username);
+        user->password = (char *)malloc(strlen(password) + 1);
+        strcpy(user->password, password);
+        user->elo = elo;
+        if (user == NULL)
+        {
+            printf("User is NULL\n");
+        }
+        else
+        {
+            printf("User is not NULL\n");
+        }
         // close statement
         sqlite3_finalize(stmt);
         // close database
@@ -97,104 +139,65 @@ void print_user(user_t *user)
     printf("User ID: %d\n", user->user_id);
     printf("Username: %s\n", user->username);
     printf("Password: %s\n", user->password);
-    printf("Email: %s\n", user->email);
     printf("Elo: %d\n", user->elo);
 }
 
-void handle_login(const int client_socket, const Chess__Message *message)
+void handle_login(const int client_socket, const LoginData *message)
 {
     printf("Received login message\n");
     // get login message
-    Chess__LoginMessage *login_message = message->login_message;
-    // get username and password
-    if (login_message == NULL)
-    {
-        perror("Error getting login message");
-        return;
-    }
-    char *username = login_message->username;
-    char *password = login_message->password;
-    printf("Username: %s\n", username);
-    printf("Password: %s\n", password);
-
+    char *username = message->username;
+    char *password = message->password;
+    // login
     user_t *user = login(username, password);
     // create response
-    Chess__Message response = CHESS__MESSAGE__INIT;
-    response.type = CHESS__MESSAGE__MESSAGE_TYPE__LOGINRESPONSE;
-    Chess__LoginResponse login_response = CHESS__LOGIN_RESPONSE__INIT;
-    if (user == NULL)
-    {
-        login_response.success = 0;
-    }
-    else
-    {
-        login_response.success = 1;
-        login_response.user_id = user->user_id;
-        login_response.username = user->username;
-        login_response.email = user->email;
-        login_response.elo = user->elo;
-    }
-    response.login_response = &login_response;
-    // serialize response
-    int response_size = chess__message__get_packed_size(&response);
-    if (response_size <= 0)
-    {
-        perror("Error getting packed size");
-        return;
-    }
-    uint8_t *response_buffer = malloc(response_size);
-    if (!response_buffer)
-    {
-        perror("Error allocating memory");
-        return;
-    }
-    if (chess__message__pack(&response, response_buffer) != response_size)
-    {
-        perror("Error packing message");
-        free(response_buffer);
-        return;
-    }
-    // send response
-    int bytes_sent = send(client_socket, response_buffer, response_size, 0);
-    if (bytes_sent == -1)
-    {
-        perror("Error sending message");
-        free(response_buffer);
-        return;
-    }
-    printf("Sent %d-byte message\n", bytes_sent);
 }
 
 void handle_client(int client_socket)
 {
-    uint8_t buffer[MAX_BUFFER_SIZE]; // Change this line
-    total_clients++;
-    int message_size;
-    // read message
-    message_size = recv(client_socket, buffer, MAX_BUFFER_SIZE, 0);
-    if (message_size == -1)
+    Message message;
+    int bytes_received = recv(client_socket, &message, MAX_BUFFER_SIZE, 0);
+    switch (message.type)
     {
-        perror("Error reading message");
-        return;
-    }
-    // deserialize message
-    Chess__Message *message = chess__message__unpack(NULL, message_size, buffer);
-    if (message == NULL)
-    {
-        fprintf(stderr, "Error deserializing message\n");
-        return;
-    }
-    // handle message
-    switch (message->type)
-    {
-    case CHESS__MESSAGE__MESSAGE_TYPE__LOGIN:
-        handle_login(client_socket, message);
+    case LOGIN:
+        printf("Received login message\n");
+        // get login message
+        char *username = message.data.loginData.username;
+        char *password = message.data.loginData.password;
+        printf("Username: %s\n", username);
+        printf("Password: %s\n", password);
+        // login
+        user_t *user = login(username, password);
+        // create response
+        Message response;
+        response.type = LOGIN_RESPONSE;
+        if (user == NULL)
+        {
+            response.data.loginResponse.is_success = 0;
+            printf("Login failed\n");
+        }
+        else
+        {
+            response.data.loginResponse.is_success = 1;
+            response.data.loginResponse.user_id = user->user_id;
+            response.data.loginResponse.elo = user->elo;
+            printf("Login success\n");
+        }
+        // send response
+        int bytes_sent = send(client_socket, &response, sizeof(response), 0);
+        if (bytes_sent <= 0)
+        {
+            printf("Connection closed\n");
+        }
+        else
+        {
+            printf("Sent: %d bytes\n", bytes_sent);
+        }
         break;
+
     default:
         break;
     }
-    printf("Total clients: %d\n", total_clients);
-    close(client_socket);
 }
 void *thread_function()
 {
