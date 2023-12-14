@@ -7,7 +7,6 @@
 #include <openssl/sha.h>
 #define PORT 12345
 #define MAX_BUFFER_SIZE 4096
-
 typedef struct
 {
     char username[20];

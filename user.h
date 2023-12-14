@@ -1,6 +1,6 @@
 #ifndef USER_H
 #define USER_H
-
+#include "server.h"
 #include <stdio.h>
 typedef struct user
 {
@@ -9,7 +9,6 @@ typedef struct user
     char *password;
     int elo;
 } user_t;
-
 void hash_password(const char *password, char *hashed_password);
 user_t *login(char *username, char *password);
 void print_user(user_t *user);

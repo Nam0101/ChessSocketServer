@@ -1,13 +1,6 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-#include "node.h"
-#include "sqlite3.h"
-#include "user.h"
-#include <pthread.h>
-#include <semaphore.h>
-#include <openssl/sha.h>
-
 #define PORT 12345
 #define BACKLOG 100
 #define MAX_BUFFER_SIZE 4096
@@ -49,7 +42,5 @@ typedef struct
         LoginResponse loginResponse;
     } data;
 } Message;
-
-
 
 #endif

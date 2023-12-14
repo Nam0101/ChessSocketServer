@@ -3,6 +3,8 @@
         "protobuf-c.h": "c",
         "cstdlib": "c",
         "user.h": "c",
-        "sodium.h": "c"
+        "sodium.h": "c",
+        "server.h": "c",
+        "sqlite3.h": "c"
     }
 }

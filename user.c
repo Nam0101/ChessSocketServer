@@ -3,10 +3,32 @@
 #include <stdlib.h>
 #include <string.h>
 #include <openssl/sha.h>
-#include "user.h"
 #include "sqlite3.h"
-#include "server.h"
+#include <pthread.h>
 #include "user.h"
+// mutex lock for database
+static __thread sqlite3 *db = NULL;
+
+// Function to open the database connection
+static sqlite3 *get_database_connection()
+{
+    if (db == NULL)
+    {
+        sqlite3_open("database.db", &db);
+    }
+    return db;
+}
+
+// Function to close the database connection
+static void close_database_connection()
+{
+    if (db != NULL)
+    {
+        sqlite3_close(db);
+        db = NULL;
+    }
+}
+
 void hash_password(const char *password, char *hashed_password)
 {
     SHA256_CTX sha256;
@@ -18,7 +40,7 @@ void hash_password(const char *password, char *hashed_password)
 user_t *login(char *username, char *password)
 {
     // open database
-    sqlite3 *db;
+    sqlite3 *db = get_database_connection();
     // mutex lock
     int rc = sqlite3_open("database.db", &db);
     if (rc != SQLITE_OK)
@@ -60,17 +82,19 @@ user_t *login(char *username, char *password)
         // close statement
         sqlite3_finalize(stmt);
         // close database
-        sqlite3_close(db);
+        close_database_connection();
         return user;
     }
     sqlite3_finalize(stmt);
-    sqlite3_close(db);
+    close_database_connection();
     return NULL;
 }
 
 void print_user(user_t *user)
 {
-    // ... (Rest of the print_user function code)
+    printf("User id: %d\n", user->user_id);
+    printf("Username: %s\n", user->username);
+    printf("Elo: %d\n", user->elo);
 }
 
 void handle_login(const int client_socket, const LoginData *loginData)
@@ -157,21 +181,4 @@ void handle_register(const int client_socket, const RegisterData *registerData)
     sqlite3_close(db);
     free(username);
     free(password);
-}
-void handle_client(int client_socket)
-{
-    Message *message = (Message *)malloc(sizeof(Message));
-    int bytes_received = recv(client_socket, message, MAX_BUFFER_SIZE, 0);
-    switch (message->type)
-    {
-    case LOGIN:
-        handle_login(client_socket, &message->data.loginData);
-        break;
-    case REGISTER:
-        handle_register(client_socket, &message->data.registerData);
-        break;
-    default:
-        break;
-    }
-    free(message);
 }
