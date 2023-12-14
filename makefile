@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -Wextra
-LIBS = -lpthread -lsqlite3
+LIBS = -lpthread -lsqlite3 -lssl -lcrypto
 all: server client
 
 server: server.c queue.c 

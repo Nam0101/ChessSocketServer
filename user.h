@@ -10,9 +10,10 @@ typedef struct user
     int elo;
 } user_t;
 
-user_t *create_user(int user_id, char *username, char *password, int elo);
-void destroy_user(user_t *user);
+void hash_password(const char *password, char *hashed_password);
+user_t *login(char *username, char *password);
 void print_user(user_t *user);
-void print_user_list(user_t **user_list, int size);
+void handle_login(const int client_socket, const LoginData *loginData);
+void handle_register(const int client_socket, const RegisterData *registerData);
 
 #endif

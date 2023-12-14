@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
-
+#include <openssl/sha.h>
 #define PORT 12345
 #define MAX_BUFFER_SIZE 4096
 
@@ -18,7 +18,6 @@ typedef struct
 {
     char username[20];
     char password[10];
-    char name[20];
 } RegisterData;
 
 typedef struct
@@ -73,9 +72,8 @@ int main()
     // Send login or register request
     Message message;
     message.type = LOGIN; // or REGISTER
-    strcpy(message.data.loginData.username, "Nam");
-    strcpy(message.data.loginData.password, "123");
-
+    strcpy(message.data.loginData.username, "test");
+    strcpy(message.data.loginData.password, "12345678");
     int bytes_sent = send(client_socket, &message, sizeof(message), 0);
     if (bytes_sent <= 0)
     {
@@ -104,7 +102,8 @@ int main()
         {
             printf("Login success\n");
             printf("User id: %d\n", response.data.loginResponse.user_id);
-            printf("Elo: %d\n", response.data.loginResponse.elo);}
+            printf("Elo: %d\n", response.data.loginResponse.elo);
+        }
         else
         {
             printf("Login failed\n");
@@ -115,6 +114,21 @@ int main()
         printf("Invalid response\n");
         break;
     }
+    // resigter
+    // Message message;
+    // message.type = REGISTER;
+    // strcpy(message.data.registerData.username, "test");
+    // strcpy(message.data.registerData.password, "12345678");
+    // int bytes_sent = send(client_socket, &message, sizeof(message), 0);
+    // if (bytes_sent <= 0)
+    // {
+    //     printf("Connection closed\n");
+    // }
+    // else
+    // {
+    //     printf("Sent: %d bytes\n", bytes_sent);
+    // }
+    // Receive response from server
 
     close(client_socket);
     return 0;
