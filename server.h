@@ -24,12 +24,17 @@ typedef struct
     int user_id;
     int elo;
 } LoginResponse;
-
+typedef struct
+{
+    short is_success;
+    char message[30];
+} RegisterResponse;
 typedef enum
 {
     LOGIN,
     REGISTER,
-    LOGIN_RESPONSE
+    LOGIN_RESPONSE,
+    REGISTER_RESPONSE
 } MessageType;
 
 typedef struct
@@ -39,8 +44,16 @@ typedef struct
     {
         LoginData loginData;
         RegisterData registerData;
-        LoginResponse loginResponse;
     } data;
 } Message;
+typedef struct
+{
+    MessageType type;
+    union
+    {
+        LoginResponse loginResponse;
+        RegisterResponse registerResponse;
+    } data;
+} Response;
 
 #endif

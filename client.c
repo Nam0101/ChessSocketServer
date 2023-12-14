@@ -5,44 +5,9 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <openssl/sha.h>
+#include "server.h"
 #define PORT 12345
 #define MAX_BUFFER_SIZE 4096
-typedef struct
-{
-    char username[20];
-    char password[10];
-} LoginData;
-
-typedef struct
-{
-    char username[20];
-    char password[10];
-} RegisterData;
-
-typedef struct
-{
-    short is_success;
-    int user_id;
-    int elo;
-} LoginResponse;
-
-typedef enum
-{
-    LOGIN,
-    REGISTER,
-    LOGIN_RESPONSE
-} MessageType;
-
-typedef struct
-{
-    MessageType type;
-    union
-    {
-        LoginData loginData;
-        RegisterData registerData;
-        LoginResponse loginResponse;
-    } data;
-} Message;
 
 void check(int code)
 {
@@ -71,7 +36,7 @@ int main()
     // Send login or register request
     Message message;
     message.type = LOGIN; // or REGISTER
-    strcpy(message.data.loginData.username, "test");
+    strcpy(message.data.loginData.username, "namnguyen");
     strcpy(message.data.loginData.password, "12345678");
     int bytes_sent = send(client_socket, &message, sizeof(message), 0);
     if (bytes_sent <= 0)
@@ -83,8 +48,8 @@ int main()
         printf("Sent: %d bytes\n", bytes_sent);
     }
 
-    // Receive response from server
-    Message response;
+    // // Receive response from server
+    Response response;
     int bytes_received = recv(client_socket, &response, sizeof(response), 0);
     if (bytes_received <= 0)
     {
@@ -116,7 +81,7 @@ int main()
     // resigter
     // Message message;
     // message.type = REGISTER;
-    // strcpy(message.data.registerData.username, "test");
+    // strcpy(message.data.registerData.username, "namnguyen");
     // strcpy(message.data.registerData.password, "12345678");
     // int bytes_sent = send(client_socket, &message, sizeof(message), 0);
     // if (bytes_sent <= 0)
@@ -127,8 +92,32 @@ int main()
     // {
     //     printf("Sent: %d bytes\n", bytes_sent);
     // }
-    // Receive response from server
+    // // Receive response from server
+    // Response response;
+    // int bytes_received = recv(client_socket, &response, sizeof(response), 0);
+    // if (bytes_received <= 0)
+    // {
+    //     printf("Connection closed\n");
+    // }
+    // else
+    // {
+    //     printf("Received: %d bytes\n", bytes_received);
+    // }
+    // switch (response.type)
+    // {
+    // case REGISTER_RESPONSE:
+    //     if (response.data.registerResponse.is_success == 1)
+    //     {
+    //         printf("Register success\n");
+    //     }
+    //     else
+    //     {
+    //         char *message = response.data.registerResponse.message;
+    //         printf("Register failed: %s\n", message);
+    //     }
+    //     break;
+    // }
 
-    close(client_socket);
+    // close(client_socket);
     return 0;
 }

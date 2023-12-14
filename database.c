@@ -11,7 +11,7 @@ void initialize_database()
 }
 
 // Function to open the database connection
-sqlite3 *get_database_connection() 
+sqlite3 *get_database_connection()
 {
     pthread_mutex_lock(&db_lock);
 

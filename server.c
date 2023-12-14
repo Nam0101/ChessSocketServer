@@ -15,6 +15,9 @@ pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 
 queue_t *client_queue;
+// Online user list
+int onlineUser[10000];
+node_t *online_user_list = NULL;
 // Function prototypes
 void handle_login(int client_socket, const LoginData *loginData);
 void handle_register(int client_socket, const RegisterData *registerData);
@@ -30,7 +33,7 @@ void check(int code)
 void handle_client(int client_socket)
 {
     Message *message = (Message *)malloc(sizeof(Message));
-    int bytes_received = recv(client_socket, message, MAX_BUFFER_SIZE, 0);
+    check(recv(client_socket, message, MAX_BUFFER_SIZE, 0));
     switch (message->type)
     {
     case LOGIN:
@@ -39,6 +42,7 @@ void handle_client(int client_socket)
     case REGISTER:
         handle_register(client_socket, &message->data.registerData);
         break;
+        // other case
     default:
         break;
     }
@@ -98,7 +102,6 @@ int main()
     }
     while (1)
     {
-        // lock mutex
         // Accept connection from client
         int client_socket = accept(server_socket, (struct sockaddr *)&client_address, &client_address_len);
         // unlock mutex

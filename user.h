@@ -14,5 +14,7 @@ user_t *login(char *username, char *password);
 void print_user(user_t *user);
 void handle_login(const int client_socket, const LoginData *loginData);
 void handle_register(const int client_socket, const RegisterData *registerData);
-
+void handle_register_error(const int client_socket, const char *message);
+int username_exists(sqlite3 *db, const char *username);
+int register_user(sqlite3 *db, const char *username, const char *hashed_password);
 #endif
