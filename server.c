@@ -70,6 +70,12 @@ void *thread_function_logedin()
         case REGISTER:
             handle_register(task->client_socket, &task->message.data.registerData);
             break;
+        case EXIT:
+            remove_online_user(task->message.data.exitData.user_id);
+            break;
+        case ADD_FRIEND:
+            handle_add_friend(task->client_socket, &task->message.data.addFriendData);
+            break;
         default:
             break;
         }
@@ -129,7 +135,6 @@ void *listen_online_user_list()
                 ssize_t bytes_received = recv(online_user->client_socket, message, MAX_BUFFER_SIZE, 0);
                 if (bytes_received <= 0)
                 {
-                    printf("Connection closed\n");
                     remove_online_user(online_user->user_id);
                 }
                 // printf("Received message from user %d\n", online_user->user_id);
@@ -138,7 +143,6 @@ void *listen_online_user_list()
                 pthread_cond_signal(&online_cond);
                 pthread_mutex_unlock(&pool_mutex);
             }
-            printf("Next user\n");
             online_user = online_user->next;
         }
     }

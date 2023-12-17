@@ -8,7 +8,13 @@
 #include "server.h"
 #define PORT 12345
 #define MAX_BUFFER_SIZE 4096
-
+#define SERVER_ERROR 'E'
+#define USERNAME_EXISTS 'U'
+#define REGISTER_SUCCESS 'S'
+#define USER_LOGED_IN 'L'
+#define USERNAME_PASSWORD_WRONG 'W'
+#define ALREADY_FRIEND 'A'
+#define FRIEND_ID_NOT_FOUND 'F'
 void check(int code)
 {
     if (code == -1)
@@ -17,7 +23,7 @@ void check(int code)
         exit(EXIT_FAILURE);
     }
 }
-
+int user_id, elo;
 void login(int client_socket)
 {
     Message message;
@@ -59,10 +65,15 @@ void login(int client_socket)
             printf("Login success\n");
             printf("User id: %d\n", response.data.loginResponse.user_id);
             printf("Elo: %d\n", response.data.loginResponse.elo);
+            user_id = response.data.loginResponse.user_id;
+            elo = response.data.loginResponse.elo;
         }
         else
         {
-            printf("Login failed\n");
+            if (response.data.loginResponse.message_code == ALREADY_FRIEND)
+            {
+                printf("Already friend\n");
+            }
         }
         break;
 
@@ -114,7 +125,14 @@ void sendRegister(int client_socket)
         }
         else
         {
-            printf("Register failed\n");
+            if (response.data.registerResponse.message_code == USERNAME_EXISTS)
+            {
+                printf("Username already exists\n");
+            }
+            else
+            {
+                printf("Server error\n");
+            }
         }
         break;
 
@@ -123,6 +141,78 @@ void sendRegister(int client_socket)
         break;
     }
 }
+
+void logout(int client_socket)
+{
+    Message message;
+    message.type = EXIT;
+    message.data.exitData.user_id = user_id;
+    int bytes_sent = send(client_socket, &message, sizeof(message), 0);
+    if (bytes_sent <= 0)
+    {
+        printf("Connection closed\n");
+    }
+    else
+    {
+        printf("Sent: %d bytes\n", bytes_sent);
+    }
+}
+
+void addFriend(int client_socket)
+{
+    Message message;
+    message.type = ADD_FRIEND;
+    message.data.addFriendData.user_id = user_id;
+    int friend_id;
+    printf("Enter friend id: ");
+    scanf("%d", &friend_id);
+    message.data.addFriendData.friend_id = friend_id;
+    int bytes_sent = send(client_socket, &message, sizeof(message), 0);
+    if (bytes_sent <= 0)
+    {
+        printf("Connection closed\n");
+    }
+    else
+    {
+        printf("Sent: %d bytes\n", bytes_sent);
+    }
+    // get response
+    Response response;
+    int bytes_received = recv(client_socket, &response, sizeof(response), 0);
+    if (bytes_received <= 0)
+    {
+        printf("Connection closed\n");
+    }
+    else
+    {
+        printf("Received: %d bytes\n", bytes_received);
+    }
+    switch (response.type)
+    {
+    case ADD_FRIEND_RESPONSE:
+        if (response.data.addFriendResponse.is_success == 1)
+        {
+            printf("Add friend success\n");
+        }
+        else
+        {
+            if (response.data.addFriendResponse.message_code == FRIEND_ID_NOT_FOUND)
+            {
+                printf("Friend id not found\n");
+            }
+            else if (response.data.addFriendResponse.message_code == ALREADY_FRIEND)
+            {
+                printf("Already friend\n");
+            }
+            else
+            {
+                printf("Server error\n");
+            }
+        }
+        break;
+    }
+}
+
 int main()
 {
     int client_socket;
@@ -143,7 +233,8 @@ int main()
         printf("TEST CLIENT\n");
         printf("1. Login\n");
         printf("2. Register\n");
-        printf("3. Exit\n");
+        printf("3. Add Friend\n");
+        printf("4. Logout\n");
         printf("Enter your choice: ");
         scanf("%d", &choice);
         switch (choice)
@@ -155,9 +246,11 @@ int main()
             sendRegister(client_socket);
             break;
         case 3:
-            close(client_socket);
-            exit(EXIT_SUCCESS);
+            addFriend(client_socket);
             break;
+        case 4:
+            logout(client_socket);
+            exit(EXIT_SUCCESS);
         default:
             printf("Invalid choice\n");
             break;

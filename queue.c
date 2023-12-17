@@ -63,7 +63,7 @@ task_t *create_new_task(int client_socket, Message message)
 void enqueue_task(task_queue_t *list, int client_socket, Message message)
 {
     task_t *new_task = create_new_task(client_socket, message);
-    printf("added task to queue for socket: %d\n", client_socket);
+    // printf("added task to queue for socket: %d\n", client_socket);
     if (list->head == NULL)
     {
         list->head = new_task;

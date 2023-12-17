@@ -11,6 +11,17 @@
 #define SERVER_ERROR 'E'
 #define USERNAME_EXISTS 'U'
 #define REGISTER_SUCCESS 'S'
+#define USER_LOGED_IN 'L'
+#define USERNAME_PASSWORD_WRONG 'W'
+#define ALREADY_FRIEND 'A'
+#define FRIEND_ID_NOT_FOUND 'F'
+#define LOGIN_QUERY "SELECT * FROM user WHERE username = ? AND password = ?;"
+#define CHECK_USERNAME_QUERY "SELECT * FROM user WHERE username = ?;"
+#define INSERT_USER_QUERY "INSERT INTO user (username, password, elo) VALUES (?, ?, 1000);"
+#define ADD_FRIEND_QUERY "INSERT INTO friend (user_id, friend_id) VALUES (?, ?);"
+#define GET_FRIEND_LIST_QUERY "SELECT * FROM friend WHERE user_id = ?;"
+#define CHECK_ALREADY_FRIEND_QUERY "SELECT * FROM friend WHERE user_id = ? AND friend_id = ?;"
+#define CHECK_USER_EXIST_BY_ID_QUERY "SELECT * FROM user WHERE id = ?;"
 loged_in_user_t *online_user_list = NULL;
 pthread_mutex_t online_list_mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -55,7 +66,6 @@ void remove_online_user(int user_id)
 
 loged_in_user_t *get_list_online_user()
 {
-    printf("Get list online user\n");
     return online_user_list;
 }
 
@@ -72,7 +82,7 @@ user_t *login(char *username, char *password)
     // open database
     sqlite3 *db = get_database_connection();
     // create query
-    char *sql = "SELECT * FROM user WHERE username = ? AND password = ?;";
+    char *sql = LOGIN_QUERY;
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
     if (rc != SQLITE_OK)
@@ -138,12 +148,12 @@ void handle_login(const int client_socket, const LoginData *loginData)
     loged_in_user_t *current = online_user_list;
     while (current != NULL)
     {
-        printf("current username: %s\n", current->username);
         if (strcmp(current->username, loginData->username) == 0)
         {
             Response *response = (Response *)malloc(sizeof(Response));
             response->type = LOGIN_RESPONSE;
             response->data.loginResponse.is_success = 0;
+            response->data.loginResponse.message_code = USER_LOGED_IN;
             int bytes_sent = send(client_socket, response, sizeof(Response), 0);
             if (bytes_sent <= 0)
             {
@@ -167,6 +177,7 @@ void handle_login(const int client_socket, const LoginData *loginData)
     if (user == NULL)
     {
         response->data.loginResponse.is_success = 0;
+        response->data.loginResponse.message_code = USERNAME_PASSWORD_WRONG;
     }
     else
     {
@@ -220,7 +231,6 @@ void handle_register(const int client_socket, const RegisterData *registerData)
 
     if (register_user(db, username, hashed_password))
     {
-        printf("Register success\n");
         send_register_message(client_socket, REGISTER_SUCCESS, 1);
     }
     else
@@ -253,7 +263,7 @@ void send_register_message(const int client_socket, const char message_code, int
 
 int username_exists(sqlite3 *db, const char *username)
 {
-    char *sql_is_exist = "SELECT * FROM user WHERE username = ?;";
+    char *sql_is_exist = CHECK_USERNAME_QUERY;
     sqlite3_stmt *stmt_is_exist;
     int rc = sqlite3_prepare_v2(db, sql_is_exist, -1, &stmt_is_exist, NULL);
 
@@ -273,7 +283,7 @@ int username_exists(sqlite3 *db, const char *username)
 
 int register_user(sqlite3 *db, const char *username, const char *hashed_password)
 {
-    char *sql = "INSERT INTO user (username, password, elo) VALUES (?, ?, 1000);";
+    char *sql = INSERT_USER_QUERY;
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
 
@@ -290,4 +300,135 @@ int register_user(sqlite3 *db, const char *username, const char *hashed_password
     sqlite3_finalize(stmt);
 
     return (rc == SQLITE_DONE);
+}
+
+int get_friend_list(const int user_id, int *friend_list)
+{
+    sqlite3 *db = get_database_connection();
+    char *sql = GET_FRIEND_LIST_QUERY;
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    int i = 0;
+    if (rc != SQLITE_OK)
+    {
+        fprintf(stderr, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        close_database_connection(db);
+        return 0;
+    }
+    sqlite3_bind_int(stmt, 1, user_id);
+    rc = sqlite3_step(stmt);
+    while (rc == SQLITE_ROW)
+    {
+        friend_list[i] = sqlite3_column_int(stmt, 2);
+        i++;
+        rc = sqlite3_step(stmt);
+    }
+    sqlite3_finalize(stmt);
+    close_database_connection(db);
+    return i;
+}
+
+void handle_add_friend(const int client_socket, const AddFriendData *addFriendData)
+{
+    sqlite3 *db = get_database_connection();
+    sqlite3_stmt *stmt;
+    // check if friend exists
+    char *sql = CHECK_USER_EXIST_BY_ID_QUERY;
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    if (rc != SQLITE_OK)
+    {
+        fprintf(stderr, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        close_database_connection(db);
+        return;
+    }
+    sqlite3_bind_int(stmt, 1, addFriendData->friend_id);
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_ROW)
+    {
+        Response *response = (Response *)malloc(sizeof(Response));
+        response->type = ADD_FRIEND_RESPONSE;
+        response->data.addFriendResponse.is_success = 0;
+        response->data.addFriendResponse.message_code = FRIEND_ID_NOT_FOUND;
+        int bytes_sent = send(client_socket, response, sizeof(Response), 0);
+        if (bytes_sent <= 0)
+        {
+            printf("Connection closed\n");
+        }
+        free(response);
+        sqlite3_finalize(stmt);
+        close_database_connection(db);
+        return;
+    }
+
+    // check if user is already friend
+    sql = CHECK_ALREADY_FRIEND_QUERY;
+    rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    if (rc != SQLITE_OK)
+    {
+        fprintf(stderr, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        close_database_connection(db);
+        return;
+    }
+    sqlite3_bind_int(stmt, 1, addFriendData->user_id);
+    sqlite3_bind_int(stmt, 2, addFriendData->friend_id);
+    rc = sqlite3_step(stmt);
+    if (rc == SQLITE_ROW)
+    {
+        Response *response = (Response *)malloc(sizeof(Response));
+        response->type = ADD_FRIEND_RESPONSE;
+        response->data.addFriendResponse.is_success = 0;
+        response->data.addFriendResponse.message_code = ALREADY_FRIEND;
+        int bytes_sent = send(client_socket, response, sizeof(Response), 0);
+        if (bytes_sent <= 0)
+        {
+            printf("Connection closed\n");
+        }
+        free(response);
+        sqlite3_finalize(stmt);
+        close_database_connection(db);
+        return;
+    }
+    sqlite3_finalize(stmt);
+
+    // add friend
+    sql = ADD_FRIEND_QUERY;
+    rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    if (rc != SQLITE_OK)
+    {
+        fprintf(stderr, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        close_database_connection(db);
+        return;
+    }
+    sqlite3_bind_int(stmt, 1, addFriendData->user_id);
+    sqlite3_bind_int(stmt, 2, addFriendData->friend_id);
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE)
+    {
+        Response *response = (Response *)malloc(sizeof(Response));
+        response->type = ADD_FRIEND_RESPONSE;
+        response->data.addFriendResponse.is_success = 0;
+        response->data.addFriendResponse.message_code = SERVER_ERROR;
+        int bytes_sent = send(client_socket, response, sizeof(Response), 0);
+        if (bytes_sent <= 0)
+        {
+            printf("Connection closed\n");
+        }
+        free(response);
+        sqlite3_finalize(stmt);
+        close_database_connection(db);
+        return;
+    }
+    sqlite3_finalize(stmt);
+    // send response
+    Response *response = (Response *)malloc(sizeof(Response));
+    response->type = ADD_FRIEND_RESPONSE;
+    response->data.addFriendResponse.is_success = 1;
+    response->data.addFriendResponse.message_code = 0;
+    int bytes_sent = send(client_socket, response, sizeof(Response), 0);
+    if (bytes_sent <= 0)
+    {
+        printf("Connection closed\n");
+    }
+    free(response);
+    close_database_connection(db);
 }

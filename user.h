@@ -33,4 +33,5 @@ int register_user(sqlite3 *db, const char *username, const char *hashed_password
 loged_in_user_t *get_list_online_user();
 void add_online_user(int user_id, int elo, int client_socket, char *username);
 void remove_online_user(int user_id);
+void handle_add_friend(const int client_socket, const AddFriendData *addFriendData);
 #endif

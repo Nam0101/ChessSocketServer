@@ -17,7 +17,15 @@ typedef struct
     char username[20];
     char password[10];
 } RegisterData;
-
+typedef struct
+{
+    int user_id;
+} ExitData;
+typedef struct
+{
+    int user_id;
+    int friend_id;
+} AddFriendData;
 typedef struct
 {
     short is_success;
@@ -30,12 +38,20 @@ typedef struct
     short is_success;
     char message_code;
 } RegisterResponse;
+typedef struct
+{
+    short is_success;
+    char message_code;
+} AddFriendResponse;
 typedef enum
 {
     LOGIN,
     REGISTER,
     LOGIN_RESPONSE,
-    REGISTER_RESPONSE
+    REGISTER_RESPONSE,
+    EXIT,
+    ADD_FRIEND,
+    ADD_FRIEND_RESPONSE
 } MessageType;
 
 typedef struct
@@ -45,6 +61,8 @@ typedef struct
     {
         LoginData loginData;
         RegisterData registerData;
+        ExitData exitData;
+        AddFriendData addFriendData;
     } data;
 } Message;
 typedef struct
@@ -54,6 +72,7 @@ typedef struct
     {
         LoginResponse loginResponse;
         RegisterResponse registerResponse;
+        AddFriendResponse addFriendResponse;
     } data;
 } Response;
 
