@@ -86,6 +86,9 @@ void *thread_function_logedin()
         case FINDING_MATCH:
             handle_finding_match(task->client_socket, &task->message.data.findingMatchData);
             break;
+        case INVITE_FRIEND:
+            handle_invite_friend(task->client_socket, &task->message.data.inviteFriendData);
+            break;
         default:
             break;
         }

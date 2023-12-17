@@ -35,6 +35,8 @@ typedef struct
 {
     int user_id;
     int friend_id;
+    int room_id;
+    int total_time;
 } InviteFriendData;
 typedef struct
 {
@@ -66,6 +68,17 @@ typedef struct
 } FindingMatchResponse;
 typedef struct
 {
+    int user_id;
+    int friend_id;
+    int room_id;
+    int total_time;
+} InviteFriendResponse;
+typedef struct
+{
+    short is_accept;
+} AcceptOrDeclineInvitationData;
+typedef struct
+{
     short is_success;
     char message_code;
 } RegisterResponse;
@@ -78,6 +91,7 @@ typedef struct
 {
     short is_success;
     char message_code;
+    int room_id;
 } CreateRoomResponse;
 typedef enum
 {
@@ -96,6 +110,7 @@ typedef enum
     INVITE_FRIEND_RESPONSE,
     FINDING_MATCH,
     FINDING_MATCH_RESPONSE,
+    ACCEPT_OR_DECLINE_INVITATION
 } MessageType;
 
 typedef struct
@@ -110,6 +125,8 @@ typedef struct
         GetOnlineFriendsData getOnlineFriendsData;
         CreateRoomData createRoomData;
         FindingMatchData findingMatchData;
+        InviteFriendData inviteFriendData;
+        AcceptOrDeclineInvitationData acceptOrDeclineInvitationData;
     } data;
 } Message;
 typedef struct
@@ -123,6 +140,8 @@ typedef struct
         OnlineFriendsResponse onlineFriendsResponse;
         CreateRoomResponse createRoomResponse;
         FindingMatchResponse findingMatchResponse;
+        InviteFriendResponse inviteFriendResponse;
+        AcceptOrDeclineInvitationData acceptOrDeclineInvitationData;
     } data;
 } Response;
 

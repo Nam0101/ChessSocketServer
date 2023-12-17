@@ -23,7 +23,7 @@ void check(int code)
         exit(EXIT_FAILURE);
     }
 }
-int user_id, elo;
+int user_id, elo, room_id, mtotal_time;
 void login(int client_socket)
 {
     Message message;
@@ -266,6 +266,7 @@ void create_room(int client_socket)
     printf("Enter total time: ");
     scanf("%d", &total_time);
     message.data.createRoomData.total_time = total_time;
+    mtotal_time = message.data.createRoomData.total_time;
     int bytes_sent = send(client_socket, &message, sizeof(message), 0);
     if (bytes_sent <= 0)
     {
@@ -292,17 +293,12 @@ void create_room(int client_socket)
         if (response.data.createRoomResponse.is_success == 1)
         {
             printf("Create room success\n");
+            printf("Room id: %d\n", response.data.createRoomResponse.room_id);
+            room_id = response.data.createRoomResponse.room_id;
         }
         else
         {
-            if (response.data.createRoomResponse.message_code == USER_LOGED_IN)
-            {
-                printf("User loged in\n");
-            }
-            else
-            {
-                printf("Server error\n");
-            }
+            printf("Create room failed\n");
         }
         break;
     }
@@ -349,7 +345,80 @@ void finding_match(int client_socket)
         break;
     }
 }
-
+void invite_friend(int client_socket)
+{
+    Message message;
+    message.type = INVITE_FRIEND;
+    message.data.inviteFriendData.user_id = user_id;
+    int friend_id;
+    printf("Enter friend id: ");
+    scanf("%d", &friend_id);
+    message.data.inviteFriendData.friend_id = friend_id;
+    message.data.inviteFriendData.room_id = room_id;
+    message.data.inviteFriendData.total_time = mtotal_time;
+    int bytes_sent = send(client_socket, &message, sizeof(message), 0);
+    if (bytes_sent <= 0)
+    {
+        printf("Connection closed\n");
+    }
+    else
+    {
+        printf("Sent: %d bytes\n", bytes_sent);
+    }
+    // get response
+    Response response;
+    int bytes_received = recv(client_socket, &response, sizeof(response), 0);
+    if (bytes_received <= 0)
+    {
+        printf("Connection closed\n");
+    }
+    else
+    {
+        printf("Received: %d bytes\n", bytes_received);
+    }
+    switch (response.type)
+    {
+    case INVITE_FRIEND_RESPONSE:
+        // if (response.data.inviteFriendResponse.is_success == 1)
+        // {
+        //     printf("Invite friend success\n");
+        // }
+        // else
+        // {
+        //     if (response.data.inviteFriendResponse.message_code == FRIEND_ID_NOT_FOUND)
+        //     {
+        //         printf("Friend id not found\n");
+        //     }
+        //     else
+        //     {
+        //         printf("Server error\n");
+        //     }
+        // }
+        break;
+    }
+}
+void waiting_for_invite(int client_socket)
+{
+    Response response;
+    int bytes_received = recv(client_socket, &response, sizeof(response), 0);
+    if (bytes_received <= 0)
+    {
+        printf("Connection closed\n");
+    }
+    if (response.type == INVITE_FRIEND_RESPONSE)
+    {
+        printf("Invite from user %d\n", response.data.inviteFriendResponse.user_id);
+        printf("Room id: %d\n", response.data.inviteFriendResponse.room_id);
+        printf("Total time: %d\n", response.data.inviteFriendResponse.total_time);
+        int is_accept;
+        printf("Enter 1 to accept, 0 to decline: ");
+        scanf("%d", &is_accept);
+        Message message;
+        message.type = ACCEPT_OR_DECLINE_INVITATION;
+        message.data.acceptOrDeclineInvitationData.is_accept = is_accept;
+        send(client_socket, &message, sizeof(message), 0);
+    }
+}
 int main()
 {
     int client_socket;
@@ -374,7 +443,9 @@ int main()
         printf("4. Get Online Friends\n");
         printf("5. Create Room\n");
         printf("6. Finding match\n");
+        printf("7. Invite friend\n");
         printf("10. Logout\n");
+        printf("11. Waiting for invite\n");
         printf("Enter your choice: ");
         scanf("%d", &choice);
         switch (choice)
@@ -397,9 +468,16 @@ int main()
         case 6:
             finding_match(client_socket);
             break;
+        case 7:
+            invite_friend(client_socket);
+            break;
         case 10:
             logout(client_socket);
             exit(EXIT_SUCCESS);
+        case 11:
+            waiting_for_invite(client_socket);
+            break;
+
         default:
             printf("Invalid choice\n");
             break;
