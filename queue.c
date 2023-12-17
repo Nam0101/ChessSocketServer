@@ -1,6 +1,6 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include "node.h"
-
 // Function to create a new node
 node_t *create_new_node(int socket_client)
 {
@@ -46,6 +46,53 @@ int dequeue(queue_t *list)
 queue_t *create_queue()
 {
     queue_t *list = (queue_t *)malloc(sizeof(queue_t));
+    list->head = NULL;
+    list->tail = NULL;
+    return list;
+}
+
+task_t *create_new_task(int client_socket, Message message)
+{
+    task_t *new_task = (task_t *)malloc(sizeof(task_t));
+    new_task->client_socket = client_socket;
+    new_task->message = message;
+    new_task->next = NULL;
+    return new_task;
+}
+
+void enqueue_task(task_queue_t *list, int client_socket, Message message)
+{
+    task_t *new_task = create_new_task(client_socket, message);
+    printf("added task to queue for socket: %d\n", client_socket);
+    if (list->head == NULL)
+    {
+        list->head = new_task;
+        list->tail = new_task;
+    }
+    else
+    {
+        list->tail->next = new_task;
+        list->tail = new_task;
+    }
+}
+
+task_t *dequeue_task(task_queue_t *list)
+{
+    if (list->head == NULL)
+    {
+        return NULL;
+    }
+    else
+    {
+        task_t *temp = list->head;
+        list->head = list->head->next;
+        return temp;
+    }
+}
+
+task_queue_t *create_task_queue()
+{
+    task_queue_t *list = (task_queue_t *)malloc(sizeof(task_queue_t));
     list->head = NULL;
     list->tail = NULL;
     return list;

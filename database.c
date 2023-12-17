@@ -1,10 +1,11 @@
 #include "database.h"
 #include <stdio.h>
 #include <pthread.h>
+#define MAX_CONNECTIONS 10
 static pthread_mutex_t db_lock;
+
 static sqlite3 *connection_pool[MAX_CONNECTIONS];
 static int connection_count = 0;
-
 void initialize_database()
 {
     pthread_mutex_init(&db_lock, NULL);
@@ -25,7 +26,7 @@ sqlite3 *get_database_connection()
 
     // If the pool is empty, open a new connection
     sqlite3 *db = NULL;
-    if (sqlite3_open("database.db", &db) != SQLITE_OK)
+    if (sqlite3_open(DATABASE_NAME, &db) != SQLITE_OK)
     {
         fprintf(stderr, "Cannot open database: %s\n", sqlite3_errmsg(db));
         sqlite3_close(db);

@@ -23,11 +23,12 @@ typedef struct
     short is_success;
     int user_id;
     int elo;
+    char message_code;
 } LoginResponse;
 typedef struct
 {
     short is_success;
-    char message[30];
+    char message_code;
 } RegisterResponse;
 typedef enum
 {

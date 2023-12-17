@@ -5,9 +5,59 @@
 #include <string.h>
 #include <openssl/sha.h>
 #include "sqlite3.h"
+#include <pthread.h>
 #include "user.h"
 #include "database.h"
-int total_sucess = 0;
+#define SERVER_ERROR 'E'
+#define USERNAME_EXISTS 'U'
+#define REGISTER_SUCCESS 'S'
+loged_in_user_t *online_user_list = NULL;
+pthread_mutex_t online_list_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+void add_online_user(int user_id, int elo, int client_socket, char *username)
+{
+    loged_in_user_t *new_user = (loged_in_user_t *)malloc(sizeof(loged_in_user_t));
+    new_user->user_id = user_id;
+    new_user->elo = elo;
+    new_user->is_playing = 0;
+    new_user->is_finding = 0;
+    strcpy(new_user->username, username);
+    new_user->client_socket = client_socket;
+    new_user->next = online_user_list;
+    online_user_list = new_user;
+}
+
+void remove_online_user(int user_id)
+{
+    pthread_mutex_lock(&online_list_mutex);
+    loged_in_user_t *current = online_user_list;
+    loged_in_user_t *previous = NULL;
+    while (current != NULL)
+    {
+        if (current->user_id == user_id)
+        {
+            if (previous == NULL)
+            {
+                online_user_list = current->next;
+            }
+            else
+            {
+                previous->next = current->next;
+            }
+            free(current);
+            break;
+        }
+        previous = current;
+        current = current->next;
+    }
+    pthread_mutex_unlock(&online_list_mutex);
+}
+
+loged_in_user_t *get_list_online_user()
+{
+    printf("Get list online user\n");
+    return online_user_list;
+}
 
 void hash_password(const char *password, char *hashed_password)
 {
@@ -21,17 +71,10 @@ user_t *login(char *username, char *password)
 {
     // open database
     sqlite3 *db = get_database_connection();
-    int rc = sqlite3_open("database.db", &db);
-    if (rc != SQLITE_OK)
-    {
-        fprintf(stderr, "Cannot open database: %s\n", sqlite3_errmsg(db));
-        sqlite3_close(db);
-        return NULL;
-    }
     // create query
     char *sql = "SELECT * FROM user WHERE username = ? AND password = ?;";
     sqlite3_stmt *stmt;
-    rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
     if (rc != SQLITE_OK)
     {
         fprintf(stderr, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
@@ -90,8 +133,28 @@ void print_user(user_t *user)
 
 void handle_login(const int client_socket, const LoginData *loginData)
 {
-    printf("Received login message\n");
-    // get login message
+
+    // check if user is already loged in
+    loged_in_user_t *current = online_user_list;
+    while (current != NULL)
+    {
+        printf("current username: %s\n", current->username);
+        if (strcmp(current->username, loginData->username) == 0)
+        {
+            Response *response = (Response *)malloc(sizeof(Response));
+            response->type = LOGIN_RESPONSE;
+            response->data.loginResponse.is_success = 0;
+            int bytes_sent = send(client_socket, response, sizeof(Response), 0);
+            if (bytes_sent <= 0)
+            {
+                printf("Connection closed\n");
+            }
+            free(response);
+            return;
+        }
+
+        current = current->next;
+    }
     char *username = (char *)malloc(20);
     char *password = (char *)malloc(10);
     strcpy(username, loginData->username);
@@ -104,16 +167,15 @@ void handle_login(const int client_socket, const LoginData *loginData)
     if (user == NULL)
     {
         response->data.loginResponse.is_success = 0;
-        printf("Login failed\n");
     }
     else
     {
         response->data.loginResponse.is_success = 1;
         response->data.loginResponse.user_id = user->user_id;
         response->data.loginResponse.elo = user->elo;
-        printf("Login success\n");
-        total_sucess++;
-        printf("Total clients: %d\n", total_sucess);
+        pthread_mutex_lock(&online_list_mutex);
+        add_online_user(user->user_id, user->elo, client_socket, user->username);
+        pthread_mutex_unlock(&online_list_mutex);
     }
     // send response
     int bytes_sent = send(client_socket, response, sizeof(Response), 0);
@@ -142,13 +204,13 @@ void handle_register(const int client_socket, const RegisterData *registerData)
 
     if (db == NULL)
     {
-        handle_register_error(client_socket, "Cannot open database");
+        send_register_message(client_socket, SERVER_ERROR, 0);
         return;
     }
 
     if (username_exists(db, username))
     {
-        handle_register_error(client_socket, "Username exists");
+        send_register_message(client_socket, USERNAME_EXISTS, 0);
         close_database_connection(db);
         free(username);
         free(password);
@@ -159,6 +221,7 @@ void handle_register(const int client_socket, const RegisterData *registerData)
     if (register_user(db, username, hashed_password))
     {
         printf("Register success\n");
+        send_register_message(client_socket, REGISTER_SUCCESS, 1);
     }
     else
     {
@@ -171,14 +234,13 @@ void handle_register(const int client_socket, const RegisterData *registerData)
     free(hashed_password);
 }
 
-void handle_register_error(const int client_socket, const char *message)
+void send_register_message(const int client_socket, const char message_code, int is_success)
 {
-    printf("%s\n", message);
 
     Response *response = (Response *)malloc(sizeof(Response));
     response->type = REGISTER_RESPONSE;
-    response->data.registerResponse.is_success = 0;
-    strncpy(response->data.registerResponse.message, message, sizeof(response->data.registerResponse.message));
+    response->data.registerResponse.is_success = is_success;
+    response->data.registerResponse.message_code = message_code;
 
     int bytes_sent = send(client_socket, response, sizeof(Response), 0);
     if (bytes_sent <= 0)

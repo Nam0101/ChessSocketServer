@@ -5,6 +5,7 @@
         "user.h": "c",
         "sodium.h": "c",
         "server.h": "c",
-        "sqlite3.h": "c"
+        "sqlite3.h": "c",
+        "database.h": "c"
     }
 }

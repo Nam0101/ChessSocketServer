@@ -18,26 +18,18 @@ void check(int code)
     }
 }
 
-int main()
+void login(int client_socket)
 {
-    int client_socket;
-    struct sockaddr_in server_address;
-
-    // Create socket
-    check(client_socket = socket(AF_INET, SOCK_STREAM, 0));
-
-    // Connect to server
-    server_address.sin_family = AF_INET;
-    server_address.sin_addr.s_addr = INADDR_ANY;
-    server_address.sin_port = htons(PORT);
-
-    check(connect(client_socket, (struct sockaddr *)&server_address, sizeof(server_address)));
-
-    // Send login or register request
     Message message;
     message.type = LOGIN; // or REGISTER
-    strcpy(message.data.loginData.username, "namnguyen");
-    strcpy(message.data.loginData.password, "12345678");
+    char username[50];
+    char password[50];
+    printf("Enter username: ");
+    scanf("%s", username);
+    printf("Enter password: ");
+    scanf("%s", password);
+    strcpy(message.data.loginData.username, username);
+    strcpy(message.data.loginData.password, password);
     int bytes_sent = send(client_socket, &message, sizeof(message), 0);
     if (bytes_sent <= 0)
     {
@@ -78,46 +70,97 @@ int main()
         printf("Invalid response\n");
         break;
     }
-    // resigter
-    // Message message;
-    // message.type = REGISTER;
-    // strcpy(message.data.registerData.username, "namnguyen");
-    // strcpy(message.data.registerData.password, "12345678");
-    // int bytes_sent = send(client_socket, &message, sizeof(message), 0);
-    // if (bytes_sent <= 0)
-    // {
-    //     printf("Connection closed\n");
-    // }
-    // else
-    // {
-    //     printf("Sent: %d bytes\n", bytes_sent);
-    // }
-    // // Receive response from server
-    // Response response;
-    // int bytes_received = recv(client_socket, &response, sizeof(response), 0);
-    // if (bytes_received <= 0)
-    // {
-    //     printf("Connection closed\n");
-    // }
-    // else
-    // {
-    //     printf("Received: %d bytes\n", bytes_received);
-    // }
-    // switch (response.type)
-    // {
-    // case REGISTER_RESPONSE:
-    //     if (response.data.registerResponse.is_success == 1)
-    //     {
-    //         printf("Register success\n");
-    //     }
-    //     else
-    //     {
-    //         char *message = response.data.registerResponse.message;
-    //         printf("Register failed: %s\n", message);
-    //     }
-    //     break;
-    // }
+}
 
-    // close(client_socket);
-    return 0;
+void sendRegister(int client_socket)
+{
+    Message message;
+    message.type = REGISTER; // or REGISTER
+    char username[50];
+    char password[50];
+    printf("Enter username: ");
+    scanf("%s", username);
+    printf("Enter password: ");
+    scanf("%s", password);
+    strcpy(message.data.registerData.username, username);
+    strcpy(message.data.registerData.password, password);
+    int bytes_sent = send(client_socket, &message, sizeof(message), 0);
+    if (bytes_sent <= 0)
+    {
+        printf("Connection closed\n");
+    }
+    else
+    {
+        printf("Sent: %d bytes\n", bytes_sent);
+    }
+
+    // // Receive response from server
+    Response response;
+    int bytes_received = recv(client_socket, &response, sizeof(response), 0);
+    if (bytes_received <= 0)
+    {
+        printf("Connection closed\n");
+    }
+    else
+    {
+        printf("Received: %d bytes\n", bytes_received);
+    }
+    switch (response.type)
+    {
+    case REGISTER_RESPONSE:
+        if (response.data.registerResponse.is_success == 1)
+        {
+            printf("Register success\n");
+        }
+        else
+        {
+            printf("Register failed\n");
+        }
+        break;
+
+    default:
+        printf("Invalid response\n");
+        break;
+    }
+}
+int main()
+{
+    int client_socket;
+    struct sockaddr_in server_address;
+
+    // Create socket
+    check(client_socket = socket(AF_INET, SOCK_STREAM, 0));
+
+    // Connect to server
+    server_address.sin_family = AF_INET;
+    server_address.sin_addr.s_addr = INADDR_ANY;
+    server_address.sin_port = htons(PORT);
+
+    check(connect(client_socket, (struct sockaddr *)&server_address, sizeof(server_address)));
+    while (1)
+    {
+        int choice;
+        printf("TEST CLIENT\n");
+        printf("1. Login\n");
+        printf("2. Register\n");
+        printf("3. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+        switch (choice)
+        {
+        case 1:
+            login(client_socket);
+            break;
+        case 2:
+            sendRegister(client_socket);
+            break;
+        case 3:
+            close(client_socket);
+            exit(EXIT_SUCCESS);
+            break;
+        default:
+            printf("Invalid choice\n");
+            break;
+        }
+    }
 }

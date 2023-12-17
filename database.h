@@ -2,8 +2,7 @@
 #define DATABASE_H
 
 #include <sqlite3.h>
-
-#define MAX_CONNECTIONS 10
+#define DATABASE_NAME "database.db"
 
 // Function to open the database connection
 sqlite3 *get_database_connection();
