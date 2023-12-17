@@ -26,6 +26,21 @@ typedef struct
     int user_id;
     int friend_id;
 } AddFriendData;
+
+typedef struct
+{
+    int user_id;
+} GetOnlineFriendsData;
+typedef struct
+{
+    int user_id;
+    int friend_id;
+} InviteFriendData;
+typedef struct
+{
+    short number_of_friends;
+    short friend_id[10];
+} OnlineFriendsResponse;
 typedef struct
 {
     short is_success;
@@ -33,6 +48,22 @@ typedef struct
     int elo;
     char message_code;
 } LoginResponse;
+typedef struct
+{
+    int user_id;
+    int total_time;
+} CreateRoomData;
+typedef struct
+{
+    int elo;
+    int user_id;
+} FindingMatchData;
+typedef struct
+{
+    short is_success;
+    int opponent_id;
+
+} FindingMatchResponse;
 typedef struct
 {
     short is_success;
@@ -43,6 +74,11 @@ typedef struct
     short is_success;
     char message_code;
 } AddFriendResponse;
+typedef struct
+{
+    short is_success;
+    char message_code;
+} CreateRoomResponse;
 typedef enum
 {
     LOGIN,
@@ -51,7 +87,15 @@ typedef enum
     REGISTER_RESPONSE,
     EXIT,
     ADD_FRIEND,
-    ADD_FRIEND_RESPONSE
+    ADD_FRIEND_RESPONSE,
+    GET_ONLINE_FRIENDS,
+    ONLINE_FRIENDS_RESPONSE,
+    CREATE_ROOM,
+    CREATE_ROOM_RESPONSE,
+    INVITE_FRIEND,
+    INVITE_FRIEND_RESPONSE,
+    FINDING_MATCH,
+    FINDING_MATCH_RESPONSE,
 } MessageType;
 
 typedef struct
@@ -63,6 +107,9 @@ typedef struct
         RegisterData registerData;
         ExitData exitData;
         AddFriendData addFriendData;
+        GetOnlineFriendsData getOnlineFriendsData;
+        CreateRoomData createRoomData;
+        FindingMatchData findingMatchData;
     } data;
 } Message;
 typedef struct
@@ -73,6 +120,9 @@ typedef struct
         LoginResponse loginResponse;
         RegisterResponse registerResponse;
         AddFriendResponse addFriendResponse;
+        OnlineFriendsResponse onlineFriendsResponse;
+        CreateRoomResponse createRoomResponse;
+        FindingMatchResponse findingMatchResponse;
     } data;
 } Response;
 

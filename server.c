@@ -5,12 +5,13 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <sys/select.h>
-#include "node.h"
+#include "task_queue/node.h"
 #include <pthread.h>
-#include "user.h"
+#include "user/user.h"
 #include <semaphore.h>
 #include <openssl/sha.h>
 #include "server.h"
+#include "game/game.h"
 int total_clients = 0;
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -75,6 +76,15 @@ void *thread_function_logedin()
             break;
         case ADD_FRIEND:
             handle_add_friend(task->client_socket, &task->message.data.addFriendData);
+            break;
+        case GET_ONLINE_FRIENDS:
+            handle_get_online_friends(task->client_socket, &task->message.data.getOnlineFriendsData);
+            break;
+        case CREATE_ROOM:
+            handle_create_room(task->client_socket, &task->message.data.createRoomData);
+            break;
+        case FINDING_MATCH:
+            handle_finding_match(task->client_socket, &task->message.data.findingMatchData);
             break;
         default:
             break;

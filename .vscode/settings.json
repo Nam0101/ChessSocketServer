@@ -6,6 +6,8 @@
         "sodium.h": "c",
         "server.h": "c",
         "sqlite3.h": "c",
-        "database.h": "c"
+        "database.h": "c",
+        "stdio.h": "c",
+        "stdlib.h": "c"
     }
 }

@@ -7,7 +7,7 @@
 #include "sqlite3.h"
 #include <pthread.h>
 #include "user.h"
-#include "database.h"
+#include "../database/database.h"
 #define SERVER_ERROR 'E'
 #define USERNAME_EXISTS 'U'
 #define REGISTER_SUCCESS 'S'
@@ -77,7 +77,7 @@ void hash_password(const char *password, char *hashed_password)
     SHA256_Final((unsigned char *)hashed_password, &sha256);
 }
 
-user_t *login(char *username, char *password)
+user_t *login(const char *username, const char *password)
 {
     // open database
     sqlite3 *db = get_database_connection();
@@ -141,64 +141,86 @@ void print_user(user_t *user)
     printf("Elo: %d\n", user->elo);
 }
 
-void handle_login(const int client_socket, const LoginData *loginData)
+// Kiểm tra xem người dùng đã đăng nhập hay chưa
+int isUserAlreadyLoggedIn(const char *username)
 {
-
-    // check if user is already loged in
     loged_in_user_t *current = online_user_list;
     while (current != NULL)
     {
-        if (strcmp(current->username, loginData->username) == 0)
+        if (strcmp(current->username, username) == 0)
         {
-            Response *response = (Response *)malloc(sizeof(Response));
-            response->type = LOGIN_RESPONSE;
-            response->data.loginResponse.is_success = 0;
-            response->data.loginResponse.message_code = USER_LOGED_IN;
-            int bytes_sent = send(client_socket, response, sizeof(Response), 0);
-            if (bytes_sent <= 0)
-            {
-                printf("Connection closed\n");
-            }
-            free(response);
-            return;
+            return 1; // Người dùng đã đăng nhập
         }
-
         current = current->next;
     }
-    char *username = (char *)malloc(20);
-    char *password = (char *)malloc(10);
-    strcpy(username, loginData->username);
-    strcpy(password, loginData->password);
+    return 0; // Người dùng chưa đăng nhập
+}
+
+// Kiểm tra đăng nhập và trả về thông tin người dùng
+user_t *performLogin(const char *username, const char *password)
+{
     char *hashed_password = (char *)malloc(65);
     hash_password(password, hashed_password);
     user_t *user = login(username, hashed_password);
+    free(hashed_password);
+    return user;
+}
+
+// Gửi phản hồi đăng nhập cho client
+void sendLoginResponse(const int client_socket, int isSuccess, int messageCode, user_t *user)
+{
     Response *response = (Response *)malloc(sizeof(Response));
     response->type = LOGIN_RESPONSE;
-    if (user == NULL)
+    response->data.loginResponse.is_success = isSuccess;
+    response->data.loginResponse.message_code = messageCode;
+    if (user != NULL)
     {
-        response->data.loginResponse.is_success = 0;
-        response->data.loginResponse.message_code = USERNAME_PASSWORD_WRONG;
-    }
-    else
-    {
-        response->data.loginResponse.is_success = 1;
         response->data.loginResponse.user_id = user->user_id;
         response->data.loginResponse.elo = user->elo;
-        pthread_mutex_lock(&online_list_mutex);
-        add_online_user(user->user_id, user->elo, client_socket, user->username);
-        pthread_mutex_unlock(&online_list_mutex);
     }
-    // send response
+
     int bytes_sent = send(client_socket, response, sizeof(Response), 0);
     if (bytes_sent <= 0)
     {
         printf("Connection closed\n");
     }
+
+    free(response);
+}
+
+// Hàm xử lý yêu cầu đăng nhập
+void handle_login(const int client_socket, const LoginData *loginData)
+{
+    if (isUserAlreadyLoggedIn(loginData->username))
+    {
+        // Người dùng đã đăng nhập
+        sendLoginResponse(client_socket, 0, USER_LOGED_IN, NULL);
+        return;
+    }
+
+    char *username = strdup(loginData->username);
+    char *password = strdup(loginData->password);
+
+    user_t *user = performLogin(username, password);
+    if (user == NULL)
+    {
+        // Đăng nhập không thành công
+        sendLoginResponse(client_socket, 0, USERNAME_PASSWORD_WRONG, NULL);
+    }
+    else
+    {
+        // Đăng nhập thành công, thêm người dùng vào danh sách đang trực tuyến
+        pthread_mutex_lock(&online_list_mutex);
+        add_online_user(user->user_id, user->elo, client_socket, user->username);
+        pthread_mutex_unlock(&online_list_mutex);
+
+        // Gửi phản hồi đăng nhập thành công
+        sendLoginResponse(client_socket, 1, 0, user);
+    }
+
     free(username);
     free(password);
-    free(response);
     free(user);
-    free(hashed_password);
 }
 
 void handle_register(const int client_socket, const RegisterData *registerData)
@@ -328,107 +350,134 @@ int get_friend_list(const int user_id, int *friend_list)
     return i;
 }
 
-void handle_add_friend(const int client_socket, const AddFriendData *addFriendData)
+// Hàm kiểm tra sự tồn tại của người dùng theo ID
+int checkUserExistByID(sqlite3 *db, int userId)
 {
-    sqlite3 *db = get_database_connection();
     sqlite3_stmt *stmt;
-    // check if friend exists
     char *sql = CHECK_USER_EXIST_BY_ID_QUERY;
     int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
     if (rc != SQLITE_OK)
     {
         fprintf(stderr, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
-        close_database_connection(db);
-        return;
+        return 0;
     }
-    sqlite3_bind_int(stmt, 1, addFriendData->friend_id);
+    sqlite3_bind_int(stmt, 1, userId);
     rc = sqlite3_step(stmt);
-    if (rc != SQLITE_ROW)
-    {
-        Response *response = (Response *)malloc(sizeof(Response));
-        response->type = ADD_FRIEND_RESPONSE;
-        response->data.addFriendResponse.is_success = 0;
-        response->data.addFriendResponse.message_code = FRIEND_ID_NOT_FOUND;
-        int bytes_sent = send(client_socket, response, sizeof(Response), 0);
-        if (bytes_sent <= 0)
-        {
-            printf("Connection closed\n");
-        }
-        free(response);
-        sqlite3_finalize(stmt);
-        close_database_connection(db);
-        return;
-    }
+    sqlite3_finalize(stmt);
+    return (rc == SQLITE_ROW);
+}
 
-    // check if user is already friend
-    sql = CHECK_ALREADY_FRIEND_QUERY;
-    rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+// Hàm kiểm tra xem hai người dùng đã là bạn bè chưa
+int checkAlreadyFriend(sqlite3 *db, int userId, int friendId)
+{
+    sqlite3_stmt *stmt;
+    char *sql = CHECK_ALREADY_FRIEND_QUERY;
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
     if (rc != SQLITE_OK)
     {
         fprintf(stderr, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
-        close_database_connection(db);
-        return;
+        return 0;
     }
-    sqlite3_bind_int(stmt, 1, addFriendData->user_id);
-    sqlite3_bind_int(stmt, 2, addFriendData->friend_id);
+    sqlite3_bind_int(stmt, 1, userId);
+    sqlite3_bind_int(stmt, 2, friendId);
     rc = sqlite3_step(stmt);
-    if (rc == SQLITE_ROW)
-    {
-        Response *response = (Response *)malloc(sizeof(Response));
-        response->type = ADD_FRIEND_RESPONSE;
-        response->data.addFriendResponse.is_success = 0;
-        response->data.addFriendResponse.message_code = ALREADY_FRIEND;
-        int bytes_sent = send(client_socket, response, sizeof(Response), 0);
-        if (bytes_sent <= 0)
-        {
-            printf("Connection closed\n");
-        }
-        free(response);
-        sqlite3_finalize(stmt);
-        close_database_connection(db);
-        return;
-    }
     sqlite3_finalize(stmt);
+    return (rc == SQLITE_ROW);
+}
 
-    // add friend
-    sql = ADD_FRIEND_QUERY;
-    rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+// Hàm thêm bạn bè
+int addFriend(sqlite3 *db, int userId, int friendId)
+{
+    sqlite3_stmt *stmt;
+    char *sql = ADD_FRIEND_QUERY;
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
     if (rc != SQLITE_OK)
     {
         fprintf(stderr, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
-        close_database_connection(db);
-        return;
+        return 0;
     }
-    sqlite3_bind_int(stmt, 1, addFriendData->user_id);
-    sqlite3_bind_int(stmt, 2, addFriendData->friend_id);
+    sqlite3_bind_int(stmt, 1, userId);
+    sqlite3_bind_int(stmt, 2, friendId);
     rc = sqlite3_step(stmt);
-    if (rc != SQLITE_DONE)
-    {
-        Response *response = (Response *)malloc(sizeof(Response));
-        response->type = ADD_FRIEND_RESPONSE;
-        response->data.addFriendResponse.is_success = 0;
-        response->data.addFriendResponse.message_code = SERVER_ERROR;
-        int bytes_sent = send(client_socket, response, sizeof(Response), 0);
-        if (bytes_sent <= 0)
-        {
-            printf("Connection closed\n");
-        }
-        free(response);
-        sqlite3_finalize(stmt);
-        close_database_connection(db);
-        return;
-    }
     sqlite3_finalize(stmt);
-    // send response
+    return (rc == SQLITE_DONE);
+}
+
+// Hàm gửi phản hồi
+void sendFriendResponse(const int client_socket, int isSuccess, int messageCode)
+{
     Response *response = (Response *)malloc(sizeof(Response));
     response->type = ADD_FRIEND_RESPONSE;
-    response->data.addFriendResponse.is_success = 1;
-    response->data.addFriendResponse.message_code = 0;
+    response->data.addFriendResponse.is_success = isSuccess;
+    response->data.addFriendResponse.message_code = messageCode;
     int bytes_sent = send(client_socket, response, sizeof(Response), 0);
     if (bytes_sent <= 0)
     {
         printf("Connection closed\n");
     }
     free(response);
+}
+
+// Hàm xử lý yêu cầu thêm bạn bè
+void handle_add_friend(const int client_socket, const AddFriendData *addFriendData)
+{
+    sqlite3 *db = get_database_connection();
+
+    if (!checkUserExistByID(db, addFriendData->friend_id))
+    {
+        sendFriendResponse(client_socket, 0, FRIEND_ID_NOT_FOUND);
+        close_database_connection(db);
+        return;
+    }
+
+    if (checkAlreadyFriend(db, addFriendData->user_id, addFriendData->friend_id))
+    {
+        sendFriendResponse(client_socket, 0, ALREADY_FRIEND);
+        close_database_connection(db);
+        return;
+    }
+
+    if (!addFriend(db, addFriendData->user_id, addFriendData->friend_id))
+    {
+        sendFriendResponse(client_socket, 0, SERVER_ERROR);
+        close_database_connection(db);
+        return;
+    }
+
+    // Gửi phản hồi thành công
+    sendFriendResponse(client_socket, 1, 0);
     close_database_connection(db);
+}
+void handle_get_online_friends(const int client_socket, const GetOnlineFriendsData *getOnlineFriendsData)
+{
+    loged_in_user_t *current = online_user_list;
+    int friend_list[100];
+    int friend_count = get_friend_list(getOnlineFriendsData->user_id, friend_list);
+    int online_friend_count = 0;
+    int online_friend_list[100];
+    while (current != NULL)
+    {
+        for (int i = 0; i < friend_count; i++)
+        {
+            if (current->user_id == friend_list[i])
+            {
+                online_friend_list[online_friend_count++] = current->user_id;
+                break;
+            }
+        }
+        current = current->next;
+    }
+    Response *response = (Response *)malloc(sizeof(Response));
+    response->type = ONLINE_FRIENDS_RESPONSE;
+    response->data.onlineFriendsResponse.number_of_friends = online_friend_count;
+    for (int i = 0; i < online_friend_count; i++)
+    {
+        response->data.onlineFriendsResponse.friend_id[i] = online_friend_list[i];
+    }
+    int bytes_sent = send(client_socket, response, sizeof(Response), 0);
+    if (bytes_sent <= 0)
+    {
+        printf("Connection closed\n");
+    }
+    free(response);
 }

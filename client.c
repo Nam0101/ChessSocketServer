@@ -213,6 +213,135 @@ void addFriend(int client_socket)
     }
 }
 
+void get_list_online_user(int client_socket)
+{
+    Message message;
+    message.type = GET_ONLINE_FRIENDS;
+    message.data.getOnlineFriendsData.user_id = user_id;
+    int bytes_sent = send(client_socket, &message, sizeof(message), 0);
+    if (bytes_sent <= 0)
+    {
+        printf("Connection closed\n");
+    }
+    else
+    {
+        printf("Sent: %d bytes\n", bytes_sent);
+    }
+    // get response
+    Response response;
+    int bytes_received = recv(client_socket, &response, sizeof(response), 0);
+    if (bytes_received <= 0)
+    {
+        printf("Connection closed\n");
+    }
+    else
+    {
+        printf("Received: %d bytes\n", bytes_received);
+    }
+    switch (response.type)
+    {
+    case ONLINE_FRIENDS_RESPONSE:
+        printf("Number of online friends: %d\n", response.data.onlineFriendsResponse.number_of_friends);
+        for (int i = 0; i < response.data.onlineFriendsResponse.number_of_friends; i++)
+        {
+            printf("%d ", response.data.onlineFriendsResponse.friend_id[i]);
+        }
+        printf("\n");
+    }
+}
+void create_room(int client_socket)
+{
+    Message message;
+    message.type = CREATE_ROOM;
+    message.data.createRoomData.user_id = user_id;
+    int total_time;
+    printf("Enter total time: ");
+    scanf("%d", &total_time);
+    message.data.createRoomData.total_time = total_time;
+    int bytes_sent = send(client_socket, &message, sizeof(message), 0);
+    if (bytes_sent <= 0)
+    {
+        printf("Connection closed\n");
+    }
+    else
+    {
+        printf("Sent: %d bytes\n", bytes_sent);
+    }
+    // get response
+    Response response;
+    int bytes_received = recv(client_socket, &response, sizeof(response), 0);
+    if (bytes_received <= 0)
+    {
+        printf("Connection closed\n");
+    }
+    else
+    {
+        printf("Received: %d bytes\n", bytes_received);
+    }
+    switch (response.type)
+    {
+    case CREATE_ROOM_RESPONSE:
+        if (response.data.createRoomResponse.is_success == 1)
+        {
+            printf("Create room success\n");
+        }
+        else
+        {
+            if (response.data.createRoomResponse.message_code == USER_LOGED_IN)
+            {
+                printf("User loged in\n");
+            }
+            else
+            {
+                printf("Server error\n");
+            }
+        }
+        break;
+    }
+}
+
+void finding_match(int client_socket)
+{
+    Message message;
+    message.type = FINDING_MATCH;
+    message.data.findingMatchData.user_id = user_id;
+    message.data.findingMatchData.elo = elo;
+    printf("Finding match with elo:%d\n", elo);
+    int bytes_sent = send(client_socket, &message, sizeof(message), 0);
+    if (bytes_sent <= 0)
+    {
+        printf("Connection closed\n");
+    }
+    else
+    {
+        printf("Sent: %d bytes\n", bytes_sent);
+    }
+    // get response
+    Response response;
+    int bytes_received = recv(client_socket, &response, sizeof(response), 0);
+    if (bytes_received <= 0)
+    {
+        printf("Connection closed\n");
+    }
+    else
+    {
+        printf("Received: %d bytes\n", bytes_received);
+    }
+    switch (response.type)
+    {
+    case FINDING_MATCH_RESPONSE:
+        if (response.data.findingMatchResponse.is_success == 1)
+        {
+            printf("Opponent id: %d\n", response.data.findingMatchResponse.opponent_id);
+        }
+        else
+        {
+            printf("Finding match failed\n");
+        }
+        break;
+    }
+}
+
 int main()
 {
     int client_socket;
@@ -234,7 +363,10 @@ int main()
         printf("1. Login\n");
         printf("2. Register\n");
         printf("3. Add Friend\n");
-        printf("4. Logout\n");
+        printf("4. Get Online Friends\n");
+        printf("5. Create Room\n");
+        printf("6. Finding match\n");
+        printf("10. Logout\n");
         printf("Enter your choice: ");
         scanf("%d", &choice);
         switch (choice)
@@ -249,6 +381,15 @@ int main()
             addFriend(client_socket);
             break;
         case 4:
+            get_list_online_user(client_socket);
+            break;
+        case 5:
+            create_room(client_socket);
+            break;
+        case 6:
+            finding_match(client_socket);
+            break;
+        case 10:
             logout(client_socket);
             exit(EXIT_SUCCESS);
         default:

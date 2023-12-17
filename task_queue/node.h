@@ -1,6 +1,6 @@
 #ifndef NODE_H
 #define NODE_H
-#include "server.h"
+#include "../server.h"
 // node for handling incomming connections
 typedef struct node
 {
