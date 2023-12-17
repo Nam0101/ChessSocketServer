@@ -70,9 +70,17 @@ void login(int client_socket)
         }
         else
         {
-            if (response.data.loginResponse.message_code == ALREADY_FRIEND)
+            if (response.data.loginResponse.message_code == USER_LOGED_IN)
             {
-                printf("Already friend\n");
+                printf("User loged in\n");
+            }
+            else if (response.data.loginResponse.message_code == USERNAME_PASSWORD_WRONG)
+            {
+                printf("Username or password wrong\n");
+            }
+            else
+            {
+                printf("Server error\n");
             }
         }
         break;

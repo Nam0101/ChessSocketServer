@@ -1,0 +1,7 @@
+#define SERVER_ERROR 'E'
+#define USERNAME_EXISTS 'U'
+#define REGISTER_SUCCESS 'S'
+#define USER_LOGED_IN 'L'
+#define USERNAME_PASSWORD_WRONG 'W'
+#define ALREADY_FRIEND 'A'
+#define FRIEND_ID_NOT_FOUND 'F'
