@@ -1,98 +1,15 @@
 #ifndef SERVER_H
 #define SERVER_H
-
+#include "message/login.h"
+#include "message/register.h"
+#include "message/logout.h"
+#include "message/friend.h"
+#include "message/room.h"
 #define PORT 12345
 #define BACKLOG 100
 #define MAX_BUFFER_SIZE 4096
 #define THREAD_POOL_SIZE 8
 
-typedef struct
-{
-    char username[20];
-    char password[10];
-} LoginData;
-
-typedef struct
-{
-    char username[20];
-    char password[10];
-} RegisterData;
-typedef struct
-{
-    int user_id;
-} ExitData;
-typedef struct
-{
-    int user_id;
-    int friend_id;
-} AddFriendData;
-
-typedef struct
-{
-    int user_id;
-} GetOnlineFriendsData;
-typedef struct
-{
-    int user_id;
-    int friend_id;
-    int room_id;
-    int total_time;
-} InviteFriendData;
-typedef struct
-{
-    short number_of_friends;
-    short friend_id[10];
-} OnlineFriendsResponse;
-typedef struct
-{
-    short is_success;
-    int user_id;
-    int elo;
-    char message_code;
-} LoginResponse;
-typedef struct
-{
-    int user_id;
-    int total_time;
-} CreateRoomData;
-typedef struct
-{
-    int elo;
-    int user_id;
-} FindingMatchData;
-typedef struct
-{
-    short is_success;
-    int opponent_id;
-
-} FindingMatchResponse;
-typedef struct
-{
-    int user_id;
-    int friend_id;
-    int room_id;
-    int total_time;
-} InviteFriendResponse;
-typedef struct
-{
-    short is_accept;
-} AcceptOrDeclineInvitationData;
-typedef struct
-{
-    short is_success;
-    char message_code;
-} RegisterResponse;
-typedef struct
-{
-    short is_success;
-    char message_code;
-} AddFriendResponse;
-typedef struct
-{
-    short is_success;
-    char message_code;
-    int room_id;
-} CreateRoomResponse;
 typedef enum
 {
     LOGIN,
