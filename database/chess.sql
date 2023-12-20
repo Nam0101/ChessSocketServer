@@ -18,12 +18,14 @@ CREATE TABLE IF NOT EXISTS friend (
 );
 
 -- Tạo bảng Game
-CREATE TABLE IF NOT EXISTS game (
+CREATE TABLE "room" (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   black_user_id INTEGER,
   white_user_id INTEGER,
   total_time INTEGER,
-  winer_user INTEGER,
+  winer_user INTEGER, 
+  start_time DATE, 
+  end_time DATE,
   FOREIGN KEY (black_user_id) REFERENCES user(id),
   FOREIGN KEY (white_user_id) REFERENCES user(id)
-);
+)
