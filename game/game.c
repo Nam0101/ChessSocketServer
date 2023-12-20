@@ -3,6 +3,13 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
+// socket
+#include <time.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <string.h>
 #include "../server.h"
 #include "../user/user.h"
 #include "../database/database.h"
@@ -19,15 +26,7 @@ room_t *create_room(int white_user_id, int total_time)
 }
 void send_reponse(const int client_socket, const Response *response)
 {
-    int bytes_sent = send(client_socket, response, sizeof(Response), 0);
-    if (bytes_sent <= 0)
-    {
-        printf("Connection closed\n");
-    }
-    else
-    {
-        printf("Sent: %d bytes\n", bytes_sent);
-    }
+    send(client_socket, response, sizeof(Response), 0);
 }
 
 int create_room_db(int white_user_id, int black_user_id, int total_time)
@@ -45,12 +44,11 @@ int create_room_db(int white_user_id, int black_user_id, int total_time)
         return -1; // Trả về giá trị âm để chỉ ra lỗi
     }
 
-    // Sau khi thêm dữ liệu, thực hiện truy vấn SELECT để lấy room.id
     int last_inserted_id = sqlite3_last_insert_rowid(db);
 
     close_database_connection(db);
 
-    return last_inserted_id; // Trả về room.id
+    return last_inserted_id;
 }
 
 void handle_create_room(const int client_socket, const CreateRoomData *createRoomData)
@@ -94,7 +92,7 @@ void handle_invite_friend(const int client_socket, const InviteFriendData *invit
     int friend_socket = get_client_socket_by_user_id(friend_id);
     if (friend_socket != -1)
     {
-        send_invite_friend(friend_socket, user_id, room_id, inviteFriendData->total_time);
+        send_invite_friend(friend_socket, user_id, room_id, total_time);
     }
 }
 
@@ -180,4 +178,56 @@ void handle_finding_match_response(const int client_socket, const int user_id, c
 
     send_reponse(client_socket, response);
     free(response);
+}
+char *currtent_time()
+{
+    time_t current_time;
+    struct tm *time_info;
+    time(&current_time);
+    time_info = localtime(&current_time);
+
+    // Định dạng thời gian thành chuỗi (ở đây là DATETIME)
+    char *result = (char *)malloc(sizeof(char) * 20);
+    strftime(result, 20, "%Y-%m-%d %H:%M:%S", time_info);
+    return result;
+}
+void start_game_db(int room_id, int white_user_id, int black_user_id, int total_time)
+{
+    sqlite3 *db = get_database_connection();
+    sqlite3_stmt *stmt;
+    char *sql = "UPDATE room SET white_user_id = ?, black_user_id = ?, total_time = ?, start_time = ? WHERE id = ?;";
+    sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL);
+    sqlite3_bind_int(stmt, 1, white_user_id);
+    sqlite3_bind_int(stmt, 2, black_user_id);
+    sqlite3_bind_int(stmt, 3, total_time);
+    char *current_time = currtent_time();
+    sqlite3_bind_text(stmt, 4, current_time, strlen(current_time), SQLITE_STATIC);
+    sqlite3_bind_int(stmt, 5, room_id);
+    sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+    close_database_connection(db);
+}
+
+void handle_accept_or_decline_invitation(const int client_socket, const AcceptOrDeclineInvitationData *acceptOrDeclineInvitationData)
+{
+    int invited_user_socket = get_client_socket_by_user_id(acceptOrDeclineInvitationData->invited_user_id);
+    if (acceptOrDeclineInvitationData->is_accept == 0)
+    {
+        Response *response = (Response *)malloc(sizeof(Response));
+        response->type = ACCEPT_OR_DECLINE_INVITATION;
+        response->data.acceptOrDeclineInvitationData.is_accept = 0;
+        response->data.acceptOrDeclineInvitationData.user_id = acceptOrDeclineInvitationData->user_id;
+        send_reponse(invited_user_socket, response);
+        return;
+    }
+    Response *response = (Response *)malloc(sizeof(Response));
+    response->type = START_GAME;
+    response->data.startGameData.white_user_id = acceptOrDeclineInvitationData->user_id;
+    response->data.startGameData.black_user_id = acceptOrDeclineInvitationData->invited_user_id;
+    response->data.startGameData.room_id = acceptOrDeclineInvitationData->room_id;
+    response->data.startGameData.total_time = acceptOrDeclineInvitationData->total_time;
+    send_reponse(invited_user_socket, response);
+    send_reponse(client_socket, response);
+    // update room on database
+    start_game_db(acceptOrDeclineInvitationData->room_id, acceptOrDeclineInvitationData->user_id, acceptOrDeclineInvitationData->invited_user_id, acceptOrDeclineInvitationData->total_time);
 }

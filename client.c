@@ -249,12 +249,15 @@ void get_list_online_user(int client_socket)
     switch (response.type)
     {
     case ONLINE_FRIENDS_RESPONSE:
-        printf("Number of online friends: %d\n", response.data.onlineFriendsResponse.number_of_friends);
+        // number of friends, friend id, is online, is playing
+        printf("Number of friends: %d\n", response.data.onlineFriendsResponse.number_of_friends);
         for (int i = 0; i < response.data.onlineFriendsResponse.number_of_friends; i++)
         {
-            printf("%d ", response.data.onlineFriendsResponse.friend_id[i]);
+            printf("Friend id: %d\n", response.data.onlineFriendsResponse.friend_id[i]);
+            printf("Is online: %d\n", response.data.onlineFriendsResponse.is_online[i]);
+            printf("Is playing: %d\n", response.data.onlineFriendsResponse.is_playing[i]);
         }
-        printf("\n");
+        break;
     }
 }
 void create_room(int client_socket)
@@ -378,22 +381,19 @@ void invite_friend(int client_socket)
     }
     switch (response.type)
     {
-    case INVITE_FRIEND_RESPONSE:
-        // if (response.data.inviteFriendResponse.is_success == 1)
-        // {
-        //     printf("Invite friend success\n");
-        // }
-        // else
-        // {
-        //     if (response.data.inviteFriendResponse.message_code == FRIEND_ID_NOT_FOUND)
-        //     {
-        //         printf("Friend id not found\n");
-        //     }
-        //     else
-        //     {
-        //         printf("Server error\n");
-        //     }
-        // }
+    case START_GAME:
+        printf("Start game\n");
+        printf("White user id: %d\n", response.data.startGameData.white_user_id);
+        printf("Black user id: %d\n", response.data.startGameData.black_user_id);
+        printf("Room id: %d\n", response.data.startGameData.room_id);
+        printf("Total time: %d\n", response.data.startGameData.total_time);
+        break;
+    case ACCEPT_OR_DECLINE_INVITATION:
+        printf("Accept or decline invitation\n");
+        printf("User id: %d\n", response.data.acceptOrDeclineInvitationData.user_id);
+        printf("Is accept: %d\n", response.data.acceptOrDeclineInvitationData.is_accept);
+        printf("Room id: %d\n", response.data.acceptOrDeclineInvitationData.room_id);
+        printf("Total time: %d\n", response.data.acceptOrDeclineInvitationData.total_time);
         break;
     }
 }
@@ -416,7 +416,32 @@ void waiting_for_invite(int client_socket)
         Message message;
         message.type = ACCEPT_OR_DECLINE_INVITATION;
         message.data.acceptOrDeclineInvitationData.is_accept = is_accept;
+        message.data.acceptOrDeclineInvitationData.user_id = user_id;
+        message.data.acceptOrDeclineInvitationData.room_id = response.data.inviteFriendResponse.room_id;
+        message.data.acceptOrDeclineInvitationData.invited_user_id = response.data.inviteFriendResponse.user_id;
+        message.data.acceptOrDeclineInvitationData.total_time = response.data.inviteFriendResponse.total_time;
         send(client_socket, &message, sizeof(message), 0);
+        // get response
+        Response response;
+        int bytes_received = recv(client_socket, &response, sizeof(response), 0);
+        if (bytes_received <= 0)
+        {
+            printf("Connection closed\n");
+        }
+        else
+        {
+            printf("Received: %d bytes\n", bytes_received);
+        }
+        switch (response.type)
+        {
+        case START_GAME:
+            printf("Start game\n");
+            printf("White user id: %d\n", response.data.startGameData.white_user_id);
+            printf("Black user id: %d\n", response.data.startGameData.black_user_id);
+            printf("Room id: %d\n", response.data.startGameData.room_id);
+            printf("Total time: %d\n", response.data.startGameData.total_time);
+            break;
+        }
     }
 }
 int main()

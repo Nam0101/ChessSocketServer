@@ -21,8 +21,11 @@ typedef struct
 typedef struct
 {
     short number_of_friends;
-    short friend_id[10];
+    char friend_id[10];
+    char is_online[10];
+    char is_playing[10];
 } OnlineFriendsResponse;
+
 typedef struct
 {
     int user_id;
@@ -33,7 +36,11 @@ typedef struct
 
 typedef struct
 {
-    short is_accept;
+    char is_accept;
+    int user_id;
+    int room_id;
+    int invited_user_id;
+    int total_time;
 } AcceptOrDeclineInvitationData;
 
 typedef struct

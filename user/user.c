@@ -453,26 +453,29 @@ void handle_get_online_friends(const int client_socket, const GetOnlineFriendsDa
     loged_in_user_t *current = online_user_list;
     int friend_list[100];
     int friend_count = get_friend_list(getOnlineFriendsData->user_id, friend_list);
-    int online_friend_count = 0;
-    int online_friend_list[100];
-    while (current != NULL)
+    // response friend list: friend_count, friend_id, is_online, is_playing
+    Response *response = (Response *)malloc(sizeof(Response));
+    response->type = ONLINE_FRIENDS_RESPONSE;
+    response->data.onlineFriendsResponse.number_of_friends = friend_count;
+    for (int i = 0; i < friend_count; i++)
     {
-        for (int i = 0; i < friend_count; i++)
+        response->data.onlineFriendsResponse.friend_id[i] = friend_list[i];
+        response->data.onlineFriendsResponse.is_online[i] = 0;
+        response->data.onlineFriendsResponse.is_playing[i] = 0;
+        while (current != NULL)
         {
             if (current->user_id == friend_list[i])
             {
-                online_friend_list[online_friend_count++] = current->user_id;
+                response->data.onlineFriendsResponse.is_online[i] = 1;
+                if (current->is_playing)
+                {
+                    response->data.onlineFriendsResponse.is_playing[i] = 1;
+                }
                 break;
             }
+            current = current->next;
         }
-        current = current->next;
-    }
-    Response *response = (Response *)malloc(sizeof(Response));
-    response->type = ONLINE_FRIENDS_RESPONSE;
-    response->data.onlineFriendsResponse.number_of_friends = online_friend_count;
-    for (int i = 0; i < online_friend_count; i++)
-    {
-        response->data.onlineFriendsResponse.friend_id[i] = online_friend_list[i];
+        current = online_user_list;
     }
     int bytes_sent = send(client_socket, response, sizeof(Response), 0);
     if (bytes_sent <= 0)

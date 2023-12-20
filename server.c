@@ -10,6 +10,7 @@
 #include "user/user.h"
 #include <semaphore.h>
 #include <openssl/sha.h>
+#include <time.h>
 #include "server.h"
 #include "game/game.h"
 int total_clients = 0;
@@ -88,6 +89,9 @@ void *thread_function_logedin()
             break;
         case INVITE_FRIEND:
             handle_invite_friend(task->client_socket, &task->message.data.inviteFriendData);
+            break;
+        case ACCEPT_OR_DECLINE_INVITATION:
+            handle_accept_or_decline_invitation(task->client_socket, &task->message.data.acceptOrDeclineInvitationData);
             break;
         default:
             break;
@@ -181,11 +185,17 @@ void *thread_function()
         handle_client(client_socket);
     }
 }
-
+void setVietnamTimeZone()
+{
+    setenv("TZ", "Asia/Ho_Chi_Minh", 1);
+    tzset(); // Cập nhật thông tin múi giờ
+}
 int main()
 {
+    setVietnamTimeZone();
     int server_socket;
-    struct sockaddr_in server_address, client_address;
+    struct sockaddr_in server_address;
+    struct sockaddr_in client_address;
     socklen_t client_address_len = sizeof(client_address);
 
     // Create socket

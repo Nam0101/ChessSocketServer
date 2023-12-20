@@ -15,7 +15,6 @@ typedef struct
 {
     short is_success;
     int opponent_id;
-
 } FindingMatchResponse;
 typedef struct
 {
@@ -23,4 +22,11 @@ typedef struct
     char message_code;
     int room_id;
 } CreateRoomResponse;
+typedef struct
+{
+    int white_user_id;
+    int black_user_id;
+    int room_id;
+    int total_time;
+} StartGameData;
 #endif

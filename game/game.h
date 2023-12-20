@@ -15,4 +15,5 @@ void handle_finding_match(const int client_socket, const FindingMatchData *findi
 void handle_invite_friend(const int client_socket, const InviteFriendData *inviteFriendData);
 int get_client_socket_by_user_id(int user_id);
 void handle_finding_match_response(const int client_socket, const int user_id, const int opponent_id);
+void handle_accept_or_decline_invitation(const int client_socket, const AcceptOrDeclineInvitationData *acceptOrDeclineInvitationData);
 #endif
