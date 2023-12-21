@@ -206,6 +206,7 @@ void start_game_db(int room_id, int white_user_id, int black_user_id, int total_
     sqlite3_step(stmt);
     sqlite3_finalize(stmt);
     close_database_connection(db);
+    free(current_time);
 }
 
 void handle_accept_or_decline_invitation(const int client_socket, const AcceptOrDeclineInvitationData *acceptOrDeclineInvitationData)

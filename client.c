@@ -37,6 +37,7 @@ void login(int client_socket)
     strcpy(message.data.loginData.username, username);
     strcpy(message.data.loginData.password, password);
     int bytes_sent = send(client_socket, &message, sizeof(message), 0);
+    // get current time
     if (bytes_sent <= 0)
     {
         printf("Connection closed\n");
@@ -49,6 +50,9 @@ void login(int client_socket)
     // // Receive response from server
     Response response;
     int bytes_received = recv(client_socket, &response, sizeof(response), 0);
+    // get current time
+
+    // in ra thời gian server xử lý đến ms
     if (bytes_received <= 0)
     {
         printf("Connection closed\n");
@@ -249,13 +253,24 @@ void get_list_online_user(int client_socket)
     switch (response.type)
     {
     case ONLINE_FRIENDS_RESPONSE:
-        // number of friends, friend id, is online, is playing
         printf("Number of friends: %d\n", response.data.onlineFriendsResponse.number_of_friends);
         for (int i = 0; i < response.data.onlineFriendsResponse.number_of_friends; i++)
         {
-            printf("Friend id: %d\n", response.data.onlineFriendsResponse.friend_id[i]);
-            printf("Is online: %d\n", response.data.onlineFriendsResponse.is_online[i]);
-            printf("Is playing: %d\n", response.data.onlineFriendsResponse.is_playing[i]);
+            Response *friend_i = (Response *)malloc(sizeof(Response));
+            bytes_received = recv(client_socket, friend_i, sizeof(Response), 0);
+            if (bytes_received <= 0)
+            {
+                printf("Connection closed\n");
+            }
+            else
+            {
+                printf("Received: %d bytes\n", bytes_received);
+            }
+            printf("Friend id: %d\n", friend_i->data.friendDataResponse.friend_id);
+            printf("Elo: %d\n", friend_i->data.friendDataResponse.elo);
+            printf("Is online: %d\n", friend_i->data.friendDataResponse.is_online);
+            printf("Is playing: %d\n", friend_i->data.friendDataResponse.is_playing);
+            printf("Username: %s\n", friend_i->data.friendDataResponse.username);
         }
         break;
     }

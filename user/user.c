@@ -19,7 +19,7 @@
 #define CHECK_USERNAME_QUERY "SELECT * FROM user WHERE username = ?;"
 #define INSERT_USER_QUERY "INSERT INTO user (username, password, elo) VALUES (?, ?, 1000);"
 #define ADD_FRIEND_QUERY "INSERT INTO friend (user_id, friend_id) VALUES (?, ?);"
-#define GET_FRIEND_LIST_QUERY "SELECT * FROM friend WHERE user_id = ?;"
+#define GET_FRIEND_LIST_QUERY "SELECT user.id, elo, username FROM user JOIN friend ON user.id = friend.friend_id WHERE friend.user_id = ?;"
 #define CHECK_ALREADY_FRIEND_QUERY "SELECT * FROM friend WHERE user_id = ? AND friend_id = ?;"
 #define CHECK_USER_EXIST_BY_ID_QUERY "SELECT * FROM user WHERE id = ?;"
 loged_in_user_t *online_user_list = NULL;
@@ -324,32 +324,6 @@ int register_user(sqlite3 *db, const char *username, const char *hashed_password
     return (rc == SQLITE_DONE);
 }
 
-int get_friend_list(const int user_id, int *friend_list)
-{
-    sqlite3 *db = get_database_connection();
-    char *sql = GET_FRIEND_LIST_QUERY;
-    sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
-    int i = 0;
-    if (rc != SQLITE_OK)
-    {
-        fprintf(stderr, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
-        close_database_connection(db);
-        return 0;
-    }
-    sqlite3_bind_int(stmt, 1, user_id);
-    rc = sqlite3_step(stmt);
-    while (rc == SQLITE_ROW)
-    {
-        friend_list[i] = sqlite3_column_int(stmt, 2);
-        i++;
-        rc = sqlite3_step(stmt);
-    }
-    sqlite3_finalize(stmt);
-    close_database_connection(db);
-    return i;
-}
-
 // Hàm kiểm tra sự tồn tại của người dùng theo ID
 int checkUserExistByID(sqlite3 *db, int userId)
 {
@@ -448,28 +422,52 @@ void handle_add_friend(const int client_socket, const AddFriendData *addFriendDa
     sendFriendResponse(client_socket, 1, 0);
     close_database_connection(db);
 }
+int get_friend_list(const int user_id, FriendDataResponse *friend_list)
+{
+    sqlite3 *db = get_database_connection();
+    char *sql = GET_FRIEND_LIST_QUERY;
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    int i = 0;
+    if (rc != SQLITE_OK)
+    {
+        fprintf(stderr, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        close_database_connection(db);
+        return 0;
+    }
+    sqlite3_bind_int(stmt, 1, user_id);
+    while (sqlite3_step(stmt) == SQLITE_ROW)
+    {
+        friend_list[i].friend_id = sqlite3_column_int(stmt, 0);
+        friend_list[i].elo = sqlite3_column_int(stmt, 1);
+        strcpy(friend_list[i].username, sqlite3_column_text(stmt, 2));
+        i++;
+    }
+    return i;
+}
 void handle_get_online_friends(const int client_socket, const GetOnlineFriendsData *getOnlineFriendsData)
 {
     loged_in_user_t *current = online_user_list;
-    int friend_list[100];
-    int friend_count = get_friend_list(getOnlineFriendsData->user_id, friend_list);
-    // response friend list: friend_count, friend_id, is_online, is_playing
+    FriendDataResponse *friendDataResponse = (FriendDataResponse *)malloc(sizeof(FriendDataResponse) * 100);
+    if (friendDataResponse == NULL)
+    {
+        fprintf(stderr, "Memory allocation failed.\n");
+    }
+    int number_of_friends = get_friend_list(getOnlineFriendsData->user_id, friendDataResponse);
     Response *response = (Response *)malloc(sizeof(Response));
     response->type = ONLINE_FRIENDS_RESPONSE;
-    response->data.onlineFriendsResponse.number_of_friends = friend_count;
-    for (int i = 0; i < friend_count; i++)
+    response->data.onlineFriendsResponse.number_of_friends = number_of_friends;
+    send(client_socket, response, sizeof(Response), 0);
+    for (int i = 0; i < number_of_friends; i++)
     {
-        response->data.onlineFriendsResponse.friend_id[i] = friend_list[i];
-        response->data.onlineFriendsResponse.is_online[i] = 0;
-        response->data.onlineFriendsResponse.is_playing[i] = 0;
         while (current != NULL)
         {
-            if (current->user_id == friend_list[i])
+            if (current->user_id == friendDataResponse[i].friend_id)
             {
-                response->data.onlineFriendsResponse.is_online[i] = 1;
-                if (current->is_playing)
+                friendDataResponse[i].is_online = 1;
+                if (current->is_playing == 1)
                 {
-                    response->data.onlineFriendsResponse.is_playing[i] = 1;
+                    friendDataResponse[i].is_playing = 1;
                 }
                 break;
             }
@@ -477,10 +475,10 @@ void handle_get_online_friends(const int client_socket, const GetOnlineFriendsDa
         }
         current = online_user_list;
     }
-    int bytes_sent = send(client_socket, response, sizeof(Response), 0);
-    if (bytes_sent <= 0)
+    response->type = FRIEND_DATA_RESPONSE;
+    for (int i = 0; i < number_of_friends; i++)
     {
-        printf("Connection closed\n");
+        response->data.friendDataResponse = friendDataResponse[i];
+        send(client_socket, response, sizeof(Response), 0);
     }
-    free(response);
 }

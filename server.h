@@ -21,6 +21,7 @@ typedef enum
     ADD_FRIEND_RESPONSE,
     GET_ONLINE_FRIENDS,
     ONLINE_FRIENDS_RESPONSE,
+    FRIEND_DATA_RESPONSE,
     CREATE_ROOM,
     CREATE_ROOM_RESPONSE,
     INVITE_FRIEND,
@@ -61,6 +62,8 @@ typedef struct
         InviteFriendResponse inviteFriendResponse;
         AcceptOrDeclineInvitationData acceptOrDeclineInvitationData;
         StartGameData startGameData;
+        FriendDataResponse friendDataResponse;
+
     } data;
 } Response;
 

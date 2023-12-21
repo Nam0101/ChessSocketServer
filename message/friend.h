@@ -21,10 +21,15 @@ typedef struct
 typedef struct
 {
     short number_of_friends;
-    char friend_id[10];
-    char is_online[10];
-    char is_playing[10];
 } OnlineFriendsResponse;
+typedef struct
+{
+    int friend_id;
+    int elo;
+    int is_online;
+    int is_playing;
+    char username[20];
+} FriendDataResponse;
 
 typedef struct
 {

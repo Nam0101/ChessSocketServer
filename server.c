@@ -67,12 +67,14 @@ void *thread_function_logedin()
         switch (task->message.type)
         {
         case LOGIN:
+            printf("Handle login\n");
             handle_login(task->client_socket, &task->message.data.loginData);
             break;
         case REGISTER:
             handle_register(task->client_socket, &task->message.data.registerData);
             break;
         case EXIT:
+            printf("Handle exit\n");
             remove_online_user(task->message.data.exitData.user_id);
             break;
         case ADD_FRIEND:
@@ -133,7 +135,7 @@ void *listen_online_user_list()
         }
 
         struct timeval timeout;
-        timeout.tv_sec = 1;
+        timeout.tv_sec = 0.5;
         timeout.tv_usec = 0;
         // printf("Waiting for data...\n");
         int activity = select(max_sd + 1, &readfds, NULL, NULL, &timeout);
