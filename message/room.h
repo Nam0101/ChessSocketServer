@@ -11,11 +11,7 @@ typedef struct
     int elo;
     int user_id;
 } FindingMatchData;
-typedef struct
-{
-    short is_success;
-    int opponent_id;
-} FindingMatchResponse;
+
 typedef struct
 {
     short is_success;

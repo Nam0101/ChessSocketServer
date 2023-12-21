@@ -58,7 +58,6 @@ typedef struct
         AddFriendResponse addFriendResponse;
         OnlineFriendsResponse onlineFriendsResponse;
         CreateRoomResponse createRoomResponse;
-        FindingMatchResponse findingMatchResponse;
         InviteFriendResponse inviteFriendResponse;
         AcceptOrDeclineInvitationData acceptOrDeclineInvitationData;
         StartGameData startGameData;

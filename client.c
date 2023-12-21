@@ -351,15 +351,17 @@ void finding_match(int client_socket)
     }
     switch (response.type)
     {
-    case FINDING_MATCH_RESPONSE:
-        if (response.data.findingMatchResponse.is_success == 1)
+    case START_GAME:
+        printf("Start game\n");
+        if (response.data.startGameData.white_user_id == -1)
         {
-            printf("Opponent id: %d\n", response.data.findingMatchResponse.opponent_id);
+            printf("Response is timeout\n");
+            break;
         }
-        else
-        {
-            printf("Finding match failed\n");
-        }
+        printf("White user id: %d\n", response.data.startGameData.white_user_id);
+        printf("Black user id: %d\n", response.data.startGameData.black_user_id);
+        printf("Room id: %d\n", response.data.startGameData.room_id);
+        printf("Total time: %d\n", response.data.startGameData.total_time);
         break;
     }
 }

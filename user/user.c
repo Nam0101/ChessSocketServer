@@ -22,7 +22,7 @@
 #define GET_FRIEND_LIST_QUERY "SELECT user.id, elo, username FROM user JOIN friend ON user.id = friend.friend_id AND friend.user_id =? ;"
 #define CHECK_ALREADY_FRIEND_QUERY "SELECT * FROM friend WHERE user_id = ? AND friend_id = ?;"
 #define CHECK_USER_EXIST_BY_ID_QUERY "SELECT * FROM user WHERE id = ?;"
-    loged_in_user_t *online_user_list = NULL;
+loged_in_user_t *online_user_list = NULL;
 pthread_mutex_t online_list_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void add_online_user(int user_id, int elo, int client_socket, char *username)
@@ -274,7 +274,7 @@ void send_register_message(const int client_socket, const char message_code, int
     response->data.registerResponse.is_success = is_success;
     response->data.registerResponse.message_code = message_code;
 
-    int bytes_sent = send(client_socket, response, sizeof(Response), 0);
+    send(client_socket, response, sizeof(Response), 0);
 
     free(response);
 }
@@ -436,7 +436,7 @@ int get_friend_list(const int user_id, FriendDataResponse *friend_list)
     {
         friend_list[i].friend_id = sqlite3_column_int(stmt, 0);
         friend_list[i].elo = sqlite3_column_int(stmt, 1);
-        strcpy(friend_list[i].username, sqlite3_column_text(stmt, 2));
+        strcpy(friend_list[i].username, (const char *)sqlite3_column_text(stmt, 2));
         i++;
     }
     sqlite3_finalize(stmt);
