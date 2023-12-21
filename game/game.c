@@ -15,7 +15,8 @@
 #include "../database/database.h"
 #define MAX_SEARCH_TIME 10
 #define ELO_THRESHOLD 100 // elo difference between 2 players
-#define CREATE_ROOM "INSERT INTO room (white_user_id, black_user_id, total_time) VALUES (%d, %d, %d);"
+#define CREATE_ROOM "INSERT INTO room (white_user_id, black_user_id, total_time) VALUES (?, ?, ?);"
+#define UPDATE_ROOM_START_GAME "UPDATE room SET white_user_id = ?, black_user_id = ?, total_time = ?, start_time = ? WHERE id = ?;"
 room_t *create_room(int white_user_id, int total_time)
 {
     room_t *room = (room_t *)malloc(sizeof(room_t));
@@ -32,18 +33,14 @@ void send_reponse(const int client_socket, const Response *response)
 int create_room_db(int white_user_id, int black_user_id, int total_time)
 {
     sqlite3 *db = get_database_connection();
-    char *sql = (char *)malloc(sizeof(char) * 100);
-    sprintf(sql, CREATE_ROOM, white_user_id, black_user_id, total_time);
-    char *err_msg = 0;
-    int rc = sqlite3_exec(db, sql, 0, 0, &err_msg);
-    if (rc != SQLITE_OK)
-    {
-        printf("SQL error: %s\n", err_msg);
-        sqlite3_free(err_msg);
-        close_database_connection(db);
-        return -1; // Trả về giá trị âm để chỉ ra lỗi
-    }
-
+    char *sql = CREATE_ROOM;
+    sqlite3_stmt *stmt;
+    sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL);
+    sqlite3_bind_int(stmt, 1, white_user_id);
+    sqlite3_bind_int(stmt, 2, black_user_id);
+    sqlite3_bind_int(stmt, 3, total_time);
+    sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
     int last_inserted_id = sqlite3_last_insert_rowid(db);
 
     close_database_connection(db);
@@ -143,7 +140,6 @@ int get_client_socket_by_user_id(int user_id)
 void handle_finding_match(const int client_socket, const FindingMatchData *findingMatchData)
 {
     time_t start_time = time(NULL);
-    printf("Finding match for user %d with elo:%d\n", findingMatchData->user_id, findingMatchData->elo);
 
     set_finding(findingMatchData->user_id, 1);
 
@@ -186,7 +182,6 @@ char *currtent_time()
     time(&current_time);
     time_info = localtime(&current_time);
 
-    // Định dạng thời gian thành chuỗi (ở đây là DATETIME)
     char *result = (char *)malloc(sizeof(char) * 20);
     strftime(result, 20, "%Y-%m-%d %H:%M:%S", time_info);
     return result;
@@ -195,7 +190,7 @@ void start_game_db(int room_id, int white_user_id, int black_user_id, int total_
 {
     sqlite3 *db = get_database_connection();
     sqlite3_stmt *stmt;
-    char *sql = "UPDATE room SET white_user_id = ?, black_user_id = ?, total_time = ?, start_time = ? WHERE id = ?;";
+    char *sql = UPDATE_ROOM_START_GAME;
     sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL);
     sqlite3_bind_int(stmt, 1, white_user_id);
     sqlite3_bind_int(stmt, 2, black_user_id);

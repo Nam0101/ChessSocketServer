@@ -67,14 +67,12 @@ void *thread_function_logedin()
         switch (task->message.type)
         {
         case LOGIN:
-            printf("Handle login\n");
             handle_login(task->client_socket, &task->message.data.loginData);
             break;
         case REGISTER:
             handle_register(task->client_socket, &task->message.data.registerData);
             break;
         case EXIT:
-            printf("Handle exit\n");
             remove_online_user(task->message.data.exitData.user_id);
             break;
         case ADD_FRIEND:

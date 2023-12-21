@@ -19,10 +19,10 @@
 #define CHECK_USERNAME_QUERY "SELECT * FROM user WHERE username = ?;"
 #define INSERT_USER_QUERY "INSERT INTO user (username, password, elo) VALUES (?, ?, 1000);"
 #define ADD_FRIEND_QUERY "INSERT INTO friend (user_id, friend_id) VALUES (?, ?);"
-#define GET_FRIEND_LIST_QUERY "SELECT user.id, elo, username FROM user JOIN friend ON user.id = friend.friend_id WHERE friend.user_id = ?;"
+#define GET_FRIEND_LIST_QUERY "SELECT user.id, elo, username FROM user JOIN friend ON user.id = friend.friend_id AND friend.user_id =? ;"
 #define CHECK_ALREADY_FRIEND_QUERY "SELECT * FROM friend WHERE user_id = ? AND friend_id = ?;"
 #define CHECK_USER_EXIST_BY_ID_QUERY "SELECT * FROM user WHERE id = ?;"
-loged_in_user_t *online_user_list = NULL;
+    loged_in_user_t *online_user_list = NULL;
 pthread_mutex_t online_list_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void add_online_user(int user_id, int elo, int client_socket, char *username)
@@ -275,10 +275,6 @@ void send_register_message(const int client_socket, const char message_code, int
     response->data.registerResponse.message_code = message_code;
 
     int bytes_sent = send(client_socket, response, sizeof(Response), 0);
-    if (bytes_sent <= 0)
-    {
-        printf("Connection closed\n");
-    }
 
     free(response);
 }
@@ -443,6 +439,8 @@ int get_friend_list(const int user_id, FriendDataResponse *friend_list)
         strcpy(friend_list[i].username, sqlite3_column_text(stmt, 2));
         i++;
     }
+    sqlite3_finalize(stmt);
+    close_database_connection(db);
     return i;
 }
 void handle_get_online_friends(const int client_socket, const GetOnlineFriendsData *getOnlineFriendsData)
@@ -481,4 +479,6 @@ void handle_get_online_friends(const int client_socket, const GetOnlineFriendsDa
         response->data.friendDataResponse = friendDataResponse[i];
         send(client_socket, response, sizeof(Response), 0);
     }
+    free(friendDataResponse);
+    free(response);
 }
