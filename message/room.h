@@ -25,4 +25,15 @@ typedef struct
     int room_id;
     int total_time;
 } StartGameData;
+
+typedef struct
+{
+    int user_id;
+    int room_id;
+    float from_x;
+    float from_y;
+    float to_x;
+    float to_y;
+    int current_time;
+} Move;
 #endif

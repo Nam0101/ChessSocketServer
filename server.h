@@ -29,7 +29,8 @@ typedef enum
     FINDING_MATCH,
     FINDING_MATCH_RESPONSE,
     ACCEPT_OR_DECLINE_INVITATION,
-    START_GAME
+    START_GAME,
+    MOVE
 } MessageType;
 
 typedef struct
