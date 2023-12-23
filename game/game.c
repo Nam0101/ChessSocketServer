@@ -10,6 +10,7 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <string.h>
+#include <pthread.h>
 #include "../server.h"
 #include "../user/user.h"
 #include "../database/database.h"
@@ -18,19 +19,75 @@
 #define ELO_THRESHOLD 100 // elo difference between 2 players
 #define CREATE_ROOM "INSERT INTO room (white_user_id, black_user_id, total_time) VALUES (?, ?, ?);"
 #define UPDATE_ROOM_START_GAME "UPDATE room SET white_user_id = ?, black_user_id = ?, total_time = ?, start_time = ? WHERE id = ?;"
+// mutex
+static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+// list of room
+static room_t *list_room = NULL;
 room_t *create_room(int white_user_id, int total_time)
 {
     room_t *room = (room_t *)malloc(sizeof(room_t));
     room->white_user_id = white_user_id;
     room->black_user_id = -1;
     room->total_time = total_time;
+    room->next = NULL;
     return room;
 }
 void send_reponse(const int client_socket, const Response *response)
 {
     send(client_socket, response, sizeof(Response), 0);
 }
+void add_room(room_t *room_list, room_t *room)
+{
+    pthread_mutex_lock(&mutex);
+    room_t *current = room_list;
+    if (current == NULL)
+    {
+        list_room = room;
+        pthread_mutex_unlock(&mutex);
+        return;
+    }
+    while (current->next != NULL)
+    {
+        current = current->next;
+    }
+    current->next = room;
+    pthread_mutex_unlock(&mutex);
+}
+room_t *get_list_room()
+{
+    return list_room;
+}
+void remove_room(room_t *room_list, int room_id)
+{
+    pthread_mutex_lock(&mutex);
+    room_t *current = room_list;
+    if (current == NULL)
+    {
+        pthread_mutex_unlock(&mutex);
+        return;
+    }
+    if (current->room_id == room_id)
+    {
+        list_room = current->next;
+        free(current);
+        pthread_mutex_unlock(&mutex);
+        return;
+    }
+    while (current->next != NULL)
+    {
+        if (current->next->room_id == room_id)
+        {
+            room_t *temp = current->next;
+            current->next = current->next->next;
+            free(temp);
+            pthread_mutex_unlock(&mutex);
+            return;
+        }
 
+        current = current->next;
+    }
+    pthread_mutex_unlock(&mutex);
+}
 int create_room_db(int white_user_id, int black_user_id, int total_time)
 {
     sqlite3 *db = get_database_connection();
@@ -59,6 +116,8 @@ void handle_create_room(const int client_socket, const CreateRoomData *createRoo
         response->data.createRoomResponse.is_success = 1;
         response->data.createRoomResponse.message_code = 0;
         int room_id = create_room_db(room->white_user_id, room->black_user_id, room->total_time);
+        room->room_id = room_id;
+        add_room(get_list_room(), room);
         response->data.createRoomResponse.room_id = room_id;
         send_reponse(client_socket, response);
     }
@@ -68,7 +127,6 @@ void handle_create_room(const int client_socket, const CreateRoomData *createRoo
         response->data.createRoomResponse.message_code = 1;
         send_reponse(client_socket, response);
     }
-    free(room);
     free(response);
 }
 
@@ -152,10 +210,34 @@ int get_elo_by_user_id(int user_id)
     }
     return -1;
 }
+
+void assign_user_ids_based_on_elo(Response *response, int user_id, int opponent_id, int user_elo)
+{
+    if (user_elo < get_elo_by_user_id(opponent_id))
+    {
+        response->data.startGameData.white_user_id = user_id;
+        response->data.startGameData.black_user_id = opponent_id;
+    }
+    else
+    {
+        response->data.startGameData.white_user_id = opponent_id;
+        response->data.startGameData.black_user_id = user_id;
+    }
+}
+
+void assign_usernames(Response *response)
+{
+    char *white_username = (char *)malloc(sizeof(char) * 20);
+    char *black_username = (char *)malloc(sizeof(char) * 20);
+    strcpy(white_username, get_user_name_by_user_id(response->data.startGameData.white_user_id));
+    strcpy(black_username, get_user_name_by_user_id(response->data.startGameData.black_user_id));
+    strcpy(response->data.startGameData.white_username, white_username);
+    strcpy(response->data.startGameData.black_username, black_username);
+}
+
 void handle_finding_match(const int client_socket, const FindingMatchData *findingMatchData)
 {
     time_t start_time = time(NULL);
-
     set_finding(findingMatchData->user_id, 1);
 
     while (1)
@@ -165,25 +247,30 @@ void handle_finding_match(const int client_socket, const FindingMatchData *findi
         {
             set_finding(findingMatchData->user_id, 0);
             set_finding(opponent_id, 0);
-            // send start gmame response
+
             Response *response = (Response *)malloc(sizeof(Response));
             response->type = START_GAME;
-            // white user is have lower elo
-            if (findingMatchData->elo < get_elo_by_user_id(opponent_id))
-            {
-                response->data.startGameData.white_user_id = findingMatchData->user_id;
-                response->data.startGameData.black_user_id = opponent_id;
-            }
-            else
-            {
-                response->data.startGameData.white_user_id = opponent_id;
-                response->data.startGameData.black_user_id = findingMatchData->user_id;
-            }
+
+            assign_user_ids_based_on_elo(response, findingMatchData->user_id, opponent_id, findingMatchData->elo);
+            assign_usernames(response);
+
             int room_id = create_room_db(response->data.startGameData.white_user_id, response->data.startGameData.black_user_id, DEFAULT_TOTAL_TIME);
             response->data.startGameData.room_id = room_id;
             response->data.startGameData.total_time = DEFAULT_TOTAL_TIME;
+            response->data.startGameData.status = 1;
+
+            room_t *room = create_room(response->data.startGameData.white_user_id, DEFAULT_TOTAL_TIME);
+            room->room_id = room_id;
+            room->black_user_id = response->data.startGameData.black_user_id;
+            room->white_socket = get_client_socket_by_user_id(response->data.startGameData.white_user_id);
+            room->black_socket = get_client_socket_by_user_id(response->data.startGameData.black_user_id);
+            room->white_user_id = response->data.startGameData.white_user_id;
+
+            add_room(get_list_room(), room);
+
             send_reponse(client_socket, response);
             send_reponse(get_client_socket_by_user_id(opponent_id), response);
+            start_game_db(room_id, response->data.startGameData.white_user_id, response->data.startGameData.black_user_id, DEFAULT_TOTAL_TIME);
             free(response);
             return;
         }
@@ -234,7 +321,19 @@ void start_game_db(int room_id, int white_user_id, int black_user_id, int total_
     close_database_connection(db);
     free(current_time);
 }
-
+room_t *get_room_by_id(room_t *room_list, int room_id)
+{
+    room_t *current = room_list;
+    while (current != NULL)
+    {
+        if (current->room_id == room_id)
+        {
+            return current;
+        }
+        current = current->next;
+    }
+    return NULL;
+}
 void handle_accept_or_decline_invitation(const int client_socket, const AcceptOrDeclineInvitationData *acceptOrDeclineInvitationData)
 {
     int invited_user_socket = get_client_socket_by_user_id(acceptOrDeclineInvitationData->invited_user_id);
@@ -252,8 +351,70 @@ void handle_accept_or_decline_invitation(const int client_socket, const AcceptOr
     response->data.startGameData.black_user_id = acceptOrDeclineInvitationData->invited_user_id;
     response->data.startGameData.room_id = acceptOrDeclineInvitationData->room_id;
     response->data.startGameData.total_time = acceptOrDeclineInvitationData->total_time;
+    char *white_username = (char *)malloc(sizeof(char) * 20);
+    char *black_username = (char *)malloc(sizeof(char) * 20);
+    // get room from list:
+    room_t *room = get_room_by_id(get_list_room(), acceptOrDeclineInvitationData->room_id);
+    if (room == NULL)
+    {
+        printf("room is null\n");
+        return;
+    }
+    room->white_socket = get_client_socket_by_user_id(response->data.startGameData.white_user_id);
+    room->black_socket = get_client_socket_by_user_id(response->data.startGameData.black_user_id);
+    room->white_user_id = response->data.startGameData.white_user_id;
+    room->black_user_id = response->data.startGameData.black_user_id;
+    strcpy(white_username, get_user_name_by_user_id(response->data.startGameData.white_user_id));
+    strcpy(black_username, get_user_name_by_user_id(response->data.startGameData.black_user_id));
+    strcpy(response->data.startGameData.white_username, white_username);
+    strcpy(response->data.startGameData.black_username, black_username);
+    response->data.startGameData.status = 0;
     send_reponse(invited_user_socket, response);
     send_reponse(client_socket, response);
-    // update room on database
-    start_game_db(acceptOrDeclineInvitationData->room_id, acceptOrDeclineInvitationData->user_id, acceptOrDeclineInvitationData->invited_user_id, acceptOrDeclineInvitationData->total_time);
+    free(response);
+    free(white_username);
+    free(black_username);
+}
+
+void get_user_id_by_room_id(int room_id, int *white_user_id, int *black_user_id)
+{
+    room_t *current = get_list_room();
+    while (current != NULL)
+    {
+        if (current->room_id == room_id)
+        {
+            *white_user_id = current->white_user_id;
+            *black_user_id = current->black_user_id;
+            return;
+        }
+        current = current->next;
+    }
+
+    *white_user_id = -1;
+    *black_user_id = -1;
+}
+
+void handle_start_game(const int client_socket, const StartGame *startGame)
+{
+    printf("start game\n");
+    int room_id = startGame->room_id;
+    int room_owner_id = startGame->user_id;
+    Response *response = (Response *)malloc(sizeof(Response));
+    response->type = START_GAME;
+    room_t *room = get_room_by_id(get_list_room(), room_id);
+    // print room inf
+    if (room == NULL)
+    {
+        printf("room is null\n");
+        return;
+    }
+    printf("room id: %d\n", room->room_id);
+    printf("white user id: %d\n", room->white_user_id);
+    printf("black user id: %d\n", room->black_user_id);
+    printf("white socket: %d\n", room->white_socket);
+    printf("black socket: %d\n", room->black_socket);
+    printf("total time: %d\n", room->total_time);
+    send_reponse(room->black_socket, response);
+    send_reponse(room->white_socket, response);
+    start_game_db(room_id, room->white_user_id, room->black_user_id, room->total_time);
 }

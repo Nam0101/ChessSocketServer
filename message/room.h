@@ -22,10 +22,17 @@ typedef struct
 {
     int white_user_id;
     int black_user_id;
+    char white_username[20];
+    char black_username[20];
     int room_id;
     int total_time;
+    char status;
 } StartGameData;
-
+typedef struct
+{
+    int user_id;
+    int room_id;
+} StartGame;
 typedef struct
 {
     int user_id;
@@ -36,4 +43,9 @@ typedef struct
     float to_y;
     int current_time;
 } Move;
+typedef struct
+{
+    int user_id;
+    int room_id;
+} JoinRoomData;
 #endif

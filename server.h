@@ -29,8 +29,9 @@ typedef enum
     FINDING_MATCH,
     FINDING_MATCH_RESPONSE,
     ACCEPT_OR_DECLINE_INVITATION,
-    START_GAME,
-    MOVE
+    START_GAME_DATA,
+    MOVE,
+    START_GAME
 } MessageType;
 
 typedef struct
@@ -47,6 +48,7 @@ typedef struct
         FindingMatchData findingMatchData;
         InviteFriendData inviteFriendData;
         AcceptOrDeclineInvitationData acceptOrDeclineInvitationData;
+        StartGame startGame;
     } data;
 } Message;
 typedef struct
@@ -63,7 +65,7 @@ typedef struct
         AcceptOrDeclineInvitationData acceptOrDeclineInvitationData;
         StartGameData startGameData;
         FriendDataResponse friendDataResponse;
-
+        StartGame startGame;
     } data;
 } Response;
 

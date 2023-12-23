@@ -22,6 +22,8 @@
 #define GET_FRIEND_LIST_QUERY "SELECT user.id, elo, username FROM user JOIN friend ON user.id = friend.friend_id AND friend.user_id =? ;"
 #define CHECK_ALREADY_FRIEND_QUERY "SELECT * FROM friend WHERE user_id = ? AND friend_id = ?;"
 #define CHECK_USER_EXIST_BY_ID_QUERY "SELECT * FROM user WHERE id = ?;"
+#define GET_USER_NAME_BY_USER_ID_QUERY "SELECT username FROM user WHERE id = ?;"
+#define GET_USER_ID_BY_USER_NAME_QUERY "SELECT id FROM user WHERE username = ?;"
 loged_in_user_t *online_user_list = NULL;
 pthread_mutex_t online_list_mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -387,37 +389,59 @@ void sendFriendResponse(const int client_socket, int isSuccess, int messageCode)
     }
     free(response);
 }
-
+int get_user_id_by_username(char *username)
+{
+    sqlite3 *db = get_database_connection();
+    char *sql = GET_USER_ID_BY_USER_NAME_QUERY;
+    sqlite3_stmt *stmt;
+    int user_id = -1;
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    if (rc != SQLITE_OK)
+    {
+        fprintf(stderr, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        close_database_connection(db);
+        return user_id;
+    }
+    sqlite3_bind_text(stmt, 1, username, strlen(username), 0);
+    if (sqlite3_step(stmt) == SQLITE_ROW)
+    {
+        user_id = sqlite3_column_int(stmt, 0);
+    }
+    sqlite3_finalize(stmt);
+    close_database_connection(db);
+    return user_id;
+}
 // Hàm xử lý yêu cầu thêm bạn bè
 void handle_add_friend(const int client_socket, const AddFriendData *addFriendData)
 {
     sqlite3 *db = get_database_connection();
+    int user_id = get_user_id_by_username(addFriendData->username);
 
-    if (!checkUserExistByID(db, addFriendData->friend_id))
+    if (!checkUserExistByID(db, user_id))
     {
         sendFriendResponse(client_socket, 0, FRIEND_ID_NOT_FOUND);
         close_database_connection(db);
         return;
     }
 
-    if (checkAlreadyFriend(db, addFriendData->user_id, addFriendData->friend_id))
+    if (checkAlreadyFriend(db, addFriendData->user_id, user_id))
     {
         sendFriendResponse(client_socket, 0, ALREADY_FRIEND);
         close_database_connection(db);
         return;
     }
 
-    if (!addFriend(db, addFriendData->user_id, addFriendData->friend_id))
+    if (!addFriend(db, addFriendData->user_id, user_id))
     {
         sendFriendResponse(client_socket, 0, SERVER_ERROR);
         close_database_connection(db);
         return;
     }
 
-    // Gửi phản hồi thành công
     sendFriendResponse(client_socket, 1, 0);
     close_database_connection(db);
 }
+
 int get_friend_list(const int user_id, FriendDataResponse *friend_list)
 {
     sqlite3 *db = get_database_connection();
@@ -443,6 +467,29 @@ int get_friend_list(const int user_id, FriendDataResponse *friend_list)
     close_database_connection(db);
     return i;
 }
+char *get_user_name_by_user_id(int user_id)
+{
+    sqlite3 *db = get_database_connection();
+    char *sql = GET_USER_NAME_BY_USER_ID_QUERY;
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    char *username = (char *)malloc(20);
+    if (rc != SQLITE_OK)
+    {
+        fprintf(stderr, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        close_database_connection(db);
+        return NULL;
+    }
+    sqlite3_bind_int(stmt, 1, user_id);
+    if (sqlite3_step(stmt) == SQLITE_ROW)
+    {
+        strcpy(username, (const char *)sqlite3_column_text(stmt, 0));
+    }
+    sqlite3_finalize(stmt);
+    close_database_connection(db);
+    return username;
+}
+
 void handle_get_online_friends(const int client_socket, const GetOnlineFriendsData *getOnlineFriendsData)
 {
     loged_in_user_t *current = online_user_list;

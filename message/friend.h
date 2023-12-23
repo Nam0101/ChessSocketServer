@@ -4,7 +4,7 @@
 typedef struct
 {
     int user_id;
-    int friend_id;
+    char username[20];
 } AddFriendData;
 
 typedef struct

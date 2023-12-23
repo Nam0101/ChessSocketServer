@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <arpa/inet.h>
+#include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/select.h>
 #include "task_queue/node.h"
@@ -93,6 +94,9 @@ void *thread_function_logedin()
         case ACCEPT_OR_DECLINE_INVITATION:
             handle_accept_or_decline_invitation(task->client_socket, &task->message.data.acceptOrDeclineInvitationData);
             break;
+        case START_GAME:
+            handle_start_game(task->client_socket, &task->message.data.startGame);
+            break;
         default:
             break;
         }
@@ -135,7 +139,6 @@ void *listen_online_user_list()
         struct timeval timeout;
         timeout.tv_sec = 0.5;
         timeout.tv_usec = 0;
-        // printf("Waiting for data...\n");
         int activity = select(max_sd + 1, &readfds, NULL, NULL, &timeout);
         if (activity < 0)
         {
@@ -207,7 +210,14 @@ int main()
     server_address.sin_port = htons(PORT);
 
     check(bind(server_socket, (struct sockaddr *)&server_address, sizeof(server_address)));
-
+    // set option
+    int opt = 1;
+    if (setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1)
+    {
+        perror("Lỗi khi đặt tùy chọn socket");
+        close(server_socket);
+        exit(EXIT_FAILURE);
+    }
     // Listen for incoming connections
     check(listen(server_socket, BACKLOG));
 

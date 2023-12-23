@@ -44,4 +44,5 @@ int isUserAlreadyLoggedIn(const char *username);
 user_t *performLogin(const char *username, const char *password);
 void sendLoginResponse(const int client_socket, int isSuccess, int messageCode, user_t *user);
 void handle_get_online_friends(const int client_socket, const GetOnlineFriendsData *getOnlineFriendsData);
+char *get_user_name_by_user_id(int user_id);
 #endif
