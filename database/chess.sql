@@ -40,10 +40,10 @@ CREATE TABLE IF NOT EXISTS move (
   move_id    INTEGER PRIMARY KEY AUTOINCREMENT,
   room_id    INTEGER,
   piece_id   INTEGER,
-  to_row     CHAR(1),
-  to_column  SMALLINT,
-  is_removed BOOLEAN,
+    from_x     FLOAT,
+  from_y  FLOAT,
+  to_x     FLOAT,
+  to_y  FLOAT,
   UNIQUE(room_id, piece_id, move_id), -- Đảm bảo mỗi cặp (room_id, piece_id) chỉ xuất hiện một lần cho mỗi MoveId
   FOREIGN KEY (room_id) REFERENCES room(id),
-  FOREIGN KEY (piece_id) REFERENCES piece(pieceId)
 );

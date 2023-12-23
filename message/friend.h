@@ -52,5 +52,9 @@ typedef struct
 {
     short is_success;
     char message_code;
+    int friend_id;
+    int elo;
+    int is_online;
+    int is_playing;
 } AddFriendResponse;
 #endif

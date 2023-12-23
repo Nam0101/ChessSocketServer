@@ -19,6 +19,7 @@
 #define ELO_THRESHOLD 100 // elo difference between 2 players
 #define CREATE_ROOM "INSERT INTO room (white_user_id, black_user_id, total_time) VALUES (?, ?, ?);"
 #define UPDATE_ROOM_START_GAME "UPDATE room SET white_user_id = ?, black_user_id = ?, total_time = ?, start_time = ? WHERE id = ?;"
+#define LOG_MOVE_QUERY "INSERT INTO move (room_id, piece_id, from_x, from_y, to_x, to_y) VALUES(?, ?, ?, ?, ?, ?);"
 // mutex
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 // list of room
@@ -412,8 +413,34 @@ void handle_start_game(const int client_socket, const StartGame *startGame)
     send_reponse(room->white_socket, response);
     start_game_db(room_id, room->white_user_id, room->black_user_id, room->total_time);
 }
+void move_db(int room_id, float from_x, float from_y, float to_x, float to_y, int piece_type)
+{
+    sqlite3 *db = get_database_connection();
+    sqlite3_stmt *stmt;
+    char *sql = LOG_MOVE_QUERY;
+    sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL);
+    sqlite3_bind_int(stmt, 1, room_id);
+    sqlite3_bind_int(stmt, 2, piece_type);
+    sqlite3_bind_double(stmt, 3, from_x);
+    sqlite3_bind_double(stmt, 4, from_y);
+    sqlite3_bind_double(stmt, 5, to_x);
+    sqlite3_bind_double(stmt, 6, to_y);
+    sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+    close_database_connection(db);
+}
+
 void handle_move(const int client_socket, const Move *move)
 {
+    printf("handle move\n");
+    printf("room id: %d\n", move->room_id);
+    printf("user id: %d\n", move->user_id);
+    printf("from x: %f\n", move->from_x);
+    printf("from y: %f\n", move->from_y);
+    printf("to x: %f\n", move->to_x);
+    printf("to y: %f\n", move->to_y);
+    printf("piece type: %d\n", move->piece_type);
+    printf("current time: %d\n", move->current_time);
     int room_id = move->room_id;
     int opponent_socket;
     room_t *room = get_room_by_id(get_list_room(), room_id);
@@ -436,5 +463,6 @@ void handle_move(const int client_socket, const Move *move)
     response->data.move.piece_type = move->piece_type;
     response->data.move.current_time = move->current_time;
     send_reponse(opponent_socket, response);
+    move_db(move->room_id, move->from_x, move->from_y, move->to_x, move->to_y, move->piece_type);
     free(response);
 }

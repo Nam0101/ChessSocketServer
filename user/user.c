@@ -24,6 +24,7 @@
 #define CHECK_USER_EXIST_BY_ID_QUERY "SELECT * FROM user WHERE id = ?;"
 #define GET_USER_NAME_BY_USER_ID_QUERY "SELECT username FROM user WHERE id = ?;"
 #define GET_USER_ID_BY_USER_NAME_QUERY "SELECT id FROM user WHERE username = ?;"
+#define GET_USER_BY_USER_NAME_QUERY "SELECT * FROM user WHERE username = ?;"
 loged_in_user_t *online_user_list = NULL;
 pthread_mutex_t online_list_mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -411,12 +412,64 @@ int get_user_id_by_username(char *username)
     close_database_connection(db);
     return user_id;
 }
+
+int is_user_online(int user_id)
+{
+    loged_in_user_t *current = online_user_list;
+    while (current != NULL)
+    {
+        if (current->user_id == user_id)
+        {
+            return 1;
+        }
+        current = current->next;
+    }
+    return 0;
+}
+int is_user_playing(int user_id)
+{
+    loged_in_user_t *current = online_user_list;
+    while (current != NULL)
+    {
+        if (current->user_id == user_id)
+        {
+            return current->is_playing;
+        }
+        current = current->next;
+    }
+    return 0;
+}
+
+void get_user_info_by_user_name(char *username, int *elo, int *user_id, int *is_online, int *is_playing)
+{
+    sqlite3 *db = get_database_connection();
+    char *sql = GET_USER_BY_USER_NAME_QUERY;
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    if (rc != SQLITE_OK)
+    {
+        fprintf(stderr, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        close_database_connection(db);
+        return;
+    }
+    sqlite3_bind_text(stmt, 1, username, strlen(username), 0);
+    if (sqlite3_step(stmt) == SQLITE_ROW)
+    {
+        *user_id = sqlite3_column_int(stmt, 0);
+        *elo = sqlite3_column_int(stmt, 3);
+        *is_online = is_user_online(*user_id);
+        *is_playing = is_user_playing(*user_id);
+    }
+    sqlite3_finalize(stmt);
+    close_database_connection(db);
+}
+
 // Hàm xử lý yêu cầu thêm bạn bè
 void handle_add_friend(const int client_socket, const AddFriendData *addFriendData)
 {
     sqlite3 *db = get_database_connection();
-    int user_id = get_user_id_by_username(addFriendData->username);
-
+    int user_id, elo, is_online, is_playing;
+    get_user_info_by_user_name(addFriendData->username, &elo, &user_id, &is_online, &is_playing);
     if (!checkUserExistByID(db, user_id))
     {
         sendFriendResponse(client_socket, 0, FRIEND_ID_NOT_FOUND);
@@ -437,8 +490,16 @@ void handle_add_friend(const int client_socket, const AddFriendData *addFriendDa
         close_database_connection(db);
         return;
     }
-
-    sendFriendResponse(client_socket, 1, 0);
+    Response *response = (Response *)malloc(sizeof(Response));
+    response->type = ADD_FRIEND_RESPONSE;
+    response->data.addFriendResponse.is_success = 1;
+    response->data.addFriendResponse.message_code = 0;
+    response->data.addFriendResponse.friend_id = user_id;
+    response->data.addFriendResponse.elo = elo;
+    response->data.addFriendResponse.is_online = is_online;
+    response->data.addFriendResponse.is_playing = is_playing;
+    send(client_socket, response, sizeof(Response), 0);
+    free(response);
     close_database_connection(db);
 }
 

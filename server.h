@@ -32,7 +32,7 @@ typedef enum
     START_GAME_DATA,
     MOVE,
     START_GAME,
-    MOVE
+
 } MessageType;
 
 typedef struct

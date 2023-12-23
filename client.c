@@ -205,6 +205,10 @@ void addFriend(int client_socket)
         if (response.data.addFriendResponse.is_success == 1)
         {
             printf("Add friend success\n");
+            printf("Friend id: %d\n", response.data.addFriendResponse.friend_id);
+            printf("Elo: %d\n", response.data.addFriendResponse.elo);
+            printf("Is online: %d\n", response.data.addFriendResponse.is_online);
+            printf("Is playing: %d\n", response.data.addFriendResponse.is_playing);
         }
         else
         {
@@ -363,6 +367,7 @@ void finding_match(int client_socket)
         printf("Black username: %s\n", response.data.startGameData.black_username);
         printf("White username: %s\n", response.data.startGameData.white_username);
         printf("Room id: %d\n", response.data.startGameData.room_id);
+        room_id = response.data.startGameData.room_id;
         printf("Total time: %d\n", response.data.startGameData.total_time);
         printf("Status: %c\n", response.data.startGameData.status);
 
@@ -460,6 +465,15 @@ void waiting_for_invite(int client_socket)
             printf("Room id: %d\n", response.data.startGameData.room_id);
             printf("Total time: %d\n", response.data.startGameData.total_time);
             break;
+        case MOVE:
+            printf("Move\n");
+            printf("From x: %f\n", response.data.move.from_x);
+            printf("From y: %f\n", response.data.move.from_y);
+            printf("To x: %f\n", response.data.move.to_x);
+            printf("To y: %f\n", response.data.move.to_y);
+            printf("Piece type: %d\n", response.data.move.piece_type);
+            printf("Current time: %d\n", response.data.move.current_time);
+            break;
         }
     }
 }
@@ -501,6 +515,67 @@ void start_game(int client_socket)
     }
 }
 
+void make_move(int client_socket)
+{
+    Message message;
+    message.type = MOVE;
+    message.data.move.user_id = user_id;
+    message.data.move.room_id = room_id;
+    printf("ROOM: %d\n", room_id);
+    float from_x, from_y, to_x, to_y;
+    int piece_type;
+    printf("Enter from_x: ");
+    scanf("%f", &from_x);
+    printf("Enter from_y: ");
+    scanf("%f", &from_y);
+    printf("Enter to_x: ");
+    scanf("%f", &to_x);
+    printf("Enter to_y: ");
+    scanf("%f", &to_y);
+    printf("Enter piece type: ");
+    scanf("%d", &piece_type);
+    message.data.move.from_x = from_x;
+    message.data.move.from_y = from_y;
+    message.data.move.to_x = to_x;
+    message.data.move.to_y = to_y;
+    message.data.move.piece_type = piece_type;
+    message.data.move.current_time = 0;
+    int bytes_sent = send(client_socket, &message, sizeof(message), 0);
+    if (bytes_sent <= 0)
+    {
+        printf("Connection closed\n");
+    }
+    else
+    {
+        printf("Sent: %d bytes\n", bytes_sent);
+    }
+
+    // get response
+    Response response;
+    int bytes_received = recv(client_socket, &response, sizeof(response), 0);
+    if (bytes_received <= 0)
+    {
+        printf("Connection closed\n");
+    }
+    else
+    {
+        printf("Received: %d bytes\n", bytes_received);
+    }
+
+    switch (response.type)
+    {
+    case MOVE:
+        printf("Move\n");
+        printf("From x: %f\n", response.data.move.from_x);
+        printf("From y: %f\n", response.data.move.from_y);
+        printf("To x: %f\n", response.data.move.to_x);
+        printf("To y: %f\n", response.data.move.to_y);
+        printf("Piece type: %d\n", response.data.move.piece_type);
+        printf("Current time: %d\n", response.data.move.current_time);
+        break;
+    }
+}
+
 int main()
 {
     int client_socket;
@@ -526,6 +601,8 @@ int main()
         printf("5. Create Room\n");
         printf("6. Finding match\n");
         printf("7. Invite friend\n");
+        printf("8. Start game\n");
+        printf("9. Move\n");
         printf("10. Logout\n");
         printf("11. Waiting for invite\n");
         printf("Enter your choice: ");
@@ -555,6 +632,9 @@ int main()
             break;
         case 8:
             start_game(client_socket);
+            break;
+        case 9:
+            make_move(client_socket);
             break;
         case 10:
             logout(client_socket);
