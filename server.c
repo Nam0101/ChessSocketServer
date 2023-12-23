@@ -160,7 +160,6 @@ void *listen_online_user_list()
                 {
                     remove_online_user(online_user->user_id);
                 }
-                // printf("Received message from user %d\n", online_user->user_id);
                 pthread_mutex_lock(&pool_mutex);
                 enqueue_task(task_queue, online_user->client_socket, *message);
                 pthread_cond_signal(&online_cond);

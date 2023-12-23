@@ -341,9 +341,11 @@ void handle_accept_or_decline_invitation(const int client_socket, const AcceptOr
     Response *response = (Response *)malloc(sizeof(Response));
     if (acceptOrDeclineInvitationData->is_accept == 0)
     {
-        response->type = ACCEPT_OR_DECLINE_INVITATION;
-        response->data.acceptOrDeclineInvitationData.is_accept = 0;
-        response->data.acceptOrDeclineInvitationData.user_id = acceptOrDeclineInvitationData->user_id;
+        response->type = START_GAME;
+        response->data.startGameData.white_user_id = -1;
+        response->data.startGameData.black_user_id = -1;
+        response->data.startGameData.room_id = -1;
+        response->data.startGameData.total_time = -1;
         send_reponse(invited_user_socket, response);
         return;
     }
@@ -400,15 +402,8 @@ void handle_start_game(const int client_socket, const StartGame *startGame)
     // print room inf
     if (room == NULL)
     {
-        printf("room is null\n");
         return;
     }
-    printf("room id: %d\n", room->room_id);
-    printf("white user id: %d\n", room->white_user_id);
-    printf("black user id: %d\n", room->black_user_id);
-    printf("white socket: %d\n", room->white_socket);
-    printf("black socket: %d\n", room->black_socket);
-    printf("total time: %d\n", room->total_time);
     send_reponse(room->black_socket, response);
     send_reponse(room->white_socket, response);
     start_game_db(room_id, room->white_user_id, room->black_user_id, room->total_time);
@@ -432,18 +427,13 @@ void move_db(int room_id, float from_x, float from_y, float to_x, float to_y, in
 
 void handle_move(const int client_socket, const Move *move)
 {
-    printf("handle move\n");
-    printf("room id: %d\n", move->room_id);
-    printf("user id: %d\n", move->user_id);
-    printf("from x: %f\n", move->from_x);
-    printf("from y: %f\n", move->from_y);
-    printf("to x: %f\n", move->to_x);
-    printf("to y: %f\n", move->to_y);
-    printf("piece type: %d\n", move->piece_type);
-    printf("current time: %d\n", move->current_time);
     int room_id = move->room_id;
     int opponent_socket;
     room_t *room = get_room_by_id(get_list_room(), room_id);
+    if (room == NULL)
+    {
+        return;
+    }
     if (room->white_socket == client_socket)
     {
         opponent_socket = room->black_socket;
