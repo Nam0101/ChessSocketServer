@@ -22,6 +22,8 @@ typedef struct
 {
     int white_user_id;
     int black_user_id;
+    int white_elo;
+    int black_elo;
     char white_username[20];
     char black_username[20];
     int room_id;

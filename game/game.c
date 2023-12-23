@@ -218,11 +218,15 @@ void assign_user_ids_based_on_elo(Response *response, int user_id, int opponent_
     {
         response->data.startGameData.white_user_id = user_id;
         response->data.startGameData.black_user_id = opponent_id;
+        response->data.startGameData.white_elo = user_elo;
+        response->data.startGameData.black_elo = get_elo_by_user_id(opponent_id);
     }
     else
     {
         response->data.startGameData.white_user_id = opponent_id;
         response->data.startGameData.black_user_id = user_id;
+        response->data.startGameData.white_elo = get_elo_by_user_id(opponent_id);
+        response->data.startGameData.black_elo = user_elo;
     }
 }
 
