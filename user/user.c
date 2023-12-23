@@ -440,7 +440,7 @@ int is_user_playing(int user_id)
     return 0;
 }
 
-void get_user_info_by_user_name(char *username, int *elo, int *user_id, int *is_online, int *is_playing)
+void get_user_info_by_user_name(const char *username, int *elo, int *user_id, int *is_online, int *is_playing)
 {
     sqlite3 *db = get_database_connection();
     char *sql = GET_USER_BY_USER_NAME_QUERY;
