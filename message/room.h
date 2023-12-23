@@ -41,6 +41,7 @@ typedef struct
     float from_y;
     float to_x;
     float to_y;
+    int piece_type;
     int current_time;
 } Move;
 typedef struct

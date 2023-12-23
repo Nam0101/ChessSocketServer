@@ -67,6 +67,9 @@ void *thread_function_logedin()
         pthread_mutex_unlock(&pool_mutex);
         switch (task->message.type)
         {
+        case MOVE:
+            handle_move(task->client_socket, &task->message.data.move);
+            break;
         case LOGIN:
             handle_login(task->client_socket, &task->message.data.loginData);
             break;

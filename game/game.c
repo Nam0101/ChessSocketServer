@@ -353,13 +353,7 @@ void handle_accept_or_decline_invitation(const int client_socket, const AcceptOr
     response->data.startGameData.total_time = acceptOrDeclineInvitationData->total_time;
     char *white_username = (char *)malloc(sizeof(char) * 20);
     char *black_username = (char *)malloc(sizeof(char) * 20);
-    // get room from list:
     room_t *room = get_room_by_id(get_list_room(), acceptOrDeclineInvitationData->room_id);
-    if (room == NULL)
-    {
-        printf("room is null\n");
-        return;
-    }
     room->white_socket = get_client_socket_by_user_id(response->data.startGameData.white_user_id);
     room->black_socket = get_client_socket_by_user_id(response->data.startGameData.black_user_id);
     room->white_user_id = response->data.startGameData.white_user_id;
@@ -417,4 +411,30 @@ void handle_start_game(const int client_socket, const StartGame *startGame)
     send_reponse(room->black_socket, response);
     send_reponse(room->white_socket, response);
     start_game_db(room_id, room->white_user_id, room->black_user_id, room->total_time);
+}
+void handle_move(const int client_socket, const Move *move)
+{
+    int room_id = move->room_id;
+    int opponent_socket;
+    room_t *room = get_room_by_id(get_list_room(), room_id);
+    if (room->white_socket == client_socket)
+    {
+        opponent_socket = room->black_socket;
+    }
+    else
+    {
+        opponent_socket = room->white_socket;
+    }
+    Response *response = (Response *)malloc(sizeof(Response));
+    response->type = MOVE;
+    response->data.move.user_id = move->user_id;
+    response->data.move.room_id = move->room_id;
+    response->data.move.from_x = move->from_x;
+    response->data.move.from_y = move->from_y;
+    response->data.move.to_x = move->to_x;
+    response->data.move.to_y = move->to_y;
+    response->data.move.piece_type = move->piece_type;
+    response->data.move.current_time = move->current_time;
+    send_reponse(opponent_socket, response);
+    free(response);
 }
