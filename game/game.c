@@ -240,34 +240,6 @@ void assign_usernames(Response *response)
     strcpy(response->data.startGameData.black_username, black_username);
 }
 
-char *currtent_time()
-{
-    time_t current_time;
-    struct tm *time_info;
-    time(&current_time);
-    time_info = localtime(&current_time);
-
-    char *result = (char *)malloc(sizeof(char) * 20);
-    strftime(result, 20, "%Y-%m-%d %H:%M:%S", time_info);
-    return result;
-}
-void start_game_db(int room_id, int white_user_id, int black_user_id, int total_time)
-{
-    sqlite3 *db = get_database_connection();
-    sqlite3_stmt *stmt;
-    char *sql = UPDATE_ROOM_START_GAME;
-    sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL);
-    sqlite3_bind_int(stmt, 1, white_user_id);
-    sqlite3_bind_int(stmt, 2, black_user_id);
-    sqlite3_bind_int(stmt, 3, total_time);
-    char *current_time = currtent_time();
-    sqlite3_bind_text(stmt, 4, current_time, strlen(current_time), SQLITE_STATIC);
-    sqlite3_bind_int(stmt, 5, room_id);
-    sqlite3_step(stmt);
-    sqlite3_finalize(stmt);
-    close_database_connection(db);
-    free(current_time);
-}
 void handle_finding_match(const int client_socket, const FindingMatchData *findingMatchData)
 {
     time_t start_time = time(NULL);
@@ -326,6 +298,34 @@ void handle_finding_match(const int client_socket, const FindingMatchData *findi
     }
 }
 
+char *currtent_time()
+{
+    time_t current_time;
+    struct tm *time_info;
+    time(&current_time);
+    time_info = localtime(&current_time);
+
+    char *result = (char *)malloc(sizeof(char) * 20);
+    strftime(result, 20, "%Y-%m-%d %H:%M:%S", time_info);
+    return result;
+}
+void start_game_db(int room_id, int white_user_id, int black_user_id, int total_time)
+{
+    sqlite3 *db = get_database_connection();
+    sqlite3_stmt *stmt;
+    char *sql = UPDATE_ROOM_START_GAME;
+    sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL);
+    sqlite3_bind_int(stmt, 1, white_user_id);
+    sqlite3_bind_int(stmt, 2, black_user_id);
+    sqlite3_bind_int(stmt, 3, total_time);
+    char *current_time = currtent_time();
+    sqlite3_bind_text(stmt, 4, current_time, strlen(current_time), SQLITE_STATIC);
+    sqlite3_bind_int(stmt, 5, room_id);
+    sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+    close_database_connection(db);
+    free(current_time);
+}
 room_t *get_room_by_id(room_t *room_list, int room_id)
 {
     room_t *current = room_list;
@@ -399,6 +399,7 @@ void handle_start_game(const int client_socket, const StartGame *startGame)
 {
     printf("start game\n");
     int room_id = startGame->room_id;
+    int room_owner_id = startGame->user_id;
     Response *response = (Response *)malloc(sizeof(Response));
     response->type = START_GAME;
     room_t *room = get_room_by_id(get_list_room(), room_id);

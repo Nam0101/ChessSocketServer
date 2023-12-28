@@ -440,7 +440,7 @@ int is_user_playing(int user_id)
     return 0;
 }
 
-void get_user_info_by_user_name(const char *username, int *elo, int *user_id, int *is_online, int *is_playing)
+void get_user_info_by_user_name(char *username, int *elo, int *user_id, int *is_online, int *is_playing)
 {
     sqlite3 *db = get_database_connection();
     char *sql = GET_USER_BY_USER_NAME_QUERY;
@@ -586,6 +586,14 @@ void handle_get_online_friends(const int client_socket, const GetOnlineFriendsDa
     {
         response->data.friendDataResponse = friendDataResponse[i];
         send(client_socket, response, sizeof(Response), 0);
+    }
+    printf("Number of friends: %d\n", number_of_friends);
+    for(int i = 0; i < number_of_friends; i++){
+        printf("Friend id: %d\n", friendDataResponse[i].friend_id);
+        printf("Friend elo: %d\n", friendDataResponse[i].elo);
+        printf("Friend username: %s\n", friendDataResponse[i].username);
+        printf("Friend is online: %d\n", friendDataResponse[i].is_online);
+        printf("Friend is playing: %d\n", friendDataResponse[i].is_playing);
     }
     free(friendDataResponse);
     free(response);
