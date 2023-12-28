@@ -399,7 +399,6 @@ void handle_start_game(const int client_socket, const StartGame *startGame)
 {
     printf("start game\n");
     int room_id = startGame->room_id;
-    int room_owner_id = startGame->user_id;
     Response *response = (Response *)malloc(sizeof(Response));
     response->type = START_GAME;
     room_t *room = get_room_by_id(get_list_room(), room_id);
