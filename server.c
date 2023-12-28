@@ -14,14 +14,17 @@
 #include <time.h>
 #include "server.h"
 #include "game/game.h"
+#define ELO_THRESHOLD 100
 int total_clients = 0;
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 pthread_mutex_t pool_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t online_cond = PTHREAD_COND_INITIALIZER;
+
 pthread_t thread_pool[THREAD_POOL_SIZE];
 pthread_t online_user_list_thread;
+pthread_t handle_finding_match_thread;
 pthread_t thread_pool_online_user[THREAD_POOL_SIZE];
 queue_t *client_queue;
 task_queue_t *task_queue;
@@ -195,6 +198,45 @@ void setVietnamTimeZone()
     setenv("TZ", "Asia/Ho_Chi_Minh", 1);
     tzset(); // Cập nhật thông tin múi giờ
 }
+int is_between(int value, int min, int max)
+{
+    return (value >= min && value <= max);
+}
+int finding_match(int user_id, int elo)
+{
+    loged_in_user_t *current = get_list_online_user();
+    while (current != NULL)
+    {
+        if (current->user_id != user_id && current->is_finding == 1 && is_between(current->elo, elo - ELO_THRESHOLD, elo + ELO_THRESHOLD))
+        {
+            return current->user_id;
+        }
+        current = current->next;
+    }
+    return -1;
+}
+void *handle_finding_match_thread_function()
+{
+    while (1)
+    {
+        pthread_mutex_lock(&finding_match_mutex);
+        while (get_list_online_user() == NULL)
+        {
+            pthread_cond_wait(&finding_match_cond, &finding_match_mutex);
+        }
+        loged_in_user_t *user = get_list_online_user();
+        while (user != NULL)
+        {
+            if (user->is_finding == 1 && user->is_playing == 0)
+            {
+                printf("User %d is finding match\n", user->user_id);
+                int opponent_id = finding_match(user->user_id, user->elo);
+            }
+            user = user->next;
+        }
+        pthread_mutex_unlock(&finding_match_mutex);
+    }
+}
 int main()
 {
     setVietnamTimeZone();
@@ -240,6 +282,11 @@ int main()
     if (pthread_create(&online_user_list_thread, NULL, listen_online_user_list, NULL) != 0)
     {
         perror("Error creating online user list thread");
+        exit(EXIT_FAILURE);
+    }
+    if (pthread_create(&handle_finding_match_thread, NULL, handle_finding_match_thread_function, NULL) != 0)
+    {
+        perror("Error creating handle finding match thread");
         exit(EXIT_FAILURE);
     }
     // Create thread pool for handling message from online user

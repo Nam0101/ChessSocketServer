@@ -581,6 +581,14 @@ void handle_get_online_friends(const int client_socket, const GetOnlineFriendsDa
         }
         current = online_user_list;
     }
+    for (int i = 0; i < number_of_friends; i++)
+    {
+        if (friendDataResponse[i].is_online != 1)
+        {
+            friendDataResponse[i].is_online = 0;
+            friendDataResponse[i].is_playing = 0;
+        }
+    }
     response->type = FRIEND_DATA_RESPONSE;
     for (int i = 0; i < number_of_friends; i++)
     {
