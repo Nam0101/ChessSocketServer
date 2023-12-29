@@ -1,7 +1,7 @@
 #ifndef GAME_H
 #define GAME_H
 #include "../server.h"
-#include <pthread.h>
+
 typedef struct room_t
 {
     int black_user_id;
@@ -13,8 +13,7 @@ typedef struct room_t
     struct room_t *next;
 } room_t;
 // list of room
-extern pthread_mutex_t finding_match_mutex;
-extern pthread_cond_t finding_match_cond;
+
 room_t *create_room(int white_user_id, int total_time);
 void handle_create_room(const int client_socket, const CreateRoomData *createRoomData);
 void handle_finding_match(const int client_socket, const FindingMatchData *findingMatchData);

@@ -24,8 +24,6 @@
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 // list of room
 static room_t *list_room = NULL;
-pthread_mutex_t finding_match_mutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t finding_match_cond = PTHREAD_COND_INITIALIZER;
 room_t *create_room(int white_user_id, int total_time)
 {
     room_t *room = (room_t *)malloc(sizeof(room_t));
@@ -170,23 +168,23 @@ void set_finding(int user_id, int is_finding)
         current = current->next;
     }
 }
-// int is_between(int value, int min, int max)
-// {
-//     return value >= min && value <= max;
-// }
-// int finding_match(int user_id, int elo)
-// {
-//     loged_in_user_t *current = get_list_online_user();
-//     while (current != NULL)
-//     {
-//         if (current->user_id != user_id && current->is_finding == 1 && is_between(current->elo, elo - ELO_THRESHOLD, elo + ELO_THRESHOLD))
-//         {
-//             return current->user_id;
-//         }
-//         current = current->next;
-//     }
-//     return -1;
-// }
+int is_between(int value, int min, int max)
+{
+    return value >= min && value <= max;
+}
+int finding_match(int user_id, int elo)
+{
+    loged_in_user_t *current = get_list_online_user();
+    while (current != NULL)
+    {
+        if (current->user_id != user_id && current->is_finding == 1 && is_between(current->elo, elo - ELO_THRESHOLD, elo + ELO_THRESHOLD))
+        {
+            return current->user_id;
+        }
+        current = current->next;
+    }
+    return -1;
+}
 int get_client_socket_by_user_id(int user_id)
 {
     loged_in_user_t *current = get_list_online_user();
@@ -245,62 +243,59 @@ void assign_usernames(Response *response)
 void handle_finding_match(const int client_socket, const FindingMatchData *findingMatchData)
 {
     time_t start_time = time(NULL);
-    pthread_mutex_lock(&finding_match_mutex);
     set_finding(findingMatchData->user_id, 1);
-    pthread_cond_signal(&finding_match_cond);
-    pthread_mutex_unlock(&finding_match_mutex);
 
-    // while (1)
-    // {
-    //     int opponent_id = finding_match(findingMatchData->user_id, findingMatchData->elo);
-    //     if (opponent_id != -1)
-    //     {
-    //         set_finding(findingMatchData->user_id, 0);
-    //         set_finding(opponent_id, 0);
+    while (1)
+    {
+        int opponent_id = finding_match(findingMatchData->user_id, findingMatchData->elo);
+        if (opponent_id != -1)
+        {
+            set_finding(findingMatchData->user_id, 0);
+            set_finding(opponent_id, 0);
 
-    //         Response *response = (Response *)malloc(sizeof(Response));
-    //         response->type = START_GAME;
+            Response *response = (Response *)malloc(sizeof(Response));
+            response->type = START_GAME;
 
-    //         assign_user_ids_based_on_elo(response, findingMatchData->user_id, opponent_id, findingMatchData->elo);
-    //         assign_usernames(response);
+            assign_user_ids_based_on_elo(response, findingMatchData->user_id, opponent_id, findingMatchData->elo);
+            assign_usernames(response);
 
-    //         int room_id = create_room_db(response->data.startGameData.white_user_id, response->data.startGameData.black_user_id, DEFAULT_TOTAL_TIME);
-    //         response->data.startGameData.room_id = room_id;
-    //         response->data.startGameData.total_time = DEFAULT_TOTAL_TIME;
-    //         response->data.startGameData.status = 1;
+            int room_id = create_room_db(response->data.startGameData.white_user_id, response->data.startGameData.black_user_id, DEFAULT_TOTAL_TIME);
+            response->data.startGameData.room_id = room_id;
+            response->data.startGameData.total_time = DEFAULT_TOTAL_TIME;
+            response->data.startGameData.status = 1;
 
-    //         room_t *room = create_room(response->data.startGameData.white_user_id, DEFAULT_TOTAL_TIME);
-    //         room->room_id = room_id;
-    //         room->black_user_id = response->data.startGameData.black_user_id;
-    //         room->white_socket = get_client_socket_by_user_id(response->data.startGameData.white_user_id);
-    //         room->black_socket = get_client_socket_by_user_id(response->data.startGameData.black_user_id);
-    //         room->white_user_id = response->data.startGameData.white_user_id;
+            room_t *room = create_room(response->data.startGameData.white_user_id, DEFAULT_TOTAL_TIME);
+            room->room_id = room_id;
+            room->black_user_id = response->data.startGameData.black_user_id;
+            room->white_socket = get_client_socket_by_user_id(response->data.startGameData.white_user_id);
+            room->black_socket = get_client_socket_by_user_id(response->data.startGameData.black_user_id);
+            room->white_user_id = response->data.startGameData.white_user_id;
 
-    //         add_room(get_list_room(), room);
+            add_room(get_list_room(), room);
 
-    //         send_reponse(client_socket, response);
-    //         send_reponse(get_client_socket_by_user_id(opponent_id), response);
-    //         start_game_db(room_id, response->data.startGameData.white_user_id, response->data.startGameData.black_user_id, DEFAULT_TOTAL_TIME);
-    //         free(response);
-    //         return;
-    //     }
+            send_reponse(client_socket, response);
+            send_reponse(get_client_socket_by_user_id(opponent_id), response);
+            start_game_db(room_id, response->data.startGameData.white_user_id, response->data.startGameData.black_user_id, DEFAULT_TOTAL_TIME);
+            free(response);
+            return;
+        }
 
-    //     time_t current_time = time(NULL);
-    //     if (current_time - start_time >= MAX_SEARCH_TIME)
-    //     {
-    //         set_finding(findingMatchData->user_id, 0);
-    //         Response *response = (Response *)malloc(sizeof(Response));
-    //         response->type = START_GAME;
-    //         response->data.startGameData.white_user_id = -1;
-    //         response->data.startGameData.black_user_id = -1;
-    //         response->data.startGameData.room_id = -1;
-    //         response->data.startGameData.total_time = -1;
-    //         send_reponse(client_socket, response);
-    //         free(response);
-    //         return;
-    //     }
-    //     sleep(1);
-    // }
+        time_t current_time = time(NULL);
+        if (current_time - start_time >= MAX_SEARCH_TIME)
+        {
+            set_finding(findingMatchData->user_id, 0);
+            Response *response = (Response *)malloc(sizeof(Response));
+            response->type = START_GAME;
+            response->data.startGameData.white_user_id = -1;
+            response->data.startGameData.black_user_id = -1;
+            response->data.startGameData.room_id = -1;
+            response->data.startGameData.total_time = -1;
+            send_reponse(client_socket, response);
+            free(response);
+            return;
+        }
+        sleep(1);
+    }
 }
 
 char *currtent_time()
