@@ -239,7 +239,19 @@ void assign_usernames(Response *response)
     strcpy(response->data.startGameData.white_username, white_username);
     strcpy(response->data.startGameData.black_username, black_username);
 }
-
+int get_finding(int user_id)
+{
+    loged_in_user_t *current = get_list_online_user();
+    while (current != NULL)
+    {
+        if (current->user_id == user_id)
+        {
+            return current->is_finding;
+        }
+        current = current->next;
+    }
+    return -1;
+}
 void handle_finding_match(const int client_socket, const FindingMatchData *findingMatchData)
 {
     time_t start_time = time(NULL);
@@ -250,6 +262,11 @@ void handle_finding_match(const int client_socket, const FindingMatchData *findi
         int opponent_id = finding_match(findingMatchData->user_id, findingMatchData->elo);
         if (opponent_id != -1)
         {
+            // if 2 player's status is finding match
+            if (get_finding(findingMatchData->user_id) == 0 || get_finding(opponent_id) == 0)
+            {
+                return;
+            }
             set_finding(findingMatchData->user_id, 0);
             set_finding(opponent_id, 0);
 
@@ -283,6 +300,10 @@ void handle_finding_match(const int client_socket, const FindingMatchData *findi
         time_t current_time = time(NULL);
         if (current_time - start_time >= MAX_SEARCH_TIME)
         {
+            if (get_finding(findingMatchData->user_id) == 0)
+            {
+                return;
+            }
             set_finding(findingMatchData->user_id, 0);
             Response *response = (Response *)malloc(sizeof(Response));
             response->type = START_GAME;
