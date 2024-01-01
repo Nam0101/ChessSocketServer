@@ -40,10 +40,10 @@ int checkAlreadyFriend(sqlite3 *db, int userId, int friendId);
 int addFriend(sqlite3 *db, int userId, int friendId);
 void sendFriendResponse(const int client_socket, int isSuccess, int messageCode);
 int isUserAlreadyLoggedIn(const char *username);
-int isUserAlreadyLoggedIn(const char *username);
 user_t *performLogin(const char *username, const char *password);
 void sendLoginResponse(const int client_socket, int isSuccess, int messageCode, user_t *user);
 void handle_get_online_friends(const int client_socket, const GetOnlineFriendsData *getOnlineFriendsData);
 char *get_user_name_by_user_id(int user_id);
 void get_user_info_by_user_name(const char *username, int *elo, int *user_id, int *is_online, int *is_playing);
+void elo_calculation(int winner_id, int loser_id, float result);
 #endif

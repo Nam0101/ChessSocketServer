@@ -588,7 +588,6 @@ int main()
     server_address.sin_family = AF_INET;
     server_address.sin_addr.s_addr = INADDR_ANY;
     server_address.sin_port = htons(PORT);
-
     check(connect(client_socket, (struct sockaddr *)&server_address, sizeof(server_address)));
     while (1)
     {

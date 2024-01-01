@@ -6,6 +6,7 @@
 #include <openssl/sha.h>
 #include "sqlite3.h"
 #include <pthread.h>
+#include <math.h>
 #include "user.h"
 #include "../database/database.h"
 #define SERVER_ERROR 'E'
@@ -25,6 +26,8 @@
 #define GET_USER_NAME_BY_USER_ID_QUERY "SELECT username FROM user WHERE id = ?;"
 #define GET_USER_ID_BY_USER_NAME_QUERY "SELECT id FROM user WHERE username = ?;"
 #define GET_USER_BY_USER_NAME_QUERY "SELECT * FROM user WHERE username = ?;"
+#define GET_ELO_BY_USER_ID "SELECT elo FROM user WHERE id = ?;"
+#define UPDATE_ELO_BY_USER_ID "UPDATE user SET elo = ? WHERE id = ?;"
 loged_in_user_t *online_user_list = NULL;
 pthread_mutex_t online_list_mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -589,4 +592,101 @@ void handle_get_online_friends(const int client_socket, const GetOnlineFriendsDa
     }
     free(friendDataResponse);
     free(response);
+}
+double calculateEloA(int Ra, int Rb)
+{
+    double Qa = pow(10, (double)Ra / 400);
+    double Qb = pow(10, (double)Rb / 400);
+    double Ea = Qa / (Qa + Qb);
+    return Ea;
+}
+
+double calculateEloB(int Ra, int Rb)
+{
+    double Qa = pow(10, (double)Ra / 400);
+    double Qb = pow(10, (double)Rb / 400);
+    double Eb = Qb / (Qa + Qb);
+    return Eb;
+}
+int calculateDynamicK(int elo)
+{
+    if (elo < 1600)
+    {
+        return 25;
+    }
+    else if (elo < 2000)
+    {
+        return 20;
+    }
+    else if (elo < 2400)
+    {
+        return 15;
+    }
+    else
+    {
+        return 10;
+    }
+}
+// Hàm cập nhật điểm Elo sau mỗi trận đấu
+void updateElo(int *Ra, int *Rb, int K, double Aa, double Ab, float result)
+{
+    *Ra = *Ra + K * (result - Aa);
+    *Rb = *Rb + K * ((1.0 - result) - Ab);
+}
+void elo_update(int user_id, int elo)
+{
+    sqlite3 *db = get_database_connection();
+    char *sql = UPDATE_ELO_BY_USER_ID;
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    if (rc != SQLITE_OK)
+    {
+        printf("Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        close_database_connection(db);
+        return;
+    }
+    sqlite3_bind_int(stmt, 1, elo);
+    sqlite3_bind_int(stmt, 2, user_id);
+    rc = sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+    close_database_connection(db);
+}
+/// @brief update elo after match if winner_id win, result is 1 and if draw result is 0.5
+/// @param winner_id
+/// @param loser_id
+/// @param result
+void elo_calculation(int winner_id, int loser_id, float result)
+{
+    // get elo of winner and loser
+    sqlite3 *db = get_database_connection();
+    char *sql = GET_ELO_BY_USER_ID;
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    int winner_elo, loser_elo;
+    if (rc != SQLITE_OK)
+    {
+        printf("Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        close_database_connection(db);
+        return;
+    }
+    sqlite3_bind_int(stmt, 1, winner_id);
+    if (sqlite3_step(stmt) == SQLITE_ROW)
+    {
+        winner_elo = sqlite3_column_int(stmt, 0);
+    }
+    sqlite3_reset(stmt);
+    sqlite3_bind_int(stmt, 1, loser_id);
+    if (sqlite3_step(stmt) == SQLITE_ROW)
+    {
+        loser_elo = sqlite3_column_int(stmt, 0);
+    }
+    sqlite3_finalize(stmt);
+    close_database_connection(db);
+    int k_winner = calculateDynamicK(winner_elo);
+    int k_loser = calculateDynamicK(loser_elo);
+    double Aa = calculateEloA(winner_elo, loser_elo);
+    double Ab = calculateEloB(winner_elo, loser_elo);
+    updateElo(&winner_elo, &loser_elo, k_winner, Aa, Ab, result);
+    elo_update(winner_id, winner_elo);
+    elo_update(loser_id, loser_elo);
 }

@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -Wextra
-LIBS = -lpthread -lsqlite3 -lssl -lcrypto
+LIBS = -lpthread -lsqlite3 -lssl -lcrypto -lm
 DATABASE_DIR = database
 USER_DIR = user
 TASK_QUEUE_DIR = task_queue

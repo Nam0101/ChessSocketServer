@@ -262,7 +262,6 @@ void handle_finding_match(const int client_socket, const FindingMatchData *findi
         int opponent_id = finding_match(findingMatchData->user_id, findingMatchData->elo);
         if (opponent_id != -1)
         {
-            // if 2 player's status is finding match
             if (get_finding(findingMatchData->user_id) == 0 || get_finding(opponent_id) == 0)
             {
                 return;
