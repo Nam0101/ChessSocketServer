@@ -557,11 +557,49 @@ void handle_end_game(const int client_socket, const EndGameData *endGameData)
     {
         elo_calculation(user_id, opponent_id, 0.5);
     }
-    // remove room
     remove_room(get_list_room(), room_id);
-    // update user list
     update_caching_user_list(user_id, 0, get_elo_by_user_id(user_id));
-    // send response for update elo
+    Response *response = (Response *)malloc(sizeof(Response));
+    response->type = LOGIN_RESPONSE;
+    response->data.loginResponse.is_success = 1;
+    response->data.loginResponse.user_id = user_id;
+    response->data.loginResponse.elo = get_elo_by_user_id(user_id);
+    send_reponse(client_socket, response);
+    if (status == 1)
+    {
+        end_game_db(room_id, user_id);
+    }
+    free(response);
+}
+void handle_surrender(const int client_socket, const SurrenderData *surrenderData)
+{
+    int room_id = surrenderData->room_id;
+    int user_id = surrenderData->user_id;
+    int opponent_id;
+    room_t *room = get_room_by_id(get_list_room(), room_id);
+    if (room == NULL)
+    {
+        return;
+    }
+    if (room->white_socket == client_socket)
+    {
+        opponent_id = room->black_user_id;
+    }
+    else
+    {
+        opponent_id = room->white_user_id;
+    }
+    int opponent_socket = get_client_socket_by_user_id(opponent_id);
+    Response *response = (Response *)malloc(sizeof(Response));
+    response->type = SURRENDER;
+    response->data.surrenderData.user_id = user_id;
+    response->data.surrenderData.room_id = room_id;
+    send_reponse(opponent_socket, response);
+    // elo calculation
+    elo_calculation(opponent_id, user_id, 1);
+    elo_calculation(user_id, opponent_id, 0);
+    remove_room(get_list_room(), room_id);
+    update_caching_user_list(user_id, 0, get_elo_by_user_id(user_id));
     Response *response = (Response *)malloc(sizeof(Response));
     response->type = LOGIN_RESPONSE;
     response->data.loginResponse.is_success = 1;

@@ -33,7 +33,8 @@ typedef enum
     MOVE,
     START_GAME,
     END_GAME,
-
+    SURRENDER,
+    PAUSE
 } MessageType;
 
 typedef struct
@@ -53,6 +54,8 @@ typedef struct
         StartGame startGame;
         Move move;
         EndGameData endGameData;
+        SurrenderData surrenderData;
+        PauseData pauseData;
     } data;
 } Message;
 typedef struct
@@ -71,6 +74,8 @@ typedef struct
         FriendDataResponse friendDataResponse;
         StartGame startGame;
         Move move;
+        SurrenderData surrenderData;
+        PauseData pauseData;
     } data;
 } Response;
 

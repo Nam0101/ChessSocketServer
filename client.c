@@ -604,19 +604,18 @@ void send_end_game(int client_socket)
     }
     switch (response.type)
     {
-        case LOGIN_RESPONSE:
-            if (response.data.loginResponse.is_success == 1)
-            {
-                printf("Login success\n");
-                printf("User id: %d\n", response.data.loginResponse.user_id);
-                printf("Elo: %d\n", response.data.loginResponse.elo);
-                user_id = response.data.loginResponse.user_id;
-                elo = response.data.loginResponse.elo;
-            }
-            
-            break;
-    }
+    case LOGIN_RESPONSE:
+        if (response.data.loginResponse.is_success == 1)
+        {
+            printf("Login success\n");
+            printf("User id: %d\n", response.data.loginResponse.user_id);
+            printf("Elo: %d\n", response.data.loginResponse.elo);
+            user_id = response.data.loginResponse.user_id;
+            elo = response.data.loginResponse.elo;
+        }
 
+        break;
+    }
 }
 int main()
 {

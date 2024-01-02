@@ -57,5 +57,14 @@ typedef struct
     int user_id;
     int room_id;
 } JoinRoomData;
-
+typedef struct
+{
+    int user_id;
+    int room_id;
+} SurrenderData;
+typedef struct
+{
+    int user_id;
+    int room_id;
+} PauseData;
 #endif

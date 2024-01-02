@@ -103,6 +103,9 @@ void *thread_function_logedin()
         case END_GAME:
             handle_end_game(task->client_socket, &task->message.data.endGameData);
             break;
+        case SURRENDER:
+            handle_surrender(task->client_socket, &task->message.data.surrenderData);
+            break;
         default:
             break;
         }
