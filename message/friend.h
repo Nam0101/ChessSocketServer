@@ -37,6 +37,7 @@ typedef struct
     int friend_id;
     int room_id;
     int total_time;
+    char username[20];
 } InviteFriendResponse;
 
 typedef struct

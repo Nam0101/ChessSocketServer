@@ -32,6 +32,12 @@ typedef struct
 } StartGameData;
 typedef struct
 {
+    int room_id;
+    int user_id;
+    short status; // 0: lose, 1: win, 2: draw
+} EndGameData;
+typedef struct
+{
     int user_id;
     int room_id;
 } StartGame;
@@ -51,4 +57,5 @@ typedef struct
     int user_id;
     int room_id;
 } JoinRoomData;
+
 #endif

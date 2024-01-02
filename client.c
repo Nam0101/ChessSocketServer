@@ -434,6 +434,7 @@ void waiting_for_invite(int client_socket)
         printf("Invite from user %d\n", response.data.inviteFriendResponse.user_id);
         printf("Room id: %d\n", response.data.inviteFriendResponse.room_id);
         printf("Total time: %d\n", response.data.inviteFriendResponse.total_time);
+        printf("Username: %s\n", response.data.inviteFriendResponse.username);
         int is_accept;
         printf("Enter 1 to accept, 0 to decline: ");
         scanf("%d", &is_accept);

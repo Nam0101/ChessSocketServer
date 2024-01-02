@@ -688,5 +688,4 @@ void elo_calculation(int winner_id, int loser_id, float result)
     double Ab = calculateEloB(winner_elo, loser_elo);
     updateElo(&winner_elo, &loser_elo, k_winner, Aa, Ab, result);
     elo_update(winner_id, winner_elo);
-    elo_update(loser_id, loser_elo);
 }

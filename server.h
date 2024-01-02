@@ -32,6 +32,7 @@ typedef enum
     START_GAME_DATA,
     MOVE,
     START_GAME,
+    END_GAME,
 
 } MessageType;
 
@@ -51,6 +52,7 @@ typedef struct
         AcceptOrDeclineInvitationData acceptOrDeclineInvitationData;
         StartGame startGame;
         Move move;
+        EndGameData endGameData;
     } data;
 } Message;
 typedef struct

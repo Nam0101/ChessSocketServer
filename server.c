@@ -100,6 +100,9 @@ void *thread_function_logedin()
         case START_GAME:
             handle_start_game(task->client_socket, &task->message.data.startGame);
             break;
+        case END_GAME:
+            handle_end_game(task->client_socket, &task->message.data.endGameData);
+            break;
         default:
             break;
         }

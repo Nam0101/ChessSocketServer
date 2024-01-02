@@ -131,13 +131,14 @@ void handle_create_room(const int client_socket, const CreateRoomData *createRoo
     free(response);
 }
 
-void send_invite_friend(int friend_socket, int user_id, int room_id, int total_time)
+void send_invite_friend(int friend_socket, int user_id, int room_id, int total_time, char *username)
 {
     Response *response = (Response *)malloc(sizeof(Response));
     response->type = INVITE_FRIEND_RESPONSE;
     response->data.inviteFriendResponse.user_id = user_id;
     response->data.inviteFriendResponse.room_id = room_id;
     response->data.inviteFriendResponse.total_time = total_time;
+    strcpy(response->data.inviteFriendResponse.username, username);
     send_reponse(friend_socket, response);
     free(response);
 }
@@ -148,9 +149,10 @@ void handle_invite_friend(const int client_socket, const InviteFriendData *invit
     int user_id = inviteFriendData->user_id;
     int total_time = inviteFriendData->total_time;
     int friend_socket = get_client_socket_by_user_id(friend_id);
+    char *username = get_user_name_by_user_id(user_id);
     if (friend_socket != -1)
     {
-        send_invite_friend(friend_socket, user_id, room_id, total_time);
+        send_invite_friend(friend_socket, user_id, room_id, total_time, username);
     }
 }
 
@@ -476,6 +478,66 @@ void handle_move(const int client_socket, const Move *move)
     response->data.move.piece_type = move->piece_type;
     response->data.move.current_time = move->current_time;
     send_reponse(opponent_socket, response);
+    printf("move\n");
+    printf("user id: %d\n", move->user_id);
     move_db(move->room_id, move->from_x, move->from_y, move->to_x, move->to_y, move->piece_type);
     free(response);
+}
+void update_caching_user_list(int user_id, int is_playing, int elo)
+{
+    loged_in_user_t *current = get_list_online_user();
+    while (current != NULL)
+    {
+        if (current->user_id == user_id)
+        {
+            current->is_playing = is_playing;
+            current->elo = elo;
+            break;
+        }
+        current = current->next;
+    }
+}
+void handle_end_game(const int client_socket, const EndGameData *endGameData)
+{
+    int room_id = endGameData->room_id;
+    int user_id = endGameData->user_id;
+    int status = endGameData->status;
+    int opponent_id;
+    room_t *room = get_room_by_id(get_list_room(), room_id);
+    if (room == NULL)
+    {
+        return;
+    }
+    if (room->white_socket == client_socket)
+    {
+        opponent_id = room->black_user_id;
+    }
+    else
+    {
+        opponent_id = room->white_user_id;
+    }
+    // update elo
+    if (status == 1)
+    {
+        elo_calculation(user_id, opponent_id, 1);
+    }
+    else if (status == 0)
+    {
+        elo_calculation(user_id, opponent_id, 0);
+    }
+    else
+    {
+        elo_calculation(user_id, opponent_id, 0.5);
+    }
+    // remove room
+    remove_room(get_list_room(), room_id);
+    // update user list
+    update_caching_user_list(user_id, 0, get_elo_by_user_id(user_id));
+    // send response for update elo
+    Response *response = (Response *)malloc(sizeof(Response));
+    response->type = LOGIN_RESPONSE;
+    response->data.loginResponse.is_success = 1;
+    response->data.loginResponse.user_id = user_id;
+    response->data.loginResponse.elo = get_elo_by_user_id(user_id);
+    send_reponse(client_socket, response);
 }
