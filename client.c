@@ -576,7 +576,48 @@ void make_move(int client_socket)
         break;
     }
 }
+void send_end_game(int client_socket)
+{
+    int room_id;
+    int status;
+    printf("Enter room id: ");
+    scanf("%d", &room_id);
+    printf("Enter status: ");
+    scanf("%d", &status);
+    Message message;
+    message.type = END_GAME;
+    message.data.endGameData.user_id = user_id;
+    message.data.endGameData.room_id = room_id;
+    message.data.endGameData.status = status;
+    int bytes_sent = send(client_socket, &message, sizeof(message), 0);
+    if (bytes_sent <= 0)
+    {
+        printf("Connection closed\n");
+        exit(EXIT_FAILURE);
+    }
+    Response response;
+    int bytes_received = recv(client_socket, &response, sizeof(response), 0);
+    if (bytes_received <= 0)
+    {
+        printf("Connection closed\n");
+        exit(EXIT_FAILURE);
+    }
+    switch (response.type)
+    {
+        case LOGIN_RESPONSE:
+            if (response.data.loginResponse.is_success == 1)
+            {
+                printf("Login success\n");
+                printf("User id: %d\n", response.data.loginResponse.user_id);
+                printf("Elo: %d\n", response.data.loginResponse.elo);
+                user_id = response.data.loginResponse.user_id;
+                elo = response.data.loginResponse.elo;
+            }
+            
+            break;
+    }
 
+}
 int main()
 {
     int client_socket;
@@ -605,6 +646,7 @@ int main()
         printf("9. Move\n");
         printf("10. Logout\n");
         printf("11. Waiting for invite\n");
+        printf("12. End game\n");
         printf("Enter your choice: ");
         scanf("%d", &choice);
         switch (choice)
@@ -642,7 +684,9 @@ int main()
         case 11:
             waiting_for_invite(client_socket);
             break;
-
+        case 12:
+            send_end_game(client_socket);
+            break;
         default:
             printf("Invalid choice\n");
             break;

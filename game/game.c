@@ -20,6 +20,7 @@
 #define CREATE_ROOM "INSERT INTO room (white_user_id, black_user_id, total_time) VALUES (?, ?, ?);"
 #define UPDATE_ROOM_START_GAME "UPDATE room SET white_user_id = ?, black_user_id = ?, total_time = ?, start_time = ? WHERE id = ?;"
 #define LOG_MOVE_QUERY "INSERT INTO move (room_id, piece_id, from_x, from_y, to_x, to_y) VALUES(?, ?, ?, ?, ?, ?);"
+#define UPDATE_ROOM_END_GAME "UPDATE room SET end_time = ? , winner_user = ? WHERE id = ?;"
 // mutex
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 // list of room
@@ -101,7 +102,6 @@ int create_room_db(int white_user_id, int black_user_id, int total_time)
     sqlite3_step(stmt);
     sqlite3_finalize(stmt);
     int last_inserted_id = sqlite3_last_insert_rowid(db);
-
     close_database_connection(db);
 
     return last_inserted_id;
@@ -416,10 +416,21 @@ void get_user_id_by_room_id(int room_id, int *white_user_id, int *black_user_id)
     *white_user_id = -1;
     *black_user_id = -1;
 }
-
+void update_playing_status(int user_id, int is_playing)
+{
+    loged_in_user_t *current = get_list_online_user();
+    while (current != NULL)
+    {
+        if (current->user_id == user_id)
+        {
+            current->is_playing = is_playing;
+            break;
+        }
+        current = current->next;
+    }
+}
 void handle_start_game(const int client_socket, const StartGame *startGame)
 {
-    printf("start game\n");
     int room_id = startGame->room_id;
     Response *response = (Response *)malloc(sizeof(Response));
     response->type = START_GAME;
@@ -432,6 +443,8 @@ void handle_start_game(const int client_socket, const StartGame *startGame)
     send_reponse(room->black_socket, response);
     send_reponse(room->white_socket, response);
     start_game_db(room_id, room->white_user_id, room->black_user_id, room->total_time);
+    update_playing_status(room->white_user_id, 1);
+    update_playing_status(room->black_user_id, 1);
 }
 void move_db(int room_id, float from_x, float from_y, float to_x, float to_y, int piece_type)
 {
@@ -497,6 +510,21 @@ void update_caching_user_list(int user_id, int is_playing, int elo)
         current = current->next;
     }
 }
+void end_game_db(int room_id, int winner_id)
+{
+    sqlite3 *db = get_database_connection();
+    sqlite3_stmt *stmt;
+    char *sql = UPDATE_ROOM_END_GAME;
+    sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL);
+    char *current_time = currtent_time();
+    sqlite3_bind_text(stmt, 1, current_time, strlen(current_time), SQLITE_STATIC);
+    sqlite3_bind_int(stmt, 2, winner_id);
+    sqlite3_bind_int(stmt, 3, room_id);
+    sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+    close_database_connection(db);
+    free(current_time);
+}
 void handle_end_game(const int client_socket, const EndGameData *endGameData)
 {
     int room_id = endGameData->room_id;
@@ -540,4 +568,5 @@ void handle_end_game(const int client_socket, const EndGameData *endGameData)
     response->data.loginResponse.user_id = user_id;
     response->data.loginResponse.elo = get_elo_by_user_id(user_id);
     send_reponse(client_socket, response);
+    free(response);
 }
