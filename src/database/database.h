@@ -2,7 +2,7 @@
 #define DATABASE_H
 
 #include <sqlite3.h>
-#define DATABASE_NAME "database/database.db"
+#define DATABASE_NAME "src/database/database.db"
 
 // Function to open the database connection
 sqlite3 *get_database_connection();

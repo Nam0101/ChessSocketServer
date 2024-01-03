@@ -10,6 +10,9 @@
         "stdio.h": "c",
         "stdlib.h": "c",
         "room.h": "c",
-        "sha.h": "c"
+        "sha.h": "c",
+        "node.h": "c",
+        "game.h": "c",
+        "login.h": "c"
     }
 }

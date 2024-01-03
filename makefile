@@ -1,18 +1,43 @@
 CC = gcc
 CFLAGS = -Wall -Wextra
 LIBS = -lpthread -lsqlite3 -lssl -lcrypto -lm
-DATABASE_DIR = database
-USER_DIR = user
-TASK_QUEUE_DIR = task_queue
-GAME_DIR = game
-LOG_DIR = log
-all: server client
+SRC_DIR = src
+BIN_DIR = bin
 
-server: server.c $(TASK_QUEUE_DIR)/queue.c $(USER_DIR)/user.c $(DATABASE_DIR)/database.c server.h $(USER_DIR)/user.h $(DATABASE_DIR)/database.h $(GAME_DIR)/game.c $(GAME_DIR)/game.h $(LOG_DIR)/log.c $(LOG_DIR)/log.h
-	$(CC) $(CFLAGS) -o server server.c $(TASK_QUEUE_DIR)/queue.c $(USER_DIR)/user.c $(DATABASE_DIR)/database.c $(GAME_DIR)/game.c $(LOG_DIR)/log.c   $(LIBS) 
+DATABASE_DIR = $(SRC_DIR)/database
+GAME_DIR = $(SRC_DIR)/game
+LOG_DIR = $(SRC_DIR)/log
+MESSAGE_DIR = $(SRC_DIR)/message
+TASK_QUEUE_DIR = $(SRC_DIR)/task_queue
+USER_DIR = $(SRC_DIR)/user
 
-client: client.c 
-	$(CC) $(CFLAGS) -o client client.c $(LIBS)
+SERVER_OBJECTS = $(BIN_DIR)/database.o $(BIN_DIR)/game.o $(BIN_DIR)/log.o $(BIN_DIR)/queue.o $(BIN_DIR)/user.o
+
+all: create_bin_dir server client
+
+server: $(SERVER_OBJECTS) $(SRC_DIR)/server.c
+	$(CC) $(CFLAGS) -o server $(SRC_DIR)/server.c $(SERVER_OBJECTS) $(LIBS)
+
+client: $(SRC_DIR)/client.c
+	$(CC) $(CFLAGS) -o client $(SRC_DIR)/client.c $(LIBS)
+
+$(BIN_DIR)/database.o: $(DATABASE_DIR)/database.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(BIN_DIR)/game.o: $(GAME_DIR)/game.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(BIN_DIR)/log.o: $(LOG_DIR)/log.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(BIN_DIR)/queue.o: $(TASK_QUEUE_DIR)/queue.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(BIN_DIR)/user.o: $(USER_DIR)/user.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+create_bin_dir:
+	mkdir -p $(BIN_DIR)
 
 clean:
-	rm -f server client
+	rm -rf $(BIN_DIR)/*.o server client
