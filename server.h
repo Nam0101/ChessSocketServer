@@ -5,7 +5,7 @@
 #include "message/logout.h"
 #include "message/friend.h"
 #include "message/room.h"
-#define PORT 12345
+#define PORT 8888
 #define BACKLOG 100
 #define MAX_BUFFER_SIZE 4096
 #define THREAD_POOL_SIZE 8

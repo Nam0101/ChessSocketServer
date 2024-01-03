@@ -6,7 +6,7 @@
 #include <sys/socket.h>
 #include <openssl/sha.h>
 #include "server.h"
-#define PORT 12345
+#define PORT 8888
 #define MAX_BUFFER_SIZE 4096
 #define SERVER_ERROR 'E'
 #define USERNAME_EXISTS 'U'

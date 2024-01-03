@@ -1,0 +1,20 @@
+[2024-1-3 12:45:40] [SERVER] [i] Server is listening on port 8888
+[2024-1-3 12:45:41] [SERVER] [i] Accepted connection from 127.0.0.1:48122
+[2024-1-3 12:45:42] [SERVER] [i] Received login request
+[2024-1-3 12:45:52] [SERVER] [i] Accepted connection from 127.0.0.1:36758
+[2024-1-3 12:45:54] [SERVER] [i] Received login request
+[2024-1-3 12:45:54] [USER] [e] User already logged in
+[2024-1-3 12:46:6] [SERVER] [i] Accepted connection from 127.0.0.1:54314
+[2024-1-3 12:46:7] [SERVER] [i] Received login request
+[2024-1-3 12:46:17] [SERVER] [i] Received finding match request
+[2024-1-3 12:46:18] [SERVER] [i] Received finding match request
+[2024-1-3 12:46:18] [GAME] [i] Found match for user 2 and user 1
+[2024-1-3 12:46:40] [SERVER] [i] Received create room request
+[2024-1-3 12:46:40] [GAME] [i] Created room 334
+[2024-1-3 12:46:44] [SERVER] [i] Received invite friend request
+[2024-1-3 12:46:44] [GAME] [i] Invited friend 2 to room 334
+[2024-1-3 12:46:44] [GAME] [e] Failed to invite friend 2 to room 334
+[2024-1-3 12:46:46] [SERVER] [i] Received accept or decline invitation request
+[2024-1-3 12:46:46] [GAME] [i] Accepted invitation from user 1 to room 334
+[2024-1-3 12:47:13] [SERVER] [i] Received exit request
+[2024-1-3 12:47:17] [SERVER] [i] Received exit request

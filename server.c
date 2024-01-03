@@ -14,8 +14,9 @@
 #include <time.h>
 #include "server.h"
 #include "game/game.h"
+#include "log/log.h"
 int total_clients = 0;
-
+#define TAG "SERVER"
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 pthread_mutex_t pool_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -43,9 +44,11 @@ void handle_client(int client_socket)
     switch (message->type)
     {
     case LOGIN:
+        Log(TAG, "i", "Received login request");
         handle_login(client_socket, &message->data.loginData);
         break;
     case REGISTER:
+        Log(TAG, "i", "Received register request");
         handle_register(client_socket, &message->data.registerData);
         break;
     default:
@@ -68,42 +71,55 @@ void *thread_function_logedin()
         switch (task->message.type)
         {
         case MOVE:
+            Log(TAG, "i", "Received move request");
             handle_move(task->client_socket, &task->message.data.move);
             break;
         case LOGIN:
+            Log(TAG, "i", "Received login request");
             handle_login(task->client_socket, &task->message.data.loginData);
             break;
         case REGISTER:
+            Log(TAG, "i", "Received register request");
             handle_register(task->client_socket, &task->message.data.registerData);
             break;
         case EXIT:
+            Log(TAG, "i", "Received exit request");
             remove_online_user(task->message.data.exitData.user_id);
             break;
         case ADD_FRIEND:
+            Log(TAG, "i", "Received add friend request");
             handle_add_friend(task->client_socket, &task->message.data.addFriendData);
             break;
         case GET_ONLINE_FRIENDS:
+            Log(TAG, "i", "Received get friends request");
             handle_get_online_friends(task->client_socket, &task->message.data.getOnlineFriendsData);
             break;
         case CREATE_ROOM:
+            Log(TAG, "i", "Received create room request");
             handle_create_room(task->client_socket, &task->message.data.createRoomData);
             break;
         case FINDING_MATCH:
+            Log(TAG, "i", "Received finding match request");
             handle_finding_match(task->client_socket, &task->message.data.findingMatchData);
             break;
         case INVITE_FRIEND:
+            Log(TAG, "i", "Received invite friend request");
             handle_invite_friend(task->client_socket, &task->message.data.inviteFriendData);
             break;
         case ACCEPT_OR_DECLINE_INVITATION:
+            Log(TAG, "i", "Received accept or decline invitation request");
             handle_accept_or_decline_invitation(task->client_socket, &task->message.data.acceptOrDeclineInvitationData);
             break;
         case START_GAME:
+            Log(TAG, "i", "Received start game request");
             handle_start_game(task->client_socket, &task->message.data.startGame);
             break;
         case END_GAME:
+            Log(TAG, "i", "Received end game request");
             handle_end_game(task->client_socket, &task->message.data.endGameData);
             break;
         case SURRENDER:
+            Log(TAG, "i", "Received surrender request");
             handle_surrender(task->client_socket, &task->message.data.surrenderData);
             break;
         default:
@@ -165,6 +181,10 @@ void *listen_online_user_list()
                 if (bytes_received <= 0)
                 {
                     remove_online_user(online_user->user_id);
+                    char *log_msg = (char *)malloc(sizeof(char) * 100);
+                    sprintf(log_msg, "User %d disconnected", online_user->user_id);
+                    Log(TAG, "i", log_msg);
+                    free(log_msg);
                 }
                 pthread_mutex_lock(&pool_mutex);
                 enqueue_task(task_queue, online_user->client_socket, *message);
@@ -203,6 +223,7 @@ void setVietnamTimeZone()
 }
 int main()
 {
+    log_init();
     setVietnamTimeZone();
     int server_socket;
     struct sockaddr_in server_address;
@@ -222,7 +243,6 @@ int main()
     int opt = 1;
     if (setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1)
     {
-        perror("Lỗi khi đặt tùy chọn socket");
         close(server_socket);
         exit(EXIT_FAILURE);
     }
@@ -230,6 +250,8 @@ int main()
     check(listen(server_socket, BACKLOG));
 
     printf("Server is listening on port %d...\n", PORT);
+
+    Log(TAG, "i", "Server is listening on port 8888");
     client_queue = create_queue();
     task_queue = create_task_queue();
 
@@ -277,9 +299,12 @@ int main()
         pthread_cond_signal(&cond);
         pthread_mutex_unlock(&mutex);
         // signal condition
-        printf("Accepted connection from %s:%d\n", inet_ntoa(client_address.sin_addr), ntohs(client_address.sin_port));
+        char *log_msg = (char *)malloc(sizeof(char) * 100);
+        sprintf(log_msg, "Accepted connection from %s:%d", inet_ntoa(client_address.sin_addr), ntohs(client_address.sin_port));
+        Log(TAG, "i", log_msg);
+        free(log_msg);
     }
-
+    Log(TAG, "i", "Server is shutting down");
     close(server_socket);
 
     return 0;

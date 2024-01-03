@@ -9,6 +9,7 @@
 #include <math.h>
 #include "user.h"
 #include "../database/database.h"
+#include "../log/log.h"
 #define SERVER_ERROR 'E'
 #define USERNAME_EXISTS 'U'
 #define REGISTER_SUCCESS 'S'
@@ -28,6 +29,7 @@
 #define GET_USER_BY_USER_NAME_QUERY "SELECT * FROM user WHERE username = ?;"
 #define GET_ELO_BY_USER_ID "SELECT elo FROM user WHERE id = ?;"
 #define UPDATE_ELO_BY_USER_ID "UPDATE user SET elo = ? WHERE id = ?;"
+#define TAG "USER"
 loged_in_user_t *online_user_list = NULL;
 pthread_mutex_t online_list_mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -201,6 +203,7 @@ void handle_login(const int client_socket, const LoginData *loginData)
     {
         // Người dùng đã đăng nhập
         sendLoginResponse(client_socket, 0, USER_LOGED_IN, NULL);
+        Log(TAG, "e", "User already logged in");
         return;
     }
 
@@ -293,7 +296,10 @@ int username_exists(sqlite3 *db, const char *username)
 
     if (rc != SQLITE_OK)
     {
-        fprintf(stderr, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        char *error = (char *)malloc(100);
+        sprintf(error, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        Log(TAG, "e", error);
+        free(error);
         return 0;
     }
 
@@ -313,7 +319,10 @@ int register_user(sqlite3 *db, const char *username, const char *hashed_password
 
     if (rc != SQLITE_OK)
     {
-        fprintf(stderr, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        char *error = (char *)malloc(100);
+        sprintf(error, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        Log(TAG, "e", error);
+        free(error);
         return 0;
     }
 
@@ -334,7 +343,10 @@ int checkUserExistByID(sqlite3 *db, int userId)
     int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
     if (rc != SQLITE_OK)
     {
-        fprintf(stderr, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        char *error = (char *)malloc(100);
+        sprintf(error, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        Log(TAG, "e", error);
+        free(error);
         return 0;
     }
     sqlite3_bind_int(stmt, 1, userId);
@@ -351,7 +363,10 @@ int checkAlreadyFriend(sqlite3 *db, int userId, int friendId)
     int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
     if (rc != SQLITE_OK)
     {
-        fprintf(stderr, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        char *error = (char *)malloc(100);
+        sprintf(error, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        Log(TAG, "e", error);
+        free(error);
         return 0;
     }
     sqlite3_bind_int(stmt, 1, userId);
@@ -369,7 +384,10 @@ int addFriend(sqlite3 *db, int userId, int friendId)
     int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
     if (rc != SQLITE_OK)
     {
-        fprintf(stderr, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        char *error = (char *)malloc(100);
+        sprintf(error, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        Log(TAG, "e", error);
+        free(error);
         return 0;
     }
     sqlite3_bind_int(stmt, 1, userId);
@@ -402,7 +420,10 @@ int get_user_id_by_username(char *username)
     int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
     if (rc != SQLITE_OK)
     {
-        fprintf(stderr, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        char *error = (char *)malloc(100);
+        sprintf(error, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        Log(TAG, "e", error);
+        free(error);
         close_database_connection(db);
         return user_id;
     }
@@ -515,7 +536,10 @@ int get_friend_list(const int user_id, FriendDataResponse *friend_list)
     int i = 0;
     if (rc != SQLITE_OK)
     {
-        fprintf(stderr, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        char *error = (char *)malloc(100);
+        sprintf(error, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        Log(TAG, "e", error);
+        free(error);
         close_database_connection(db);
         return 0;
     }
@@ -540,7 +564,10 @@ char *get_user_name_by_user_id(int user_id)
     char *username = (char *)malloc(20);
     if (rc != SQLITE_OK)
     {
-        fprintf(stderr, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        char *error = (char *)malloc(100);
+        sprintf(error, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        Log(TAG, "e", error);
+        free(error);
         close_database_connection(db);
         return NULL;
     }
@@ -560,7 +587,11 @@ void handle_get_online_friends(const int client_socket, const GetOnlineFriendsDa
     FriendDataResponse *friendDataResponse = (FriendDataResponse *)malloc(sizeof(FriendDataResponse) * 100);
     if (friendDataResponse == NULL)
     {
-        fprintf(stderr, "Memory allocation failed.\n");
+        char *error = (char *)malloc(100);
+        sprintf(error, "Cannot allocate memory for friendDataResponse\n");
+        Log(TAG, "e", error);
+        free(error);
+        free(error);
     }
     int number_of_friends = get_friend_list(getOnlineFriendsData->user_id, friendDataResponse);
     Response *response = (Response *)malloc(sizeof(Response));
@@ -641,7 +672,10 @@ void elo_update(int user_id, int elo)
     int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
     if (rc != SQLITE_OK)
     {
-        printf("Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        char *error = (char *)malloc(100);
+        sprintf(error, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        Log(TAG, "e", error);
+        free(error);
         close_database_connection(db);
         return;
     }
@@ -665,7 +699,10 @@ void elo_calculation(int winner_id, int loser_id, float result)
     int winner_elo, loser_elo;
     if (rc != SQLITE_OK)
     {
-        printf("Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        char *error = (char *)malloc(100);
+        sprintf(error, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        Log(TAG, "e", error);
+        free(error);
         close_database_connection(db);
         return;
     }

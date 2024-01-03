@@ -14,6 +14,7 @@
 #include "../server.h"
 #include "../user/user.h"
 #include "../database/database.h"
+#include "../log/log.h"
 #define DEFAULT_TOTAL_TIME 600
 #define MAX_SEARCH_TIME 10
 #define ELO_THRESHOLD 100 // elo difference between 2 players
@@ -21,6 +22,7 @@
 #define UPDATE_ROOM_START_GAME "UPDATE room SET white_user_id = ?, black_user_id = ?, total_time = ?, start_time = ? WHERE id = ?;"
 #define LOG_MOVE_QUERY "INSERT INTO move (room_id, piece_id, from_x, from_y, to_x, to_y) VALUES(?, ?, ?, ?, ?, ?);"
 #define UPDATE_ROOM_END_GAME "UPDATE room SET end_time = ? , winner_user = ? WHERE id = ?;"
+#define TAG "GAME"
 // mutex
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 // list of room
@@ -121,12 +123,19 @@ void handle_create_room(const int client_socket, const CreateRoomData *createRoo
         add_room(get_list_room(), room);
         response->data.createRoomResponse.room_id = room_id;
         send_reponse(client_socket, response);
+        char *log_msg = (char *)malloc(sizeof(char) * 100);
+        sprintf(log_msg, "Created room %d", room_id);
+        Log(TAG, "i", log_msg);
+        free(log_msg);
     }
     else
     {
         response->data.createRoomResponse.is_success = 0;
         response->data.createRoomResponse.message_code = 1;
         send_reponse(client_socket, response);
+        char *log_msg = (char *)malloc(sizeof(char) * 100);
+        sprintf(log_msg, "Failed to create room");
+        Log(TAG, "e", log_msg);
     }
     free(response);
 }
@@ -150,10 +159,17 @@ void handle_invite_friend(const int client_socket, const InviteFriendData *invit
     int total_time = inviteFriendData->total_time;
     int friend_socket = get_client_socket_by_user_id(friend_id);
     char *username = get_user_name_by_user_id(user_id);
+    char *log_msg = (char *)malloc(sizeof(char) * 100);
     if (friend_socket != -1)
     {
+        sprintf(log_msg, "Invited friend %d to room %d", friend_id, room_id);
+        Log(TAG, "i", log_msg);
+        free(log_msg);
         send_invite_friend(friend_socket, user_id, room_id, total_time, username);
     }
+    sprintf(log_msg, "Failed to invite friend %d to room %d", friend_id, room_id);
+    Log(TAG, "e", log_msg);
+    free(log_msg);
 }
 
 void set_finding(int user_id, int is_finding)
@@ -258,7 +274,7 @@ void handle_finding_match(const int client_socket, const FindingMatchData *findi
 {
     time_t start_time = time(NULL);
     set_finding(findingMatchData->user_id, 1);
-
+    char *log_msg = (char *)malloc(sizeof(char) * 100);
     while (1)
     {
         int opponent_id = finding_match(findingMatchData->user_id, findingMatchData->elo);
@@ -294,6 +310,8 @@ void handle_finding_match(const int client_socket, const FindingMatchData *findi
             send_reponse(client_socket, response);
             send_reponse(get_client_socket_by_user_id(opponent_id), response);
             start_game_db(room_id, response->data.startGameData.white_user_id, response->data.startGameData.black_user_id, DEFAULT_TOTAL_TIME);
+            sprintf(log_msg, "Found match for user %d and user %d", findingMatchData->user_id, opponent_id);
+            Log(TAG, "i", log_msg);
             free(response);
             return;
         }
@@ -312,6 +330,8 @@ void handle_finding_match(const int client_socket, const FindingMatchData *findi
             response->data.startGameData.black_user_id = -1;
             response->data.startGameData.room_id = -1;
             response->data.startGameData.total_time = -1;
+            sprintf(log_msg, "Failed to find match for user %d", findingMatchData->user_id);
+            Log(TAG, "i", log_msg);
             send_reponse(client_socket, response);
             free(response);
             return;
@@ -363,6 +383,7 @@ room_t *get_room_by_id(room_t *room_list, int room_id)
 }
 void handle_accept_or_decline_invitation(const int client_socket, const AcceptOrDeclineInvitationData *acceptOrDeclineInvitationData)
 {
+    char *log_msg = (char *)malloc(sizeof(char) * 100);
     int invited_user_socket = get_client_socket_by_user_id(acceptOrDeclineInvitationData->invited_user_id);
     Response *response = (Response *)malloc(sizeof(Response));
     if (acceptOrDeclineInvitationData->is_accept == 0)
@@ -373,6 +394,8 @@ void handle_accept_or_decline_invitation(const int client_socket, const AcceptOr
         response->data.startGameData.room_id = -1;
         response->data.startGameData.total_time = -1;
         send_reponse(invited_user_socket, response);
+        sprintf(log_msg, "Declined invitation from user %d to room %d", acceptOrDeclineInvitationData->invited_user_id, acceptOrDeclineInvitationData->room_id);
+        Log(TAG, "i", log_msg);
         return;
     }
     response->type = START_GAME;
@@ -394,6 +417,8 @@ void handle_accept_or_decline_invitation(const int client_socket, const AcceptOr
     response->data.startGameData.status = 0;
     send_reponse(invited_user_socket, response);
     send_reponse(client_socket, response);
+    sprintf(log_msg, "Accepted invitation from user %d to room %d", acceptOrDeclineInvitationData->invited_user_id, acceptOrDeclineInvitationData->room_id);
+    Log(TAG, "i", log_msg);
     free(response);
     free(white_username);
     free(black_username);
@@ -432,6 +457,7 @@ void update_playing_status(int user_id, int is_playing)
 void handle_start_game(const int client_socket, const StartGame *startGame)
 {
     int room_id = startGame->room_id;
+    char* log_msg = (char*)malloc(sizeof(char) * 100);
     Response *response = (Response *)malloc(sizeof(Response));
     response->type = START_GAME;
     room_t *room = get_room_by_id(get_list_room(), room_id);
@@ -445,6 +471,8 @@ void handle_start_game(const int client_socket, const StartGame *startGame)
     start_game_db(room_id, room->white_user_id, room->black_user_id, room->total_time);
     update_playing_status(room->white_user_id, 1);
     update_playing_status(room->black_user_id, 1);
+    sprintf(log_msg, "Started game for room %d", room_id);
+    Log(TAG, "i", log_msg);
 }
 void move_db(int room_id, float from_x, float from_y, float to_x, float to_y, int piece_type)
 {
@@ -491,8 +519,6 @@ void handle_move(const int client_socket, const Move *move)
     response->data.move.piece_type = move->piece_type;
     response->data.move.current_time = move->current_time;
     send_reponse(opponent_socket, response);
-    printf("move\n");
-    printf("user id: %d\n", move->user_id);
     move_db(move->room_id, move->from_x, move->from_y, move->to_x, move->to_y, move->piece_type);
     free(response);
 }
@@ -590,21 +616,21 @@ void handle_surrender(const int client_socket, const SurrenderData *surrenderDat
         opponent_id = room->white_user_id;
     }
     int opponent_socket = get_client_socket_by_user_id(opponent_id);
-    Response *response = (Response *)malloc(sizeof(Response));
-    response->type = SURRENDER;
-    response->data.surrenderData.user_id = user_id;
-    response->data.surrenderData.room_id = room_id;
-    send_reponse(opponent_socket, response);
-    // elo calculation
-    elo_calculation(opponent_id, user_id, 1);
-    elo_calculation(user_id, opponent_id, 0);
-    remove_room(get_list_room(), room_id);
-    update_caching_user_list(user_id, 0, get_elo_by_user_id(user_id));
-    Response *response = (Response *)malloc(sizeof(Response));
-    response->type = LOGIN_RESPONSE;
-    response->data.loginResponse.is_success = 1;
-    response->data.loginResponse.user_id = user_id;
-    response->data.loginResponse.elo = get_elo_by_user_id(user_id);
-    send_reponse(client_socket, response);
-    free(response);
+    // Response *response = (Response *)malloc(sizeof(Response));
+    // response->type = SURRENDER;
+    // response->data.surrenderData.user_id = user_id;
+    // response->data.surrenderData.room_id = room_id;
+    // send_reponse(opponent_socket, response);
+    // // elo calculation
+    // elo_calculation(opponent_id, user_id, 1);
+    // elo_calculation(user_id, opponent_id, 0);
+    // remove_room(get_list_room(), room_id);
+    // update_caching_user_list(user_id, 0, get_elo_by_user_id(user_id));
+    // Response *response = (Response *)malloc(sizeof(Response));
+    // response->type = LOGIN_RESPONSE;
+    // response->data.loginResponse.is_success = 1;
+    // response->data.loginResponse.user_id = user_id;
+    // response->data.loginResponse.elo = get_elo_by_user_id(user_id);
+    // send_reponse(client_socket, response);
+    // free(response);
 }

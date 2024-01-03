@@ -9,6 +9,7 @@
         "database.h": "c",
         "stdio.h": "c",
         "stdlib.h": "c",
-        "room.h": "c"
+        "room.h": "c",
+        "sha.h": "c"
     }
 }
