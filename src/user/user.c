@@ -700,33 +700,22 @@ void elo_update(int user_id, int elo)
 void elo_calculation(int winner_id, int loser_id, float result)
 {
     // get elo of winner and loser
-    sqlite3 *db = get_database_connection();
-    char *sql = GET_ELO_BY_USER_ID;
-    sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
-    int winner_elo, loser_elo;
-    if (rc != SQLITE_OK)
+    //get elo of winner and loser on online list
+    loged_in_user_t *current = online_user_list;
+    int winner_elo = 0;
+    int loser_elo = 0;
+    while (current != NULL)
     {
-        char *error = (char *)malloc(100);
-        sprintf(error, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
-        Log(TAG, "e", error);
-        free(error);
-        close_database_connection(db);
-        return;
+        if (current->user_id == winner_id)
+        {
+            winner_elo = current->elo;
+        }
+        if (current->user_id == loser_id)
+        {
+            loser_elo = current->elo;
+        }
+        current = current->next;
     }
-    sqlite3_bind_int(stmt, 1, winner_id);
-    if (sqlite3_step(stmt) == SQLITE_ROW)
-    {
-        winner_elo = sqlite3_column_int(stmt, 0);
-    }
-    sqlite3_reset(stmt);
-    sqlite3_bind_int(stmt, 1, loser_id);
-    if (sqlite3_step(stmt) == SQLITE_ROW)
-    {
-        loser_elo = sqlite3_column_int(stmt, 0);
-    }
-    sqlite3_finalize(stmt);
-    close_database_connection(db);
     int k_winner = calculateDynamicK(winner_elo);
     int k_loser = calculateDynamicK(loser_elo);
     double Aa = calculateEloA(winner_elo, loser_elo);
