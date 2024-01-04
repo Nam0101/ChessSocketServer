@@ -94,8 +94,9 @@ user_t *login(const char *username, const char *password)
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
     if (rc != SQLITE_OK)
-    {
-        fprintf(stderr, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+    {   
+        char *error = (char *)malloc(100);
+        sprintf(error, "Cannot prepare statement on func login: %s\n", sqlite3_errmsg(db));
         close_database_connection(db);
         return NULL;
     }
@@ -297,7 +298,7 @@ int username_exists(sqlite3 *db, const char *username)
     if (rc != SQLITE_OK)
     {
         char *error = (char *)malloc(100);
-        sprintf(error, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        sprintf(error, "Cannot prepare statement on func username_exists: %s\n", sqlite3_errmsg(db));
         Log(TAG, "e", error);
         free(error);
         return 0;
@@ -320,7 +321,7 @@ int register_user(sqlite3 *db, const char *username, const char *hashed_password
     if (rc != SQLITE_OK)
     {
         char *error = (char *)malloc(100);
-        sprintf(error, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        sprintf(error, "Cannot prepare statement on func register_user: %s\n", sqlite3_errmsg(db));
         Log(TAG, "e", error);
         free(error);
         return 0;
@@ -344,7 +345,7 @@ int checkUserExistByID(sqlite3 *db, int userId)
     if (rc != SQLITE_OK)
     {
         char *error = (char *)malloc(100);
-        sprintf(error, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        sprintf(error, "Cannot prepare statement on func checkUserExistByID: %s\n", sqlite3_errmsg(db));
         Log(TAG, "e", error);
         free(error);
         return 0;
@@ -364,7 +365,7 @@ int checkAlreadyFriend(sqlite3 *db, int userId, int friendId)
     if (rc != SQLITE_OK)
     {
         char *error = (char *)malloc(100);
-        sprintf(error, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        sprintf(error, "Cannot prepare statement on func checkAlreadyFriend: %s\n", sqlite3_errmsg(db));
         Log(TAG, "e", error);
         free(error);
         return 0;
@@ -385,7 +386,7 @@ int addFriend(sqlite3 *db, int userId, int friendId)
     if (rc != SQLITE_OK)
     {
         char *error = (char *)malloc(100);
-        sprintf(error, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        sprintf(error, "Cannot prepare statement on func addFriend: %s\n", sqlite3_errmsg(db));
         Log(TAG, "e", error);
         free(error);
         return 0;
@@ -421,7 +422,7 @@ int get_user_id_by_username(char *username)
     if (rc != SQLITE_OK)
     {
         char *error = (char *)malloc(100);
-        sprintf(error, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        sprintf(error, "Cannot prepare statement on func get_user_id_by_username: %s\n", sqlite3_errmsg(db));
         Log(TAG, "e", error);
         free(error);
         close_database_connection(db);
@@ -472,7 +473,10 @@ void get_user_info_by_user_name(const char *username, int *elo, int *user_id, in
     int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
     if (rc != SQLITE_OK)
     {
-        fprintf(stderr, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        char* error = (char*)malloc(100);
+        sprintf(error, "Cannot prepare statement on func get_user_info_by_user_name : %s\n", sqlite3_errmsg(db));
+        Log(TAG, "e", error);
+        free(error);
         close_database_connection(db);
         return;
     }
@@ -565,7 +569,7 @@ char *get_user_name_by_user_id(int user_id)
     if (rc != SQLITE_OK)
     {
         char *error = (char *)malloc(100);
-        sprintf(error, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        sprintf(error, "Cannot prepare statement on func get_user_name_by_user_id: %s\n", sqlite3_errmsg(db));
         Log(TAG, "e", error);
         free(error);
         close_database_connection(db);
@@ -682,7 +686,7 @@ void elo_update(int user_id, int elo)
     if (rc != SQLITE_OK)
     {
         char *error = (char *)malloc(100);
-        sprintf(error, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        sprintf(error, "Cannot prepare statement on func elo_update: %s\n", sqlite3_errmsg(db));
         Log(TAG, "e", error);
         free(error);
         close_database_connection(db);

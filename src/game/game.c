@@ -752,6 +752,7 @@ void handle_get_history(int client_socket, const GetGameHistory *getGameHistory)
     }
 
     sqlite3_finalize(stmt);
+    close_database_connection(db);
 }
 void handle_accept_or_decline_draw(const int client_socket, const AcceptOrDeclineDrawData *acceptOrDeclineDrawData)
 {
