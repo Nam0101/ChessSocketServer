@@ -32,7 +32,7 @@
 #define TAG "USER"
 loged_in_user_t *online_user_list = NULL;
 pthread_mutex_t online_list_mutex = PTHREAD_MUTEX_INITIALIZER;
-
+static pthread_mutex_t elo_update_mutex = PTHREAD_MUTEX_INITIALIZER;
 void add_online_user(int user_id, int elo, int client_socket, char *username)
 {
     loged_in_user_t *new_user = (loged_in_user_t *)malloc(sizeof(loged_in_user_t));
@@ -682,13 +682,35 @@ void elo_update(int user_id, int elo)
     sqlite3 *db = get_database_connection();
     char *sql = UPDATE_ELO_BY_USER_ID;
     sqlite3_stmt *stmt;
-    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    int rc;
+    int max_retries = 5;
+    for (int attempt = 0; attempt < max_retries; attempt++)
+    {
+        rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+        if (rc == SQLITE_OK)
+        {
+            break;
+        }
+        else if (rc == SQLITE_BUSY || rc == SQLITE_LOCKED)
+        {
+            char *error = (char *)malloc(100);
+            sprintf(error, "Cannot prepare statement on func elo_update: %s\n", sqlite3_errmsg(db));
+            Log(TAG, "e", error);
+            free(error);
+            sleep(0.2); 
+        }
+        else
+        {
+            char *error = (char *)malloc(100);
+            sprintf(error, "Cannot prepare statement on func elo_update: %s\n", sqlite3_errmsg(db));
+            Log(TAG, "e", error);
+            free(error);
+            close_database_connection(db);
+            return;
+        }
+    }
     if (rc != SQLITE_OK)
     {
-        char *error = (char *)malloc(100);
-        sprintf(error, "Cannot prepare statement on func elo_update: %s\n", sqlite3_errmsg(db));
-        Log(TAG, "e", error);
-        free(error);
         close_database_connection(db);
         return;
     }
@@ -740,5 +762,5 @@ void elo_calculation(int winner_id, int loser_id, float result)
     update_elo_on_caching(winner_id, winner_elo);
     update_elo_on_caching(loser_id, loser_elo);
     elo_update(winner_id, winner_elo);
-    elo_update(loser_id, loser_elo);
+
 }

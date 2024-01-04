@@ -1,13 +1,73 @@
-[2024-1-5 0:35:35] [SERVER] [i] Server is listening on port 8888
-[2024-1-5 0:35:37] [SERVER] [i] Accepted connection from 127.0.0.1:37754
-[2024-1-5 0:35:38] [SERVER] [i] Received login request
-[2024-1-5 0:35:48] [SERVER] [i] Accepted connection from 127.0.0.1:35930
-[2024-1-5 0:35:49] [SERVER] [i] Received login request
-[2024-1-5 0:35:49] [DB] [i] Number of conn to db: 1
-[2024-1-5 0:35:55] [SERVER] [i] Received login request
-[2024-1-5 0:35:55] [DB] [i] Number of conn to db: 1
-[2024-1-5 0:36:9] [SERVER] [i] User 3 disconnected
-[2024-1-5 0:36:9] [SERVER] [i] User 1 disconnected
-[2024-1-5 0:36:9] [SERVER] [i] Received login request
-[2024-1-5 0:36:9] [DB] [i] Number of conn to db: 1
-[2024-1-5 0:36:9] [SERVER] [i] User 2 disconnected
+[2024-1-5 2:6:18] [SERVER] [i] Server is listening on port 8888
+[2024-1-5 2:6:20] [SERVER] [i] Accepted connection from 127.0.0.1:39704
+[2024-1-5 2:6:21] [SERVER] [i] Received login request
+[2024-1-5 2:6:23] [SERVER] [i] Accepted connection from 127.0.0.1:39710
+[2024-1-5 2:6:25] [SERVER] [i] Received login request
+[2024-1-5 2:6:25] [DB] [i] Number of conn to db: 1
+[2024-1-5 2:6:26] [SERVER] [i] User 1 disconnected
+[2024-1-5 2:6:26] [SERVER] [i] Received login request
+[2024-1-5 2:6:26] [DB] [i] Number of conn to db: 1
+[2024-1-5 2:6:27] [SERVER] [i] Accepted connection from 127.0.0.1:33210
+[2024-1-5 2:6:29] [SERVER] [i] Received login request
+[2024-1-5 2:6:29] [DB] [i] Number of conn to db: 1
+[2024-1-5 2:6:29] [SERVER] [i] Accepted connection from 127.0.0.1:33216
+[2024-1-5 2:6:31] [SERVER] [i] Received login request
+[2024-1-5 2:6:31] [DB] [i] Number of conn to db: 1
+[2024-1-5 2:6:32] [SERVER] [i] Accepted connection from 127.0.0.1:33220
+[2024-1-5 2:6:34] [SERVER] [i] Received login request
+[2024-1-5 2:6:34] [DB] [i] Number of conn to db: 1
+[2024-1-5 2:6:35] [SERVER] [i] Received finding match request
+[2024-1-5 2:6:36] [SERVER] [i] Received finding match request
+[2024-1-5 2:6:36] [DB] [i] Number of conn to db: 1
+[2024-1-5 2:6:36] [DB] [i] Number of conn to db: 1
+[2024-1-5 2:6:36] [DB] [i] Number of conn to db: 1
+[2024-1-5 2:6:36] [DB] [i] Number of conn to db: 1
+[2024-1-5 2:6:36] [GAME] [i] Found match for user 2 and user 3
+[2024-1-5 2:6:41] [SERVER] [i] Received draw request
+[2024-1-5 2:6:43] [SERVER] [i] Received accept or decline draw request
+[2024-1-5 2:6:43] [SERVER] [i] Received end game request
+[2024-1-5 2:6:43] [DB] [i] Number of conn to db: 1
+[2024-1-5 2:6:43] [DB] [i] Number of conn to db: 1
+[2024-1-5 2:6:43] [SERVER] [i] Received end game request
+[2024-1-5 2:6:43] [USER] [e] Cannot prepare statement on func elo_update: database is locked
+
+[2024-1-5 2:6:44] [DB] [i] Number of conn to db: 2
+[2024-1-5 2:6:55] [SERVER] [i] Received finding match request
+[2024-1-5 2:6:57] [SERVER] [i] Received finding match request
+[2024-1-5 2:6:57] [DB] [i] Number of conn to db: 2
+[2024-1-5 2:6:57] [DB] [i] Number of conn to db: 2
+[2024-1-5 2:6:57] [DB] [i] Number of conn to db: 2
+[2024-1-5 2:6:57] [DB] [i] Number of conn to db: 2
+[2024-1-5 2:6:57] [GAME] [i] Found match for user 2 and user 3
+[2024-1-5 2:7:1] [SERVER] [i] Received draw request
+[2024-1-5 2:7:3] [SERVER] [i] Received accept or decline draw request
+[2024-1-5 2:7:3] [SERVER] [i] Received end game request
+[2024-1-5 2:7:3] [SERVER] [i] Received end game request
+[2024-1-5 2:7:3] [DB] [i] Number of conn to db: 2
+[2024-1-5 2:7:3] [DB] [i] Number of conn to db: 1
+[2024-1-5 2:7:3] [DB] [i] Number of conn to db: 1
+[2024-1-5 2:7:3] [GAME] [e] Cannot prepare statement: database is locked
+
+[2024-1-5 2:7:3] [DB] [i] Number of conn to db: 3
+[2024-1-5 2:7:44] [SERVER] [i] Received finding match request
+[2024-1-5 2:7:46] [SERVER] [i] Received finding match request
+[2024-1-5 2:7:46] [DB] [i] Number of conn to db: 3
+[2024-1-5 2:7:46] [DB] [i] Number of conn to db: 3
+[2024-1-5 2:7:46] [DB] [i] Number of conn to db: 3
+[2024-1-5 2:7:46] [DB] [i] Number of conn to db: 3
+[2024-1-5 2:7:46] [GAME] [i] Found match for user 2 and user 3
+[2024-1-5 2:7:57] [SERVER] [i] Received end game request
+[2024-1-5 2:7:57] [DB] [i] Number of conn to db: 3
+[2024-1-5 2:7:57] [DB] [i] Number of conn to db: 3
+[2024-1-5 2:8:3] [SERVER] [i] Received end game request
+[2024-1-5 2:9:51] [SERVER] [i] Received finding match request
+[2024-1-5 2:9:52] [SERVER] [i] Received finding match request
+[2024-1-5 2:9:52] [DB] [i] Number of conn to db: 3
+[2024-1-5 2:9:52] [DB] [i] Number of conn to db: 3
+[2024-1-5 2:9:52] [DB] [i] Number of conn to db: 3
+[2024-1-5 2:9:52] [DB] [i] Number of conn to db: 3
+[2024-1-5 2:9:52] [GAME] [i] Found match for user 2 and user 3
+[2024-1-5 2:10:7] [SERVER] [i] Received end game request
+[2024-1-5 2:10:7] [DB] [i] Number of conn to db: 3
+[2024-1-5 2:10:7] [DB] [i] Number of conn to db: 3
+[2024-1-5 2:10:16] [SERVER] [i] Received end game request

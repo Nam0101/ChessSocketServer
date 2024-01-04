@@ -1,6 +1,7 @@
 #include "database.h"
 #include <stdio.h>
 #include <pthread.h>
+
 #include "../log/log.h"
 #define MAX_CONNECTIONS 10
 static pthread_mutex_t db_lock = PTHREAD_MUTEX_INITIALIZER;
