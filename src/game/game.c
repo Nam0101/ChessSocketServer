@@ -522,7 +522,7 @@ void handle_move(const int client_socket, const Move *move)
     move_db(move->room_id, move->from_x, move->from_y, move->to_x, move->to_y, move->piece_type);
     free(response);
 }
-void update_caching_user_list(int user_id, int is_playing, int elo)
+void update_caching_user_list(int user_id, int is_playing)
 {
     loged_in_user_t *current = get_list_online_user();
     while (current != NULL)
@@ -530,8 +530,6 @@ void update_caching_user_list(int user_id, int is_playing, int elo)
         if (current->user_id == user_id)
         {
             current->is_playing = is_playing;
-            current->elo = elo;
-            printf("updated elo %d\n", current->elo);
             printf("update playing %d\n", current->is_playing);
             break;
         }
@@ -589,9 +587,8 @@ void handle_end_game(const int client_socket, const EndGameData *endGameData)
         elo_calculation(user_id, opponent_id, 0.5);
     }
     printf("elo %d\n", get_elo_by_user_id(user_id));
-    printf("elo %d\n", get_elo_by_user_id(opponent_id));
     remove_room(get_list_room(), room_id);
-    update_caching_user_list(user_id, 0, get_elo_by_user_id(user_id));
+    update_caching_user_list(user_id, 0);
     Response *response = (Response *)malloc(sizeof(Response));
     response->type = LOGIN_RESPONSE;
     response->data.loginResponse.is_success = 1;

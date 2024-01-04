@@ -697,6 +697,19 @@ void elo_update(int user_id, int elo)
 /// @param winner_id
 /// @param loser_id
 /// @param result
+void update_elo_on_caching(int user_id,int elo){
+    loged_in_user_t *current = online_user_list;
+    while (current != NULL)
+    {
+        if (current->user_id == user_id)
+        {
+            current->elo = elo;
+            printf("update elo on caching success: %d\n",elo);
+            break;
+        }
+        current = current->next;
+    }
+}
 void elo_calculation(int winner_id, int loser_id, float result)
 {
     // get elo of winner and loser
@@ -722,4 +735,5 @@ void elo_calculation(int winner_id, int loser_id, float result)
     double Ab = calculateEloB(winner_elo, loser_elo);
     updateElo(&winner_elo, &loser_elo, k_winner, Aa, Ab, result);
     elo_update(winner_id, winner_elo);
+    update_elo_on_caching(winner_id,winner_elo);
 }
