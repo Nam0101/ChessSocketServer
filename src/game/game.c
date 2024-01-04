@@ -120,6 +120,7 @@ void handle_create_room(const int client_socket, const CreateRoomData *createRoo
         response->data.createRoomResponse.message_code = 0;
         int room_id = create_room_db(room->white_user_id, room->black_user_id, room->total_time);
         room->room_id = room_id;
+        room->status = 0;
         add_room(get_list_room(), room);
         response->data.createRoomResponse.room_id = room_id;
         send_reponse(client_socket, response);
@@ -136,6 +137,8 @@ void handle_create_room(const int client_socket, const CreateRoomData *createRoo
         char *log_msg = (char *)malloc(sizeof(char) * 100);
         sprintf(log_msg, "Failed to create room");
         Log(TAG, "e", log_msg);
+        free(log_msg);
+        free(room);
     }
     free(response);
 }
@@ -304,7 +307,7 @@ void handle_finding_match(const int client_socket, const FindingMatchData *findi
             room->white_socket = get_client_socket_by_user_id(response->data.startGameData.white_user_id);
             room->black_socket = get_client_socket_by_user_id(response->data.startGameData.black_user_id);
             room->white_user_id = response->data.startGameData.white_user_id;
-
+            room->status = 0;
             add_room(get_list_room(), room);
 
             send_reponse(client_socket, response);
@@ -459,7 +462,7 @@ void update_playing_status(int user_id, int is_playing)
 void handle_start_game(const int client_socket, const StartGame *startGame)
 {
     int room_id = startGame->room_id;
-    char* log_msg = (char*)malloc(sizeof(char) * 100);
+    char *log_msg = (char *)malloc(sizeof(char) * 100);
     Response *response = (Response *)malloc(sizeof(Response));
     response->type = START_GAME;
     room_t *room = get_room_by_id(get_list_room(), room_id);
@@ -475,6 +478,7 @@ void handle_start_game(const int client_socket, const StartGame *startGame)
     update_playing_status(room->black_user_id, 1);
     sprintf(log_msg, "Started game for room %d", room_id);
     Log(TAG, "i", log_msg);
+    free(log_msg);
 }
 void move_db(int room_id, float from_x, float from_y, float to_x, float to_y, int piece_type)
 {
@@ -524,7 +528,7 @@ void handle_move(const int client_socket, const Move *move)
     move_db(move->room_id, move->from_x, move->from_y, move->to_x, move->to_y, move->piece_type);
     free(response);
 }
-void update_caching_user_list(int user_id, int is_playing)
+void update_playing(int user_id, int is_playing)
 {
     loged_in_user_t *current = get_list_online_user();
     while (current != NULL)
@@ -532,7 +536,6 @@ void update_caching_user_list(int user_id, int is_playing)
         if (current->user_id == user_id)
         {
             current->is_playing = is_playing;
-            printf("update playing %d\n", current->is_playing);
             break;
         }
         current = current->next;
@@ -549,21 +552,17 @@ void end_game_db(int room_id, int winner_id)
     sqlite3_bind_int(stmt, 2, winner_id);
     sqlite3_bind_int(stmt, 3, room_id);
     sqlite3_step(stmt);
-    //check for error
-    if(sqlite3_step(stmt) != SQLITE_DONE){
-        char* error = (char*)malloc(sizeof(char) * 100);
+    // check for error
+    if (sqlite3_step(stmt) != SQLITE_DONE)
+    {
+        char *error = (char *)malloc(sizeof(char) * 100);
         sprintf(error, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
         Log(TAG, "e", error);
         free(error);
         close_database_connection(db);
-        
     }
     sqlite3_finalize(stmt);
     close_database_connection(db);
-    printf("Updated end game\n");
-    printf("winner id %d\n", winner_id);
-    printf("room id %d\n", room_id);
-    printf("current time %s\n", current_time);
     free(current_time);
 }
 void handle_end_game(const int client_socket, const EndGameData *endGameData)
@@ -571,58 +570,44 @@ void handle_end_game(const int client_socket, const EndGameData *endGameData)
     int room_id = endGameData->room_id;
     int user_id = endGameData->user_id;
     int status = endGameData->status;
-    printf("room id %d\n", room_id);
-    printf("user id %d\n", user_id);
-    printf("status %d\n", status);
     int opponent_id;
-    room_t *room = get_room_by_id(get_list_room(), room_id);
-    if (room == NULL)
-    {
+    room_t *current_room = get_room_by_id(get_list_room(), room_id);
+    if (current_room == NULL)
         return;
-    }
-    if (room->white_socket == client_socket)
-    {
-        opponent_id = room->black_user_id;
-    }
+    if (current_room->white_socket == client_socket)
+        opponent_id = current_room->black_user_id;
     else
+        opponent_id = current_room->white_user_id;
+    if (current_room->status == 0)
     {
-        opponent_id = room->white_user_id;
+        if (status == 1)
+        {
+            elo_calculation(user_id, opponent_id, 1);
+            end_game_db(room_id, user_id);
+        }
+        else if (status == 0)
+            elo_calculation(user_id, opponent_id, 0);
+        else
+
+            elo_calculation(user_id, opponent_id, 0.5);
     }
-    // update elo
-    if (status == 1)
-    {
-        elo_calculation(user_id, opponent_id, 1);
-    }
-    else if (status == 0)
-    {
-        elo_calculation(user_id, opponent_id, 0);
-        printf("Status 0\n");
-    }
-    else
-    {
-        elo_calculation(user_id, opponent_id, 0.5);
-    }
-    int winner_elo = get_elo_by_user_id(user_id);
-    int winner_id = user_id;
-    int loser_id = opponent_id;
-    int loser_elo = get_elo_by_user_id(opponent_id);
-    printf("winner elo %d\n", winner_elo);
-    printf("loser elo %d\n", loser_elo);
-    update_caching_user_list(user_id, 0);
+
+    update_playing(user_id, 0);
     Response *response = (Response *)malloc(sizeof(Response));
     response->type = LOGIN_RESPONSE;
     response->data.loginResponse.is_success = 1;
     response->data.loginResponse.user_id = user_id;
     response->data.loginResponse.elo = get_elo_by_user_id(user_id);
-    send_reponse(client_socket, response);
-    if (status == 1)
-    {
-        end_game_db(room_id, user_id);
-        elo_update(winner_id, winner_elo);
-        elo_update(loser_id, loser_elo);
-    }
+    send(client_socket, response, sizeof(Response), 0);
+
+    if (current_room->status == 1)
+        remove_room(get_list_room(), room_id);
+    else
+        current_room->status++;
+
     free(response);
 }
+
 void handle_surrender(const int client_socket, const SurrenderData *surrenderData)
 {
     int room_id = surrenderData->room_id;
@@ -642,21 +627,10 @@ void handle_surrender(const int client_socket, const SurrenderData *surrenderDat
         opponent_id = room->white_user_id;
     }
     int opponent_socket = get_client_socket_by_user_id(opponent_id);
-    // Response *response = (Response *)malloc(sizeof(Response));
-    // response->type = SURRENDER;
-    // response->data.surrenderData.user_id = user_id;
-    // response->data.surrenderData.room_id = room_id;
-    // send_reponse(opponent_socket, response);
-    // // elo calculation
-    // elo_calculation(opponent_id, user_id, 1);
-    // elo_calculation(user_id, opponent_id, 0);
-    // remove_room(get_list_room(), room_id);
-    // update_caching_user_list(user_id, 0, get_elo_by_user_id(user_id));
-    // Response *response = (Response *)malloc(sizeof(Response));
-    // response->type = LOGIN_RESPONSE;
-    // response->data.loginResponse.is_success = 1;
-    // response->data.loginResponse.user_id = user_id;
-    // response->data.loginResponse.elo = get_elo_by_user_id(user_id);
-    // send_reponse(client_socket, response);
-    // free(response);
+    Response *response = (Response *)malloc(sizeof(Response));
+    response->type = SURRENDER;
+    response->data.surrenderData.user_id = user_id;
+    response->data.surrenderData.room_id = room_id;
+    send_reponse(opponent_socket, response);
+    free(response);
 }

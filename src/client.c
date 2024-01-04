@@ -595,7 +595,8 @@ void send_end_game(int client_socket)
         printf("Connection closed\n");
         exit(EXIT_FAILURE);
     }
-    else{
+    else
+    {
         printf("Sent: %d bytes\n", bytes_sent);
     }
     Response response;
@@ -605,7 +606,8 @@ void send_end_game(int client_socket)
         printf("Connection closed\n");
         exit(EXIT_FAILURE);
     }
-    else{
+    else
+    {
         printf("Received: %d bytes\n", bytes_received);
     }
     switch (response.type)
@@ -621,6 +623,120 @@ void send_end_game(int client_socket)
         }
 
         break;
+    }
+}
+void send_surrender(int client_socket)
+{
+
+    Message message;
+    message.type = SURRENDER;
+    message.data.surrenderData.user_id = user_id;
+    message.data.surrenderData.room_id = room_id;
+    int bytes_sent = send(client_socket, &message, sizeof(message), 0);
+    if (bytes_sent <= 0)
+    {
+        printf("Connection closed\n");
+        exit(EXIT_FAILURE);
+    }
+    else
+    {
+        printf("Sent: %d bytes\n", bytes_sent);
+    }
+    // send end game with status = 0
+    Message message1;
+    message1.type = END_GAME;
+    message1.data.endGameData.user_id = user_id;
+    message1.data.endGameData.room_id = room_id;
+    message1.data.endGameData.status = 0;
+    int bytes_sent1 = send(client_socket, &message1, sizeof(message1), 0);
+    if (bytes_sent1 <= 0)
+    {
+        printf("Connection closed\n");
+        exit(EXIT_FAILURE);
+    }
+    else
+    {
+        printf("Sent: %d bytes\n", bytes_sent1);
+    }
+    Response response;
+    int bytes_received = recv(client_socket, &response, sizeof(response), 0);
+    if (bytes_received <= 0)
+    {
+        printf("Connection closed\n");
+        exit(EXIT_FAILURE);
+    }
+    else
+    {
+        printf("Received: %d bytes\n", bytes_received);
+    }
+    switch (response.type)
+    {
+    case LOGIN_RESPONSE:
+        if (response.data.loginResponse.is_success == 1)
+        {
+            printf("Login success\n");
+            printf("User id: %d\n", response.data.loginResponse.user_id);
+            printf("Elo: %d\n", response.data.loginResponse.elo);
+            user_id = response.data.loginResponse.user_id;
+            elo = response.data.loginResponse.elo;
+        }
+
+        break;
+    }
+}
+void waiting_for_surrender(int client_socket)
+{
+    Response response;
+    int bytes_received = recv(client_socket, &response, sizeof(response), 0);
+    if (bytes_received <= 0)
+    {
+        printf("Connection closed\n");
+        exit(EXIT_FAILURE);
+    }
+    if (response.type == SURRENDER)
+    {
+        printf("User %d surrender\n", response.data.surrenderData.user_id);
+        printf("Room id: %d\n", response.data.surrenderData.room_id);
+        // send end game with status = 1
+        Message message1;
+        message1.type = END_GAME;
+        message1.data.endGameData.user_id = user_id;
+        message1.data.endGameData.room_id = room_id;
+        message1.data.endGameData.status = 1;
+        int bytes_sent1 = send(client_socket, &message1, sizeof(message1), 0);
+        if (bytes_sent1 <= 0)
+        {
+            printf("Connection closed\n");
+            exit(EXIT_FAILURE);
+        }
+        else
+        {
+            printf("Sent: %d bytes\n", bytes_sent1);
+        }
+        Response response1;
+        int bytes_received1 = recv(client_socket, &response1, sizeof(response1), 0);
+        if (bytes_received1 <= 0)
+        {
+            printf("Connection closed\n");
+            exit(EXIT_FAILURE);
+        }
+        else
+        {
+            printf("Received: %d bytes\n", bytes_received1);
+        }
+        switch (response1.type)
+        {
+        case LOGIN_RESPONSE:
+            if (response1.data.loginResponse.is_success == 1)
+            {
+                printf("Login success\n");
+                printf("User id: %d\n", response1.data.loginResponse.user_id);
+                printf("Elo: %d\n", response1.data.loginResponse.elo);
+                user_id = response1.data.loginResponse.user_id;
+                elo = response1.data.loginResponse.elo;
+            }
+            break;
+        }
     }
 }
 int main()
@@ -652,6 +768,8 @@ int main()
         printf("10. Logout\n");
         printf("11. Waiting for invite\n");
         printf("12. End game\n");
+        printf("13. Surrender\n");
+        printf("14. Waiting for Surrender\n");
         printf("Enter your choice: ");
         scanf("%d", &choice);
         switch (choice)
@@ -691,6 +809,12 @@ int main()
             break;
         case 12:
             send_end_game(client_socket);
+            break;
+        case 13:
+            send_surrender(client_socket);
+            break;
+        case 14:
+            waiting_for_surrender(client_socket);
             break;
         default:
             printf("Invalid choice\n");

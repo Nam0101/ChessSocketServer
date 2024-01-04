@@ -10,6 +10,7 @@ typedef struct room_t
     int room_id;
     int white_socket;
     int black_socket;
+    int status; // 1: playing, 2: 1 user sent end game, 3: 2 user sent end game
     struct room_t *next;
 } room_t;
 // list of room

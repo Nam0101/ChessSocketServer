@@ -609,7 +609,8 @@ void handle_get_online_friends(const int client_socket, const GetOnlineFriendsDa
                 {
                     friendDataResponse[i].is_playing = 1;
                 }
-                else{
+                else
+                {
                     friendDataResponse[i].is_playing = 0;
                 }
                 break;
@@ -667,10 +668,10 @@ int calculateDynamicK(int elo)
     }
 }
 // Hàm cập nhật điểm Elo sau mỗi trận đấu
-void updateElo(int *Ra, int *Rb, int K, double Aa, double Ab, float result)
+void updateElo(int *Ra, int *Rb, int Ka, int Kb, double Aa, double Ab, float result)
 {
-    *Ra = *Ra + K * (result - Aa);
-    *Rb = *Rb + K * ((1.0 - result) - Ab);
+    *Ra = *Ra + Ka * (result - Aa);
+    *Rb = *Rb + Kb * ((1.0 - result) - Ab);
 }
 void elo_update(int user_id, int elo)
 {
@@ -697,14 +698,14 @@ void elo_update(int user_id, int elo)
 /// @param winner_id
 /// @param loser_id
 /// @param result
-void update_elo_on_caching(int user_id,int elo){
+void update_elo_on_caching(int user_id, int elo)
+{
     loged_in_user_t *current = online_user_list;
     while (current != NULL)
     {
         if (current->user_id == user_id)
         {
             current->elo = elo;
-            printf("update elo on caching success: %d\n",elo);
             break;
         }
         current = current->next;
@@ -712,8 +713,6 @@ void update_elo_on_caching(int user_id,int elo){
 }
 void elo_calculation(int winner_id, int loser_id, float result)
 {
-    // get elo of winner and loser
-    //get elo of winner and loser on online list
     loged_in_user_t *current = online_user_list;
     int winner_elo = 0;
     int loser_elo = 0;
@@ -733,26 +732,9 @@ void elo_calculation(int winner_id, int loser_id, float result)
     int k_loser = calculateDynamicK(loser_elo);
     double Aa = calculateEloA(winner_elo, loser_elo);
     double Ab = calculateEloB(winner_elo, loser_elo);
-    updateElo(&winner_elo, &loser_elo, k_winner, Aa, Ab, result);
-   //   check elo of winner and loser on online list
-    //check result = 1 then update elo of winner
-    if (result == 1)
-    {
-        update_elo_on_caching(winner_id,winner_elo);
-        elo_update(winner_id, winner_elo);
-    }
-    //check result = 0 then update elo of loser
-    else if (result == 0)
-    {
-        update_elo_on_caching(loser_id,loser_elo);
-        elo_update(loser_id, loser_elo);
-    }
-    //check result = 0.5 then update elo of winner and loser
-    else
-    {
-        update_elo_on_caching(winner_id,winner_elo);
-        update_elo_on_caching(loser_id,loser_elo);
-    }
-    // update elo of winner and loser on database
-    
+    updateElo(&winner_elo, &loser_elo, k_winner, k_loser, Aa, Ab, result);
+    update_elo_on_caching(winner_id, winner_elo);
+    update_elo_on_caching(loser_id, loser_elo);
+    elo_update(winner_id, winner_elo);
+    elo_update(loser_id, loser_elo);
 }
