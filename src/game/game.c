@@ -414,6 +414,8 @@ void handle_accept_or_decline_invitation(const int client_socket, const AcceptOr
     strcpy(black_username, get_user_name_by_user_id(response->data.startGameData.black_user_id));
     strcpy(response->data.startGameData.white_username, white_username);
     strcpy(response->data.startGameData.black_username, black_username);
+    response->data.startGameData.white_elo = get_elo_by_user_id(response->data.startGameData.white_user_id);
+    response->data.startGameData.black_elo = get_elo_by_user_id(response->data.startGameData.black_user_id);
     response->data.startGameData.status = 0;
     send_reponse(invited_user_socket, response);
     send_reponse(client_socket, response);
