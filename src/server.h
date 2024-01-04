@@ -37,6 +37,8 @@ typedef enum
     SURRENDER,
     PAUSE,
     RESUME,
+    DRAW,
+    ACCEPT_OR_DECLINE_DRAW,
     GET_HISTORY,
     NUMBER_OF_HISTORY,
     HISTORY_RESPONSE,
@@ -63,6 +65,8 @@ typedef struct
         PauseData pauseData;
         ResumeData resumeData;
         GetGameHistory getGameHistory;
+        DrawData drawData;
+        AcceptOrDeclineDrawData acceptOrDeclineDrawData;
     } data;
 } Message;
 typedef struct
@@ -86,6 +90,8 @@ typedef struct
         ResumeData resumeData;
         NumberOfGameHistory numberOfGameHistory;
         GameHistoryResponse gameHistoryResponse;
+        DrawData drawData;
+        AcceptOrDeclineDrawData acceptOrDeclineDrawData;
     } data;
 } Response;
 

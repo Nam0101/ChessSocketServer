@@ -30,4 +30,6 @@ void handle_end_game(const int client_socket, const EndGameData *endGameData);
 void handle_surrender(const int client_socket, const SurrenderData *surrenderData);
 void handle_pause(const int client_socket, const PauseData *pauseData);
 void handle_resume(const int client_socket, const ResumeData *resumeData);
+void handle_draw(const int client_socket, const DrawData *drawData);
+void handle_accept_or_decline_draw(const int client_socket, const AcceptOrDeclineDrawData *acceptOrDeclineDrawData);
 #endif

@@ -134,6 +134,14 @@ void *thread_function_logedin()
             Log(TAG, "i", "Received get history request");
             handle_get_history(task->client_socket, &task->message.data.getGameHistory);
             break;
+        case DRAW:
+            Log(TAG, "i", "Received draw request");
+            handle_draw(task->client_socket, &task->message.data.drawData);
+            break;
+        case ACCEPT_OR_DECLINE_DRAW:
+            Log(TAG, "i", "Received accept or decline draw request");
+            handle_accept_or_decline_draw(task->client_socket, &task->message.data.acceptOrDeclineDrawData);
+            break;
         default:
             break;
         }
@@ -192,9 +200,9 @@ void *listen_online_user_list()
                 ssize_t bytes_received = recv(online_user->client_socket, message, MAX_BUFFER_SIZE, 0);
                 if (bytes_received <= 0)
                 {
-                    remove_online_user(online_user->user_id);
                     char *log_msg = (char *)malloc(sizeof(char) * 100);
                     sprintf(log_msg, "User %d disconnected", online_user->user_id);
+                    remove_online_user(online_user->user_id);
                     Log(TAG, "i", log_msg);
                     free(log_msg);
                 }

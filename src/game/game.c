@@ -748,3 +748,56 @@ void handle_get_history(int client_socket, const GetGameHistory *getGameHistory)
 
     sqlite3_finalize(stmt);
 }
+void handle_accept_or_decline_draw(const int client_socket, const AcceptOrDeclineDrawData *acceptOrDeclineDrawData)
+{
+    int room_id = acceptOrDeclineDrawData->room_id;
+    int user_id = acceptOrDeclineDrawData->user_id;
+    int opponent_id;
+    room_t *room = get_room_by_id(get_list_room(), room_id);
+    if (room == NULL)
+    {
+        return;
+    }
+    if (room->white_socket == client_socket)
+    {
+        opponent_id = room->black_user_id;
+    }
+    else
+    {
+        opponent_id = room->white_user_id;
+    }
+    int opponent_socket = get_client_socket_by_user_id(opponent_id);
+    Response *response = (Response *)malloc(sizeof(Response));
+    response->type = ACCEPT_OR_DECLINE_DRAW;
+    response->data.acceptOrDeclineDrawData.user_id = user_id;
+    response->data.acceptOrDeclineDrawData.room_id = room_id;
+    response->data.acceptOrDeclineDrawData.is_accept = acceptOrDeclineDrawData->is_accept;
+    send_reponse(opponent_socket, response);
+    free(response);
+}
+void handle_draw(const int client_socket, const DrawData *drawData)
+{
+    int room_id = drawData->room_id;
+    int user_id = drawData->user_id;
+    int opponent_id;
+    room_t *room = get_room_by_id(get_list_room(), room_id);
+    if (room == NULL)
+    {
+        return;
+    }
+    if (room->white_socket == client_socket)
+    {
+        opponent_id = room->black_user_id;
+    }
+    else
+    {
+        opponent_id = room->white_user_id;
+    }
+    int opponent_socket = get_client_socket_by_user_id(opponent_id);
+    Response *response = (Response *)malloc(sizeof(Response));
+    response->type = DRAW;
+    response->data.drawData.user_id = user_id;
+    response->data.drawData.room_id = room_id;
+    send_reponse(opponent_socket, response);
+    free(response);
+}

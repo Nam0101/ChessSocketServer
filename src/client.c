@@ -859,6 +859,168 @@ void get_history(int client_socket)
         free(history_i);
     }
 }
+void send_draw(int client_socket)
+{
+    Message message;
+    message.type = DRAW;
+    message.data.drawData.user_id = user_id;
+    message.data.drawData.room_id = room_id;
+    int bytes_sent = send(client_socket, &message, sizeof(message), 0);
+    if (bytes_sent <= 0)
+    {
+        printf("Connection closed\n");
+        exit(EXIT_FAILURE);
+    }
+    else
+    {
+        printf("Sent: %d bytes\n", bytes_sent);
+    }
+    // receive response
+    Response response;
+    int bytes_received = recv(client_socket, &response, sizeof(response), 0);
+    if (bytes_received <= 0)
+    {
+        printf("Connection closed\n");
+        exit(EXIT_FAILURE);
+    }
+    else
+    {
+        printf("Received: %d bytes\n", bytes_received);
+    }
+    switch (response.type)
+    {
+    case ACCEPT_OR_DECLINE_DRAW:
+        if (response.data.acceptOrDeclineDrawData.is_accept == 1)
+        {
+            printf("Accept draw\n");
+            // send end game with status = 2
+            Message message1;
+            message1.type = END_GAME;
+            message1.data.endGameData.user_id = user_id;
+            message1.data.endGameData.room_id = room_id;
+            message1.data.endGameData.status = 2;
+            int bytes_sent1 = send(client_socket, &message1, sizeof(message1), 0);
+            if (bytes_sent1 <= 0)
+            {
+                printf("Connection closed\n");
+                exit(EXIT_FAILURE);
+            }
+            else
+            {
+                printf("Sent: %d bytes\n", bytes_sent1);
+            }
+            // receive response
+            Response response2;
+            int bytes_received2 = recv(client_socket, &response2, sizeof(response2), 0);
+            if (bytes_received2 <= 0)
+            {
+                printf("Connection closed\n");
+                exit(EXIT_FAILURE);
+            }
+            else
+            {
+                printf("Received: %d bytes\n", bytes_received2);
+            }
+            switch (response2.type)
+            {
+            case LOGIN_RESPONSE:
+                if (response2.data.loginResponse.is_success == 1)
+                {
+                    printf("Login success\n");
+                    printf("User id: %d\n", response2.data.loginResponse.user_id);
+                    printf("Elo: %d\n", response2.data.loginResponse.elo);
+                    user_id = response2.data.loginResponse.user_id;
+                    elo = response2.data.loginResponse.elo;
+                }
+                break;
+            }
+        }
+        else
+        {
+            printf("Decline draw\n");
+        }
+
+        break;
+    }
+}
+void waiting_for_draw(int client_socket)
+{
+    Response response;
+    int bytes_received = recv(client_socket, &response, sizeof(response), 0);
+    if (bytes_received <= 0)
+    {
+        printf("Connection closed\n");
+        exit(EXIT_FAILURE);
+    }
+    if (response.type == DRAW)
+    {
+        printf("User %d draw\n", response.data.drawData.user_id);
+        printf("Room id: %d\n", response.data.drawData.room_id);
+        // send end game with status = 2
+        Message message1;
+        message1.type = ACCEPT_OR_DECLINE_DRAW;
+        message1.data.acceptOrDeclineDrawData.user_id = user_id;
+        message1.data.acceptOrDeclineDrawData.room_id = room_id;
+        int choice;
+        printf("Enter 1 to accept, 0 to decline: ");
+        scanf("%d", &choice);
+        message1.data.acceptOrDeclineDrawData.is_accept = choice;
+        int bytes_sent1 = send(client_socket, &message1, sizeof(message1), 0);
+        if (bytes_sent1 <= 0)
+        {
+            printf("Connection closed\n");
+            exit(EXIT_FAILURE);
+        }
+        else
+        {
+            printf("Sent: %d bytes\n", bytes_sent1);
+        }
+        if (choice == 1)
+        {
+            // send end game
+            Message message2;
+            message2.type = END_GAME;
+            message2.data.endGameData.user_id = user_id;
+            message2.data.endGameData.room_id = room_id;
+            message2.data.endGameData.status = 2;
+            int bytes_sent2 = send(client_socket, &message2, sizeof(message2), 0);
+            if (bytes_sent2 <= 0)
+            {
+                printf("Connection closed\n");
+                exit(EXIT_FAILURE);
+            }
+            else
+            {
+                printf("Sent: %d bytes\n", bytes_sent2);
+            }
+            // receive response
+            Response response2;
+            int bytes_received2 = recv(client_socket, &response2, sizeof(response2), 0);
+            if (bytes_received2 <= 0)
+            {
+                printf("Connection closed\n");
+                exit(EXIT_FAILURE);
+            }
+            else
+            {
+                printf("Received: %d bytes\n", bytes_received2);
+            }
+            switch (response2.type)
+            {
+            case LOGIN_RESPONSE:
+                if (response2.data.loginResponse.is_success == 1)
+                {
+                    printf("Login success\n");
+                    printf("User id: %d\n", response2.data.loginResponse.user_id);
+                    printf("Elo: %d\n", response2.data.loginResponse.elo);
+                    user_id = response2.data.loginResponse.user_id;
+                    elo = response2.data.loginResponse.elo;
+                }
+                break;
+            }
+        }
+    }
+}
 int main()
 {
     int client_socket;
@@ -894,6 +1056,8 @@ int main()
         printf("16. Resume\n");
         printf("17. Waiting for pause\n");
         printf("18. Get history\n");
+        printf("19. Draw\n");
+        printf("20. Waiting for draw\n");
         printf("Enter your choice: ");
         scanf("%d", &choice);
         switch (choice)
@@ -951,6 +1115,12 @@ int main()
             break;
         case 18:
             get_history(client_socket);
+            break;
+        case 19:
+            send_draw(client_socket);
+            break;
+        case 20:
+            waiting_for_draw(client_socket);
             break;
         default:
             printf("Invalid choice\n");
