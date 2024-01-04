@@ -531,6 +531,8 @@ void update_caching_user_list(int user_id, int is_playing, int elo)
         {
             current->is_playing = is_playing;
             current->elo = elo;
+            printf("updated elo %d\n", current->elo);
+            printf("update playing %d\n", current->is_playing);
             break;
         }
         current = current->next;
@@ -549,6 +551,9 @@ void end_game_db(int room_id, int winner_id)
     sqlite3_step(stmt);
     sqlite3_finalize(stmt);
     close_database_connection(db);
+    printf("Updated end game\n");
+    printf("winner id %d\n", winner_id);
+    printf("room id %d\n", room_id);
     free(current_time);
 }
 void handle_end_game(const int client_socket, const EndGameData *endGameData)
@@ -583,6 +588,8 @@ void handle_end_game(const int client_socket, const EndGameData *endGameData)
     {
         elo_calculation(user_id, opponent_id, 0.5);
     }
+    printf("elo %d\n", get_elo_by_user_id(user_id));
+    printf("elo %d\n", get_elo_by_user_id(opponent_id));
     remove_room(get_list_room(), room_id);
     update_caching_user_list(user_id, 0, get_elo_by_user_id(user_id));
     Response *response = (Response *)malloc(sizeof(Response));
