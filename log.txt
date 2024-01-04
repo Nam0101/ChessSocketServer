@@ -1,0 +1,13 @@
+[2024-1-5 0:35:35] [SERVER] [i] Server is listening on port 8888
+[2024-1-5 0:35:37] [SERVER] [i] Accepted connection from 127.0.0.1:37754
+[2024-1-5 0:35:38] [SERVER] [i] Received login request
+[2024-1-5 0:35:48] [SERVER] [i] Accepted connection from 127.0.0.1:35930
+[2024-1-5 0:35:49] [SERVER] [i] Received login request
+[2024-1-5 0:35:49] [DB] [i] Number of conn to db: 1
+[2024-1-5 0:35:55] [SERVER] [i] Received login request
+[2024-1-5 0:35:55] [DB] [i] Number of conn to db: 1
+[2024-1-5 0:36:9] [SERVER] [i] User 3 disconnected
+[2024-1-5 0:36:9] [SERVER] [i] User 1 disconnected
+[2024-1-5 0:36:9] [SERVER] [i] Received login request
+[2024-1-5 0:36:9] [DB] [i] Number of conn to db: 1
+[2024-1-5 0:36:9] [SERVER] [i] User 2 disconnected
