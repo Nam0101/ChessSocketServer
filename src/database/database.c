@@ -29,7 +29,6 @@ sqlite3 *get_database_connection()
         pthread_mutex_unlock(&db_lock);
         return NULL;
     }
-
     pthread_mutex_unlock(&db_lock);
     return db;
 }
