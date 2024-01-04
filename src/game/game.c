@@ -21,7 +21,7 @@
 #define CREATE_ROOM "INSERT INTO room (white_user_id, black_user_id, total_time) VALUES (?, ?, ?);"
 #define UPDATE_ROOM_START_GAME "UPDATE room SET white_user_id = ?, black_user_id = ?, total_time = ?, start_time = ? WHERE id = ?;"
 #define LOG_MOVE_QUERY "INSERT INTO move (room_id, piece_id, from_x, from_y, to_x, to_y) VALUES(?, ?, ?, ?, ?, ?);"
-#define UPDATE_ROOM_END_GAME "UPDATE room SET end_time = ? , winner_user = ? WHERE id = ?;"
+#define UPDATE_ROOM_END_GAME "UPDATE room SET end_time = ? , winer_user = ? WHERE id = ?;"
 #define TAG "GAME"
 // mutex
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -547,11 +547,21 @@ void end_game_db(int room_id, int winner_id)
     sqlite3_bind_int(stmt, 2, winner_id);
     sqlite3_bind_int(stmt, 3, room_id);
     sqlite3_step(stmt);
+    //check for error
+    if(sqlite3_step(stmt) != SQLITE_DONE){
+        char* error = (char*)malloc(sizeof(char) * 100);
+        sprintf(error, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        Log(TAG, "e", error);
+        free(error);
+        close_database_connection(db);
+        
+    }
     sqlite3_finalize(stmt);
     close_database_connection(db);
     printf("Updated end game\n");
     printf("winner id %d\n", winner_id);
     printf("room id %d\n", room_id);
+    printf("current time %s\n", current_time);
     free(current_time);
 }
 void handle_end_game(const int client_socket, const EndGameData *endGameData)
@@ -559,6 +569,9 @@ void handle_end_game(const int client_socket, const EndGameData *endGameData)
     int room_id = endGameData->room_id;
     int user_id = endGameData->user_id;
     int status = endGameData->status;
+    printf("room id %d\n", room_id);
+    printf("user id %d\n", user_id);
+    printf("status %d\n", status);
     int opponent_id;
     room_t *room = get_room_by_id(get_list_room(), room_id);
     if (room == NULL)
@@ -581,13 +594,18 @@ void handle_end_game(const int client_socket, const EndGameData *endGameData)
     else if (status == 0)
     {
         elo_calculation(user_id, opponent_id, 0);
+        printf("Status 0\n");
     }
     else
     {
         elo_calculation(user_id, opponent_id, 0.5);
     }
-    printf("elo %d\n", get_elo_by_user_id(user_id));
-    remove_room(get_list_room(), room_id);
+    int winner_elo = get_elo_by_user_id(user_id);
+    int winner_id = user_id;
+    int loser_id = opponent_id;
+    int loser_elo = get_elo_by_user_id(opponent_id);
+    printf("winner elo %d\n", winner_elo);
+    printf("loser elo %d\n", loser_elo);
     update_caching_user_list(user_id, 0);
     Response *response = (Response *)malloc(sizeof(Response));
     response->type = LOGIN_RESPONSE;
@@ -598,6 +616,8 @@ void handle_end_game(const int client_socket, const EndGameData *endGameData)
     if (status == 1)
     {
         end_game_db(room_id, user_id);
+        elo_update(winner_id, winner_elo);
+        elo_update(loser_id, loser_elo);
     }
     free(response);
 }

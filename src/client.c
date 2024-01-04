@@ -595,12 +595,18 @@ void send_end_game(int client_socket)
         printf("Connection closed\n");
         exit(EXIT_FAILURE);
     }
+    else{
+        printf("Sent: %d bytes\n", bytes_sent);
+    }
     Response response;
     int bytes_received = recv(client_socket, &response, sizeof(response), 0);
     if (bytes_received <= 0)
     {
         printf("Connection closed\n");
         exit(EXIT_FAILURE);
+    }
+    else{
+        printf("Received: %d bytes\n", bytes_received);
     }
     switch (response.type)
     {

@@ -734,6 +734,25 @@ void elo_calculation(int winner_id, int loser_id, float result)
     double Aa = calculateEloA(winner_elo, loser_elo);
     double Ab = calculateEloB(winner_elo, loser_elo);
     updateElo(&winner_elo, &loser_elo, k_winner, Aa, Ab, result);
-    elo_update(winner_id, winner_elo);
-    update_elo_on_caching(winner_id,winner_elo);
+   //   check elo of winner and loser on online list
+    //check result = 1 then update elo of winner
+    if (result == 1)
+    {
+        update_elo_on_caching(winner_id,winner_elo);
+        elo_update(winner_id, winner_elo);
+    }
+    //check result = 0 then update elo of loser
+    else if (result == 0)
+    {
+        update_elo_on_caching(loser_id,loser_elo);
+        elo_update(loser_id, loser_elo);
+    }
+    //check result = 0.5 then update elo of winner and loser
+    else
+    {
+        update_elo_on_caching(winner_id,winner_elo);
+        update_elo_on_caching(loser_id,loser_elo);
+    }
+    // update elo of winner and loser on database
+    
 }

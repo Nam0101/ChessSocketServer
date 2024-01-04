@@ -46,4 +46,5 @@ void handle_get_online_friends(const int client_socket, const GetOnlineFriendsDa
 char *get_user_name_by_user_id(int user_id);
 void get_user_info_by_user_name(const char *username, int *elo, int *user_id, int *is_online, int *is_playing);
 void elo_calculation(int winner_id, int loser_id, float result);
+void elo_update(int winner_id, int elo);
 #endif

@@ -1,10 +1,16 @@
-[2024-1-4 11:3:46] [SERVER] [i] Server is listening on port 8888
-[2024-1-4 11:3:54] [SERVER] [i] Accepted connection from 127.0.0.1:43308
-[2024-1-4 11:3:55] [SERVER] [i] Received login request
-[2024-1-4 11:3:59] [SERVER] [i] Received get friends request
-[2024-1-4 11:4:11] [SERVER] [i] Accepted connection from 127.0.0.1:35724
-[2024-1-4 11:4:13] [SERVER] [i] Received login request
-[2024-1-4 11:4:14] [SERVER] [i] Received get friends request
-[2024-1-4 11:6:29] [SERVER] [i] User 0 disconnected
-[2024-1-4 11:6:29] [SERVER] [i] Received login request
-[2024-1-4 11:6:29] [SERVER] [i] User 0 disconnected
+[2024-1-4 11:56:46] [SERVER] [i] Server is listening on port 8888
+[2024-1-4 11:56:51] [SERVER] [i] Accepted connection from 127.0.0.1:49572
+[2024-1-4 11:56:55] [SERVER] [i] Accepted connection from 127.0.0.1:38338
+[2024-1-4 11:56:56] [SERVER] [i] Received login request
+[2024-1-4 11:56:59] [SERVER] [i] Received login request
+[2024-1-4 11:57:2] [SERVER] [i] Received finding match request
+[2024-1-4 11:57:4] [SERVER] [i] Received finding match request
+[2024-1-4 11:57:4] [GAME] [i] Found match for user 1 and user 2
+[2024-1-4 11:57:12] [SERVER] [i] Received end game request
+[2024-1-4 11:57:36] [SERVER] [i] Received end game request
+[2024-1-4 11:58:24] [SERVER] [i] Received exit request
+[2024-1-4 11:58:24] [SERVER] [i] User 0 disconnected
+[2024-1-4 11:58:24] [SERVER] [i] Received login request
+[2024-1-4 11:58:27] [SERVER] [i] Accepted connection from 127.0.0.1:42466
+[2024-1-4 11:58:28] [SERVER] [i] Received login request
+[2024-1-4 11:58:53] [SERVER] [i] User 0 disconnected
