@@ -5,6 +5,7 @@
 #include "message/logout.h"
 #include "message/friend.h"
 #include "message/room.h"
+#include "message/history.h"
 #define PORT 8888
 #define BACKLOG 100
 #define MAX_BUFFER_SIZE 4096
@@ -34,7 +35,11 @@ typedef enum
     START_GAME,
     END_GAME,
     SURRENDER,
-    PAUSE
+    PAUSE,
+    RESUME,
+    GET_HISTORY,
+    NUMBER_OF_HISTORY,
+    HISTORY_RESPONSE,
 } MessageType;
 
 typedef struct
@@ -56,6 +61,8 @@ typedef struct
         EndGameData endGameData;
         SurrenderData surrenderData;
         PauseData pauseData;
+        ResumeData resumeData;
+        GetGameHistory getGameHistory;
     } data;
 } Message;
 typedef struct
@@ -76,6 +83,9 @@ typedef struct
         Move move;
         SurrenderData surrenderData;
         PauseData pauseData;
+        ResumeData resumeData;
+        NumberOfGameHistory numberOfGameHistory;
+        GameHistoryResponse gameHistoryResponse;
     } data;
 } Response;
 

@@ -122,6 +122,18 @@ void *thread_function_logedin()
             Log(TAG, "i", "Received surrender request");
             handle_surrender(task->client_socket, &task->message.data.surrenderData);
             break;
+        case PAUSE:
+            Log(TAG, "i", "Received pause request");
+            handle_pause(task->client_socket, &task->message.data.pauseData);
+            break;
+        case RESUME:
+            Log(TAG, "i", "Received resume request");
+            handle_resume(task->client_socket, &task->message.data.resumeData);
+            break;
+        case GET_HISTORY:
+            Log(TAG, "i", "Received get history request");
+            handle_get_history(task->client_socket, &task->message.data.getGameHistory);
+            break;
         default:
             break;
         }

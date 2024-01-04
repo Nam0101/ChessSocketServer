@@ -67,4 +67,10 @@ typedef struct
     int user_id;
     int room_id;
 } PauseData;
+typedef struct
+{
+    int user_id;
+    int room_id;
+} ResumeData;
+
 #endif

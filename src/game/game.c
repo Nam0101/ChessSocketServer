@@ -22,6 +22,16 @@
 #define UPDATE_ROOM_START_GAME "UPDATE room SET white_user_id = ?, black_user_id = ?, total_time = ?, start_time = ? WHERE id = ?;"
 #define LOG_MOVE_QUERY "INSERT INTO move (room_id, piece_id, from_x, from_y, to_x, to_y) VALUES(?, ?, ?, ?, ?, ?);"
 #define UPDATE_ROOM_END_GAME "UPDATE room SET end_time = ? , winer_user = ? WHERE id = ?;"
+#define GET_HISTORY_QUERY "SELECT \
+                            room.id,\
+                            user.username AS opponent_name,\
+                            user.id AS opponent_id,\
+                            start_time,\
+                            end_time,\
+                            CASE\
+                                WHEN winer_user = ? THEN 1 WHEN winer_user = 0 THEN 2 ELSE 0 END AS game_result\
+                            FROM room JOIN user ON((room.black_user_id = user.id OR room.white_user_id = user.id) AND user.id != ?)\
+                                                WHERE(black_user_id = ? OR white_user_id = ?);"
 #define TAG "GAME"
 // mutex
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -633,4 +643,108 @@ void handle_surrender(const int client_socket, const SurrenderData *surrenderDat
     response->data.surrenderData.room_id = room_id;
     send_reponse(opponent_socket, response);
     free(response);
+}
+void handle_pause(const int client_socket, const PauseData *pauseData)
+{
+    int room_id = pauseData->room_id;
+    int user_id = pauseData->user_id;
+    int opponent_id;
+    room_t *room = get_room_by_id(get_list_room(), room_id);
+    if (room == NULL)
+    {
+        return;
+    }
+    if (room->white_socket == client_socket)
+    {
+        opponent_id = room->black_user_id;
+    }
+    else
+    {
+        opponent_id = room->white_user_id;
+    }
+    int opponent_socket = get_client_socket_by_user_id(opponent_id);
+    Response *response = (Response *)malloc(sizeof(Response));
+    response->type = PAUSE;
+    response->data.pauseData.user_id = user_id;
+    response->data.pauseData.room_id = room_id;
+    send_reponse(opponent_socket, response);
+    free(response);
+}
+void handle_resume(const int client_socket, const ResumeData *resumeData)
+{
+    int room_id = resumeData->room_id;
+    int user_id = resumeData->user_id;
+    int opponent_id;
+    room_t *room = get_room_by_id(get_list_room(), room_id);
+    if (room == NULL)
+    {
+        return;
+    }
+    if (room->white_socket == client_socket)
+    {
+        opponent_id = room->black_user_id;
+    }
+    else
+    {
+        opponent_id = room->white_user_id;
+    }
+    int opponent_socket = get_client_socket_by_user_id(opponent_id);
+    Response *response = (Response *)malloc(sizeof(Response));
+    response->type = RESUME;
+    response->data.resumeData.user_id = user_id;
+    response->data.resumeData.room_id = room_id;
+    send_reponse(opponent_socket, response);
+    free(response);
+}
+void handle_get_history(int client_socket, const GetGameHistory *getGameHistory)
+{
+    int user_id = getGameHistory->user_id;
+    sqlite3 *db = get_database_connection();
+    sqlite3_stmt *stmt;
+    char *sql = GET_HISTORY_QUERY;
+    sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL);
+    sqlite3_bind_int(stmt, 1, user_id);
+    sqlite3_bind_int(stmt, 2, user_id);
+    sqlite3_bind_int(stmt, 3, user_id);
+    sqlite3_bind_int(stmt, 4, user_id);
+
+    // Count the number of rows
+    int count = 0;
+    while (sqlite3_step(stmt) == SQLITE_ROW)
+    {
+        count++;
+    }
+
+    // Reset the statement and bind parameters again
+    sqlite3_reset(stmt);
+    sqlite3_bind_int(stmt, 1, user_id);
+    sqlite3_bind_int(stmt, 2, user_id);
+    sqlite3_bind_int(stmt, 3, user_id);
+    sqlite3_bind_int(stmt, 4, user_id);
+
+    // Create and send the response with the number of game histories
+    Response *response = (Response *)malloc(sizeof(Response));
+    response->type = NUMBER_OF_HISTORY;
+    response->data.numberOfGameHistory.number_of_game = count;
+    response->data.numberOfGameHistory.user_id = user_id;
+    send_reponse(client_socket, response);
+    free(response);
+
+    // Retrieve and print the game histories
+    for (int i = 0; i < count; i++)
+    {
+        sqlite3_step(stmt);
+        Response *response = (Response *)malloc(sizeof(Response));
+        response->type = HISTORY_RESPONSE;
+        response->data.gameHistoryResponse.room_id = sqlite3_column_int(stmt, 0);
+        strcpy(response->data.gameHistoryResponse.opponent_name, sqlite3_column_text(stmt, 1));
+        response->data.gameHistoryResponse.opponent_id = sqlite3_column_int(stmt, 2);
+        strcpy(response->data.gameHistoryResponse.start_time, sqlite3_column_text(stmt, 3));
+        strcpy(response->data.gameHistoryResponse.end_time, sqlite3_column_text(stmt, 4));
+        response->data.gameHistoryResponse.result = sqlite3_column_int(stmt, 5);
+        send_reponse(client_socket, response);
+        free(response);
+    }
+
+    sqlite3_finalize(stmt);
 }

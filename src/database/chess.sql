@@ -47,3 +47,19 @@ CREATE TABLE IF NOT EXISTS move (
   UNIQUE(room_id, piece_id, move_id), -- Đảm bảo mỗi cặp (room_id, piece_id) chỉ xuất hiện một lần cho mỗi MoveId
   FOREIGN KEY (room_id) REFERENCES room(id),
 );
+-- Lịch sử đấu:
+SELECT 
+	room.id,
+	total_time,
+	user.username AS opponent_name,
+	start_time,
+	end_time,
+CASE
+	WHEN winer_user = 2 THEN 1 
+    WHEN winer_user = 0 THEN 2
+	ELSE 0 
+	END AS game_result 
+FROM
+	room JOIN user ON((room.black_user_id = user.id OR room.white_user_id = user.id ) AND user.id != 2)
+WHERE
+	( black_user_id = 2 OR white_user_id = 2 );

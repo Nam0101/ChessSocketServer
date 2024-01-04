@@ -28,5 +28,6 @@ void handle_move(const int client_socket, const Move *move);
 void start_game_db(int room_id, int white_user_id, int black_user_id, int total_time);
 void handle_end_game(const int client_socket, const EndGameData *endGameData);
 void handle_surrender(const int client_socket, const SurrenderData *surrenderData);
-
+void handle_pause(const int client_socket, const PauseData *pauseData);
+void handle_resume(const int client_socket, const ResumeData *resumeData);
 #endif

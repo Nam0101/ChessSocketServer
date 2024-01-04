@@ -739,6 +739,126 @@ void waiting_for_surrender(int client_socket)
         }
     }
 }
+void pause_game(int client_socket)
+{
+    Message message;
+    message.type = PAUSE;
+    message.data.pauseData.user_id = user_id;
+    message.data.pauseData.room_id = room_id;
+    int bytes_sent = send(client_socket, &message, sizeof(message), 0);
+    if (bytes_sent <= 0)
+    {
+        printf("Connection closed\n");
+        exit(EXIT_FAILURE);
+    }
+    else
+    {
+        printf("Sent: %d bytes\n", bytes_sent);
+    }
+}
+void resume_game(int client_socket)
+{
+    Message message;
+    message.type = RESUME;
+    message.data.resumeData.user_id = user_id;
+    message.data.resumeData.room_id = room_id;
+    int bytes_sent = send(client_socket, &message, sizeof(message), 0);
+    if (bytes_sent <= 0)
+    {
+        printf("Connection closed\n");
+        exit(EXIT_FAILURE);
+    }
+    else
+    {
+        printf("Sent: %d bytes\n", bytes_sent);
+    }
+}
+void waiting_for_pause(int client_socket)
+{
+    Response response;
+    int bytes_received = recv(client_socket, &response, sizeof(response), 0);
+    if (bytes_received <= 0)
+    {
+        printf("Connection closed\n");
+        exit(EXIT_FAILURE);
+    }
+    if (response.type == PAUSE)
+    {
+        printf("User %d pause\n", response.data.pauseData.user_id);
+        printf("Room id: %d\n", response.data.pauseData.room_id);
+    }
+    // wait for resume
+    Response response1;
+    int bytes_received1 = recv(client_socket, &response1, sizeof(response1), 0);
+    if (bytes_received1 <= 0)
+    {
+        printf("Connection closed\n");
+        exit(EXIT_FAILURE);
+    }
+    if (response1.type == RESUME)
+    {
+        printf("User %d resume\n", response1.data.resumeData.user_id);
+        printf("Room id: %d\n", response1.data.resumeData.room_id);
+    }
+}
+void get_history(int client_socket)
+{
+    Message message;
+    message.type = GET_HISTORY;
+    message.data.getGameHistory.user_id = user_id;
+    int bytes_sent = send(client_socket, &message, sizeof(message), 0);
+    if (bytes_sent <= 0)
+    {
+        printf("Connection closed\n");
+        exit(EXIT_FAILURE);
+    }
+    else
+    {
+        printf("Sent: %d bytes\n", bytes_sent);
+    }
+    // get response
+    Response response;
+    int bytes_received = recv(client_socket, &response, sizeof(response), 0);
+    int number_of_history = response.data.numberOfGameHistory.number_of_game;
+    if (bytes_received <= 0)
+    {
+        printf("Connection closed\n");
+        exit(EXIT_FAILURE);
+    }
+    else
+    {
+        printf("Received: %d bytes\n", bytes_received);
+    }
+    printf("Number of history: %d\n", number_of_history);
+    for (int i = 0; i < number_of_history; i++)
+    {
+        Response *history_i = (Response *)malloc(sizeof(Response));
+        bytes_received = recv(client_socket, history_i, sizeof(Response), 0);
+        if (bytes_received <= 0)
+        {
+            printf("Connection closed\n");
+            exit(EXIT_FAILURE);
+        }
+        printf("Room id: %d\n", history_i->data.gameHistoryResponse.room_id);
+        printf("Opponent username: %s\n", history_i->data.gameHistoryResponse.opponent_name);
+        printf("Opponent id: %d\n", history_i->data.gameHistoryResponse.opponent_id);
+        printf("Start time: %s\n", history_i->data.gameHistoryResponse.start_time);
+        printf("End time: %s\n", history_i->data.gameHistoryResponse.end_time);
+        if (history_i->data.gameHistoryResponse.result == 0)
+        {
+            printf("Result: lose\n");
+        }
+        else if (history_i->data.gameHistoryResponse.result == 1)
+        {
+            printf("Result: win\n");
+        }
+        else
+        {
+            printf("Result: draw\n");
+        }
+        free(history_i);
+    }
+}
 int main()
 {
     int client_socket;
@@ -770,6 +890,10 @@ int main()
         printf("12. End game\n");
         printf("13. Surrender\n");
         printf("14. Waiting for Surrender\n");
+        printf("15. Pause\n");
+        printf("16. Resume\n");
+        printf("17. Waiting for pause\n");
+        printf("18. Get history\n");
         printf("Enter your choice: ");
         scanf("%d", &choice);
         switch (choice)
@@ -815,6 +939,18 @@ int main()
             break;
         case 14:
             waiting_for_surrender(client_socket);
+            break;
+        case 15:
+            pause_game(client_socket);
+            break;
+        case 16:
+            resume_game(client_socket);
+            break;
+        case 17:
+            waiting_for_pause(client_socket);
+            break;
+        case 18:
+            get_history(client_socket);
             break;
         default:
             printf("Invalid choice\n");
