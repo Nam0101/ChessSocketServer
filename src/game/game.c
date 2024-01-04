@@ -597,11 +597,11 @@ void handle_end_game(const int client_socket, const EndGameData *endGameData)
         }
         else if (status == 0)
             elo_calculation(user_id, opponent_id, 0);
-        else
-
+        else{
             elo_calculation(user_id, opponent_id, 0.5);
+            end_game_db(room_id, 0);
+        }
     }
-
     update_playing(user_id, 0);
     Response *response = (Response *)malloc(sizeof(Response));
     response->type = LOGIN_RESPONSE;
@@ -736,6 +736,11 @@ void handle_get_history(int client_socket, const GetGameHistory *getGameHistory)
         sqlite3_step(stmt);
         Response *response = (Response *)malloc(sizeof(Response));
         response->type = HISTORY_RESPONSE;
+        //check if any column is null
+        if (sqlite3_column_type(stmt, 0) == SQLITE_NULL || sqlite3_column_type(stmt, 1) == SQLITE_NULL || sqlite3_column_type(stmt, 2) == SQLITE_NULL || sqlite3_column_type(stmt, 3) == SQLITE_NULL || sqlite3_column_type(stmt, 4) == SQLITE_NULL || sqlite3_column_type(stmt, 5) == SQLITE_NULL)
+        {
+            continue;
+        }
         response->data.gameHistoryResponse.room_id = sqlite3_column_int(stmt, 0);
         strcpy(response->data.gameHistoryResponse.opponent_name, sqlite3_column_text(stmt, 1));
         response->data.gameHistoryResponse.opponent_id = sqlite3_column_int(stmt, 2);
