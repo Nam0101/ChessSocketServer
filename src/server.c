@@ -245,7 +245,7 @@ int main()
 {
     log_init();
     setVietnamTimeZone();
-    sqlite3_config(SQLITE_CONFIG_SERIALIZED)
+    sqlite3_config(SQLITE_CONFIG_SERIALIZED);
     int server_socket;
     struct sockaddr_in server_address;
     struct sockaddr_in client_address;
