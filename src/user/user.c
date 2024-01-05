@@ -29,6 +29,7 @@
 #define GET_USER_BY_USER_NAME_QUERY "SELECT * FROM user WHERE username = ?;"
 #define GET_ELO_BY_USER_ID "SELECT elo FROM user WHERE id = ?;"
 #define UPDATE_ELO_BY_USER_ID "UPDATE user SET elo = ? WHERE id = ?;"
+#define GET_TOP_PLAYER_QUERY "SELECT username,id,elo,ROW_NUMBER() OVER (ORDER BY elo DESC) AS rank FROM user ORDER BY elo DESC LIMIT 10;"
 #define TAG "USER"
 loged_in_user_t *online_user_list = NULL;
 pthread_mutex_t online_list_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -763,4 +764,34 @@ void elo_calculation(int winner_id, int loser_id, float result)
     update_elo_on_caching(loser_id, loser_elo);
     elo_update(winner_id, winner_elo);
 
+}
+void handle_get_top_player(const int client_socket, const GetTopPlayerData *getTopPlayerData)
+{
+    sqlite3 *db = get_database_connection();
+    char *sql = GET_TOP_PLAYER_QUERY;
+    sqlite3_stmt *stmt;
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    int i = 0;
+    if (rc != SQLITE_OK)
+    {
+        char *error = (char *)malloc(100);
+        sprintf(error, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        Log(TAG, "e", error);
+        free(error);
+        close_database_connection(db);
+        return;
+    }
+    Response *response = (Response *)malloc(sizeof(Response));
+    while (sqlite3_step(stmt) == SQLITE_ROW)
+    {
+        response->type = TOP_PLAYER_DATA;
+        response->data.topPlayerDataResponse.rank = sqlite3_column_int(stmt, 3);
+        response->data.topPlayerDataResponse.user_id = sqlite3_column_int(stmt, 1);
+        response->data.topPlayerDataResponse.elo = sqlite3_column_int(stmt, 2);
+        strcpy(response->data.topPlayerDataResponse.username, (const char *)sqlite3_column_text(stmt, 0));
+        send(client_socket, response, sizeof(Response), 0);
+    }
+    sqlite3_finalize(stmt);
+    close_database_connection(db);
+    free(response);
 }

@@ -1110,15 +1110,32 @@ void waiting_for_replay(int client_socket){
                     printf("Start game\n");
                     printf("White user id: %d\n", response1.data.startGameData.white_user_id);
                     printf("Black user id: %d\n", response1.data.startGameData.black_user_id);
+                    printf("Black username: %s\n", response1.data.startGameData.black_username);
+                    printf("White username: %s\n", response1.data.startGameData.white_username);
                     printf("Room id: %d\n", response1.data.startGameData.room_id);
                     printf("Total time: %d\n", response1.data.startGameData.total_time);
+
                     break;
             }
         }
     }
 
 }
-
+void get_top_player(int client_socket){
+    Message message;
+    message.type = GET_TOP_PLAYER;
+    message.data.getTopPlayerData.user_id = user_id;
+    int bytes_sent = send(client_socket, &message, sizeof(message), 0);
+    if(bytes_sent <= 0){
+        printf("Connection closed\n");
+        exit(EXIT_FAILURE);
+    }
+    else{
+        printf("Sent: %d bytes\n", bytes_sent);
+    }
+    // get response
+   
+}
 int main()
 {
     int client_socket;
@@ -1158,6 +1175,7 @@ int main()
         printf("20. Waiting for draw\n");
         printf("21. Reolay");
         printf("22. Waiting for replay\n");
+        printf("23. Get top player\n");
         printf("Enter your choice: ");
         scanf("%d", &choice);
         switch (choice)
@@ -1227,6 +1245,9 @@ int main()
             break;
         case 22:
             waiting_for_replay(client_socket);
+            break;
+        case 23:
+        get_top_player(client_socket);
             break;
         default:
             printf("Invalid choice\n");

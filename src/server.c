@@ -150,6 +150,10 @@ void *thread_function_logedin()
             Log(TAG, "i", "Received accept replay request");
             handle_accept_replay(task->client_socket, &task->message.data.acceptReplayData);
             break;
+        case GET_TOP_PLAYER:
+            Log(TAG, "i", "Received get top player request");
+            handle_get_top_player(task->client_socket, &task->message.data.getTopPlayerData);
+            break;
         default:
             break;
         }

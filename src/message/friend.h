@@ -58,4 +58,14 @@ typedef struct
     int is_online;
     int is_playing;
 } AddFriendResponse;
+typedef struct{
+    int user_id;
+}GetTopPlayerData;
+
+typedef struct{
+    int user_id;
+    int rank;
+    int elo;
+    char username[20];
+}TopPlayerDataResponse;
 #endif

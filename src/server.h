@@ -44,6 +44,8 @@ typedef enum
     HISTORY_RESPONSE,
     REPLAY,
     ACCEPT_REPLAY,
+    GET_TOP_PLAYER,
+    TOP_PLAYER_DATA,
 } MessageType;
 
 typedef struct
@@ -71,6 +73,7 @@ typedef struct
         AcceptOrDeclineDrawData acceptOrDeclineDrawData;
         ReplayData replayData;
         AcceptReplayData acceptReplayData;
+        GetTopPlayerData getTopPlayerData;
     } data;
 } Message;
 typedef struct
@@ -98,6 +101,7 @@ typedef struct
         AcceptOrDeclineDrawData acceptOrDeclineDrawData;
         ReplayData replayData;
         AcceptReplayData acceptReplayData;
+        TopPlayerDataResponse topPlayerDataResponse;
     } data;
 } Response;
 
