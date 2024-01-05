@@ -826,11 +826,6 @@ void handle_accept_replay(const int client_socket, const AcceptReplayData *accep
     int opponent_id = acceptReplayData->opponent_id;
     int opponent_socket = get_client_socket_by_user_id(opponent_id);
     Response *response = (Response *)malloc(sizeof(Response));
-    response->type = ACCEPT_REPLAY;
-    response->data.acceptReplayData.user_id = user_id;
-    response->data.acceptReplayData.opponent_id = opponent_id;
-    response->data.acceptReplayData.is_accept = acceptReplayData->is_accept;
-    send_reponse(opponent_socket, response);
     if (acceptReplayData->is_accept == 1)
     {
         int room_id = create_room_db(user_id, opponent_id, DEFAULT_TOTAL_TIME);
@@ -848,4 +843,13 @@ void handle_accept_replay(const int client_socket, const AcceptReplayData *accep
         send_reponse(client_socket, response);
         start_game_db(room_id, user_id, opponent_id, DEFAULT_TOTAL_TIME);
     }
+    else{
+        response->type = START_GAME;
+        response->data.startGameData.white_user_id = -1;
+        response->data.startGameData.black_user_id = -1;
+        response->data.startGameData.room_id = -1;
+        response->data.startGameData.total_time = -1;
+        send_reponse(opponent_socket, response);
+    }
+    free(response);
 }

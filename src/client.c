@@ -1203,7 +1203,7 @@ int main()
         printf("18. Get history\n");
         printf("19. Draw\n");
         printf("20. Waiting for draw\n");
-        printf("21. Reolay");
+        printf("21. Replay\n");
         printf("22. Waiting for replay\n");
         printf("23. Get top player\n");
         printf("24. Chat\n");
