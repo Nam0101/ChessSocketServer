@@ -72,14 +72,26 @@ typedef struct
     int user_id;
     int room_id;
 } ResumeData;
-typedef struct{
+typedef struct
+{
     int user_id;
     int room_id;
-}DrawData;
+} DrawData;
 typedef struct
 {
     int user_id;
     int room_id;
     int is_accept;
-}AcceptOrDeclineDrawData;
+} AcceptOrDeclineDrawData;
+typedef struct
+{
+    int user_id;
+    int opponent_id;
+} ReplayData;
+typedef struct
+{
+    int user_id;
+    int is_accept;
+    int opponent_id;
+} AcceptReplayData;
 #endif

@@ -142,6 +142,14 @@ void *thread_function_logedin()
             Log(TAG, "i", "Received accept or decline draw request");
             handle_accept_or_decline_draw(task->client_socket, &task->message.data.acceptOrDeclineDrawData);
             break;
+        case REPLAY:
+            Log(TAG, "i", "Received replay request");
+            handle_replay(task->client_socket, &task->message.data.replayData);
+            break;
+        case ACCEPT_REPLAY:
+            Log(TAG, "i", "Received accept replay request");
+            handle_accept_replay(task->client_socket, &task->message.data.acceptReplayData);
+            break;
         default:
             break;
         }

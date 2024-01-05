@@ -42,6 +42,8 @@ typedef enum
     GET_HISTORY,
     NUMBER_OF_HISTORY,
     HISTORY_RESPONSE,
+    REPLAY,
+    ACCEPT_REPLAY,
 } MessageType;
 
 typedef struct
@@ -67,6 +69,8 @@ typedef struct
         GetGameHistory getGameHistory;
         DrawData drawData;
         AcceptOrDeclineDrawData acceptOrDeclineDrawData;
+        ReplayData replayData;
+        AcceptReplayData acceptReplayData;
     } data;
 } Message;
 typedef struct
@@ -92,6 +96,8 @@ typedef struct
         GameHistoryResponse gameHistoryResponse;
         DrawData drawData;
         AcceptOrDeclineDrawData acceptOrDeclineDrawData;
+        ReplayData replayData;
+        AcceptReplayData acceptReplayData;
     } data;
 } Response;
 

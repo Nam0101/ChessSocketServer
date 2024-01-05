@@ -1021,6 +1021,104 @@ void waiting_for_draw(int client_socket)
         }
     }
 }
+
+void send_replay(int client_socket){
+    int opponent_id;
+    printf("Enter opponent id: ");
+    scanf("%d", &opponent_id);
+    Message message;
+    message.type = REPLAY;
+    message.data.replayData.user_id = user_id;
+    message.data.replayData.opponent_id = opponent_id;
+    send(client_socket, &message, sizeof(message), 0);
+    // get response
+    Response response;
+    int bytes_received = recv(client_socket, &response, sizeof(response), 0);
+    if(bytes_received <= 0){
+        printf("Connection closed\n");
+        exit(EXIT_FAILURE);
+    }
+    else{
+        printf("Received: %d bytes\n", bytes_received);
+    }
+    switch (response.type)
+    {
+        case ACCEPT_REPLAY:
+            if(response.data.acceptReplayData.is_accept==1){
+                printf("Accept replay\n");
+                // receive start game
+                Response response1;
+                int bytes_received1 = recv(client_socket, &response1, sizeof(response1), 0);
+                if(bytes_received1 <= 0){
+                    printf("Connection closed\n");
+                    exit(EXIT_FAILURE);
+                }
+                else{
+                    printf("Received: %d bytes\n", bytes_received1);
+                }
+                switch (response1.type)
+                {
+                    case START_GAME:
+                        printf("Start game\n");
+                        printf("White user id: %d\n", response1.data.startGameData.white_user_id);
+                        printf("Black user id: %d\n", response1.data.startGameData.black_user_id);
+                        printf("Room id: %d\n", response1.data.startGameData.room_id);
+                        printf("Total time: %d\n", response1.data.startGameData.total_time);
+                        break;
+                }
+
+            }
+            break;
+    }
+}
+void waiting_for_replay(int client_socket){
+    Response response;
+    int bytes_received = recv(client_socket, &response, sizeof(response), 0);
+    if(bytes_received <= 0){
+        printf("Connection closed\n");
+        exit(EXIT_FAILURE);
+    }
+    else{
+        printf("Received: %d bytes\n", bytes_received);
+    }
+    if(response.type == REPLAY){
+        printf("User %d want to replay\n", response.data.replayData.user_id);
+        printf("Opponent id: %d\n", response.data.replayData.opponent_id);
+        int choice;
+        printf("Enter 1 to accept, 0 to decline: ");
+        scanf("%d", &choice);
+        Message message;
+        message.type = ACCEPT_REPLAY;
+        message.data.acceptReplayData.user_id = user_id;
+        message.data.acceptReplayData.opponent_id = response.data.replayData.user_id;
+        message.data.acceptReplayData.is_accept = choice;
+        send(client_socket, &message, sizeof(message), 0);
+        if(choice == 1){
+            // receive start game
+            Response response1;
+            int bytes_received1 = recv(client_socket, &response1, sizeof(response1), 0);
+            if(bytes_received1 <= 0){
+                printf("Connection closed\n");
+                exit(EXIT_FAILURE);
+            }
+            else{
+                printf("Received: %d bytes\n", bytes_received1);
+            }
+            switch (response1.type)
+            {
+                case START_GAME:
+                    printf("Start game\n");
+                    printf("White user id: %d\n", response1.data.startGameData.white_user_id);
+                    printf("Black user id: %d\n", response1.data.startGameData.black_user_id);
+                    printf("Room id: %d\n", response1.data.startGameData.room_id);
+                    printf("Total time: %d\n", response1.data.startGameData.total_time);
+                    break;
+            }
+        }
+    }
+
+}
+
 int main()
 {
     int client_socket;
@@ -1058,6 +1156,8 @@ int main()
         printf("18. Get history\n");
         printf("19. Draw\n");
         printf("20. Waiting for draw\n");
+        printf("21. Reolay");
+        printf("22. Waiting for replay\n");
         printf("Enter your choice: ");
         scanf("%d", &choice);
         switch (choice)
@@ -1121,6 +1221,12 @@ int main()
             break;
         case 20:
             waiting_for_draw(client_socket);
+            break;
+        case 21:
+            send_replay(client_socket);
+            break;
+        case 22:
+            waiting_for_replay(client_socket);
             break;
         default:
             printf("Invalid choice\n");

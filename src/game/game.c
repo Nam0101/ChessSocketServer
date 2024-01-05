@@ -597,7 +597,8 @@ void handle_end_game(const int client_socket, const EndGameData *endGameData)
         }
         else if (status == 0)
             elo_calculation(user_id, opponent_id, 0);
-        else{
+        else
+        {
             elo_calculation(user_id, opponent_id, 0.5);
             end_game_db(room_id, 0);
         }
@@ -736,7 +737,7 @@ void handle_get_history(int client_socket, const GetGameHistory *getGameHistory)
         sqlite3_step(stmt);
         Response *response = (Response *)malloc(sizeof(Response));
         response->type = HISTORY_RESPONSE;
-        //check if any column is null
+        // check if any column is null
         if (sqlite3_column_type(stmt, 0) == SQLITE_NULL || sqlite3_column_type(stmt, 1) == SQLITE_NULL || sqlite3_column_type(stmt, 2) == SQLITE_NULL || sqlite3_column_type(stmt, 3) == SQLITE_NULL || sqlite3_column_type(stmt, 4) == SQLITE_NULL || sqlite3_column_type(stmt, 5) == SQLITE_NULL)
         {
             continue;
@@ -806,4 +807,45 @@ void handle_draw(const int client_socket, const DrawData *drawData)
     response->data.drawData.room_id = room_id;
     send_reponse(opponent_socket, response);
     free(response);
+}
+void handle_replay(const int client_socket, const ReplayData *replayData)
+{
+    int user_id = replayData->user_id;
+    int opponent_id = replayData->opponent_id;
+    // check if 2 user ae sent replay request
+    int opponent_socket = get_client_socket_by_user_id(opponent_id);
+    Response *response = (Response *)malloc(sizeof(Response));
+    response->type = REPLAY;
+    response->data.replayData.user_id = user_id;
+    response->data.replayData.opponent_id = opponent_id;
+    send_reponse(opponent_socket, response);
+}
+void handle_accept_replay(const int client_socket, const AcceptReplayData *acceptReplayData)
+{
+    int user_id = acceptReplayData->user_id;
+    int opponent_id = acceptReplayData->opponent_id;
+    int opponent_socket = get_client_socket_by_user_id(opponent_id);
+    Response *response = (Response *)malloc(sizeof(Response));
+    response->type = ACCEPT_REPLAY;
+    response->data.acceptReplayData.user_id = user_id;
+    response->data.acceptReplayData.opponent_id = opponent_id;
+    response->data.acceptReplayData.is_accept = acceptReplayData->is_accept;
+    send_reponse(opponent_socket, response);
+    if (acceptReplayData->is_accept == 1)
+    {
+        int room_id = create_room_db(user_id, opponent_id, DEFAULT_TOTAL_TIME);
+        response->type = START_GAME;
+        response->data.startGameData.white_user_id = user_id;
+        response->data.startGameData.black_user_id = opponent_id;
+        response->data.startGameData.room_id = room_id;
+        response->data.startGameData.total_time = DEFAULT_TOTAL_TIME;
+        response->data.startGameData.status = 1;
+        strcpy(response->data.startGameData.white_username, get_user_name_by_user_id(user_id));
+        strcpy(response->data.startGameData.black_username, get_user_name_by_user_id(opponent_id));
+        response->data.startGameData.white_elo = get_elo_by_user_id(user_id);
+        response->data.startGameData.black_elo = get_elo_by_user_id(opponent_id);
+        send_reponse(opponent_socket, response);
+        send_reponse(client_socket, response);
+        start_game_db(room_id, user_id, opponent_id, DEFAULT_TOTAL_TIME);
+    }
 }
