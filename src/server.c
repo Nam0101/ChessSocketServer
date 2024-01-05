@@ -154,6 +154,10 @@ void *thread_function_logedin()
             Log(TAG, "i", "Received get top player request");
             handle_get_top_player(task->client_socket, &task->message.data.getTopPlayerData);
             break;
+        case CHAT:
+            Log(TAG, "i", "Received chat request");
+            handle_chat(task->client_socket, &task->message.data.chatData);
+            break;
         default:
             break;
         }

@@ -68,4 +68,9 @@ typedef struct{
     int elo;
     char username[20];
 }TopPlayerDataResponse;
+typedef struct{
+    int user_id;
+    int friend_id;
+    char message[70];
+}ChatData;
 #endif

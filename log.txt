@@ -1,6 +1,14 @@
-[2024-1-5 11:47:51] [SERVER] [i] Server is listening on port 8888
-[2024-1-5 11:47:53] [SERVER] [i] Accepted connection from 127.0.0.1:60964
-[2024-1-5 11:48:4] [SERVER] [i] Received register request
-[2024-1-5 11:48:7] [SERVER] [i] Accepted connection from 127.0.0.1:35758
-[2024-1-5 11:48:12] [SERVER] [i] Received register request
-[2024-1-5 11:48:12] [DB] [i] Number of conn to db: 1
+[2024-1-5 12:56:49] [SERVER] [i] Server is listening on port 8888
+[2024-1-5 12:56:51] [SERVER] [i] Accepted connection from 127.0.0.1:52178
+[2024-1-5 12:56:53] [SERVER] [i] Received login request
+[2024-1-5 12:56:53] [SERVER] [i] Accepted connection from 127.0.0.1:52184
+[2024-1-5 12:56:55] [SERVER] [i] Received login request
+[2024-1-5 12:56:55] [DB] [i] Number of conn to db: 1
+[2024-1-5 12:56:58] [SERVER] [i] Accepted connection from 127.0.0.1:42148
+[2024-1-5 12:57:0] [SERVER] [i] Received login request
+[2024-1-5 12:57:0] [DB] [i] Number of conn to db: 1
+[2024-1-5 12:57:5] [SERVER] [i] Received chat request
+[2024-1-5 12:57:7] [SERVER] [i] Received chat request
+[2024-1-5 12:57:16] [SERVER] [i] User 1 disconnected
+[2024-1-5 12:57:16] [SERVER] [i] Received login request
+[2024-1-5 12:57:16] [DB] [i] Number of conn to db: 1

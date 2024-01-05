@@ -795,3 +795,20 @@ void handle_get_top_player(const int client_socket, const GetTopPlayerData *getT
     close_database_connection(db);
     free(response);
 }
+void handle_chat(const int client_socket, const ChatData *chatData)
+{
+    int user_id = chatData->user_id;
+    int friend_id = chatData->friend_id;
+    int friend_socket = get_client_socket_by_user_id(friend_id);
+    if(friend_socket == -1)
+    {
+        return;
+    }
+    Response *response = (Response *)malloc(sizeof(Response));
+    response->type = CHAT;
+    response->data.chatData.user_id = user_id;
+    strcpy(response->data.chatData.message, chatData->message);
+    send(friend_socket, response, sizeof(Response), 0);
+    free(response);
+
+}

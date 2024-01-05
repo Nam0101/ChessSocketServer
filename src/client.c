@@ -1136,6 +1136,36 @@ void get_top_player(int client_socket){
     // get response
    
 }
+void chat(int client_socket){
+    Message message;
+    message.type = CHAT;
+    message.data.chatData.user_id = user_id;
+    int friend_id;
+    printf("Enter friend id: ");
+    scanf("%d", &friend_id);
+    message.data.chatData.friend_id = friend_id;
+    char message_content[100];
+    printf("Enter message: ");
+    fgets(message_content, 100, stdin);
+    message_content[strlen(message_content)-1] = '\0';
+    strcpy(message.data.chatData.message, message_content);
+    send(client_socket, &message, sizeof(message), 0);
+    getchar();
+}
+void get_message(int client_socket){
+    Response response;
+    int bytes_received = recv(client_socket, &response, sizeof(response), 0);
+    if(bytes_received <= 0){
+        printf("Connection closed\n");
+        exit(EXIT_FAILURE);
+    }
+    else{
+        printf("Received: %d bytes\n", bytes_received);
+    }
+    if(response.type == CHAT){
+        printf("User %d send message: %s\n", response.data.chatData.user_id, response.data.chatData.message);
+    }
+}
 int main()
 {
     int client_socket;
@@ -1176,6 +1206,8 @@ int main()
         printf("21. Reolay");
         printf("22. Waiting for replay\n");
         printf("23. Get top player\n");
+        printf("24. Chat\n");
+        printf("25. Get message\n");
         printf("Enter your choice: ");
         scanf("%d", &choice);
         switch (choice)
@@ -1247,7 +1279,13 @@ int main()
             waiting_for_replay(client_socket);
             break;
         case 23:
-        get_top_player(client_socket);
+            get_top_player(client_socket);
+            break;
+        case 24:
+            chat(client_socket);
+            break;
+        case 25:
+            get_message(client_socket);
             break;
         default:
             printf("Invalid choice\n");

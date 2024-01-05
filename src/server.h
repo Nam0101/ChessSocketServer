@@ -46,6 +46,7 @@ typedef enum
     ACCEPT_REPLAY,
     GET_TOP_PLAYER,
     TOP_PLAYER_DATA,
+    CHAT
 } MessageType;
 
 typedef struct
@@ -74,6 +75,7 @@ typedef struct
         ReplayData replayData;
         AcceptReplayData acceptReplayData;
         GetTopPlayerData getTopPlayerData;
+        ChatData chatData;
     } data;
 } Message;
 typedef struct
@@ -102,6 +104,7 @@ typedef struct
         ReplayData replayData;
         AcceptReplayData acceptReplayData;
         TopPlayerDataResponse topPlayerDataResponse;
+        ChatData chatData;
     } data;
 } Response;
 
