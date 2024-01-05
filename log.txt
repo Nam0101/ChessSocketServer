@@ -1,5 +1,6 @@
-[2024-1-5 11:26:33] [SERVER] [i] Server is listening on port 8888
-[2024-1-5 11:26:37] [SERVER] [i] Accepted connection from 127.0.0.1:50362
-[2024-1-5 11:26:38] [SERVER] [i] Received login request
-[2024-1-5 11:26:43] [SERVER] [i] Received get top player request
-[2024-1-5 11:26:43] [DB] [i] Number of conn to db: 1
+[2024-1-5 11:47:51] [SERVER] [i] Server is listening on port 8888
+[2024-1-5 11:47:53] [SERVER] [i] Accepted connection from 127.0.0.1:60964
+[2024-1-5 11:48:4] [SERVER] [i] Received register request
+[2024-1-5 11:48:7] [SERVER] [i] Accepted connection from 127.0.0.1:35758
+[2024-1-5 11:48:12] [SERVER] [i] Received register request
+[2024-1-5 11:48:12] [DB] [i] Number of conn to db: 1
