@@ -767,10 +767,10 @@ void handle_get_history(int client_socket, const GetGameHistory *getGameHistory)
             continue;
         }
         response->data.gameHistoryResponse.room_id = sqlite3_column_int(stmt, 0);
-        strcpy(response->data.gameHistoryResponse.opponent_name, sqlite3_column_text(stmt, 1));
+        strcpy(response->data.gameHistoryResponse.opponent_name, (char*)sqlite3_column_text(stmt, 1));
         response->data.gameHistoryResponse.opponent_id = sqlite3_column_int(stmt, 2);
-        strcpy(response->data.gameHistoryResponse.start_time, sqlite3_column_text(stmt, 3));
-        strcpy(response->data.gameHistoryResponse.end_time, sqlite3_column_text(stmt, 4));
+        strcpy(response->data.gameHistoryResponse.start_time, (char*)sqlite3_column_text(stmt, 3));
+        strcpy(response->data.gameHistoryResponse.end_time, (char*)sqlite3_column_text(stmt, 4));
         response->data.gameHistoryResponse.result = sqlite3_column_int(stmt, 5);
         send_reponse(client_socket, response);
         free(response);
@@ -879,7 +879,6 @@ void handle_accept_replay(const int client_socket, const AcceptReplayData *accep
 }
 void handle_get_move_history(int client_socket, const GetMoveHistory *getMoveHistory)
 {
-    int user_id = getMoveHistory->user_id;
     int room_id = getMoveHistory->room_id;
     sqlite3 *db = get_database_connection();
     sqlite3_stmt *stmt;

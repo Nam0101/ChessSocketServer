@@ -943,7 +943,7 @@ void send_draw(int client_socket)
         break;
     }
 }
-void get_move(int client_socket)
+void get_move_history(int client_socket)
 {
     Message message;
     message.type = GET_MOVE_HISTORY;
@@ -1353,7 +1353,7 @@ int main()
             get_message(client_socket);
             break;
         case 26:
-            get_move(client_socket);
+            get_move_history(client_socket);
             break;
         default:
             printf("Invalid choice\n");
