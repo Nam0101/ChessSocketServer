@@ -36,7 +36,7 @@ CREATE TABLE piece (
   colour    CHAR(1)
 )
 -- Tạo bảng move
-CREATE TABLE IF NOT EXISTS move (
+CREATE TABLE move (
   move_id    INTEGER PRIMARY KEY AUTOINCREMENT,
   room_id    INTEGER,
   piece_id   INTEGER,
@@ -45,8 +45,8 @@ CREATE TABLE IF NOT EXISTS move (
   to_x     FLOAT,
   to_y  FLOAT,
   UNIQUE(room_id, piece_id, move_id), -- Đảm bảo mỗi cặp (room_id, piece_id) chỉ xuất hiện một lần cho mỗi MoveId
-  FOREIGN KEY (room_id) REFERENCES room(id),
-);
+  FOREIGN KEY (room_id) REFERENCES room(id)
+)
 -- Lịch sử đấu:
 SELECT 
 	room.id,
