@@ -33,4 +33,6 @@ void handle_resume(const int client_socket, const ResumeData *resumeData);
 void handle_draw(const int client_socket, const DrawData *drawData);
 void handle_accept_or_decline_draw(const int client_socket, const AcceptOrDeclineDrawData *acceptOrDeclineDrawData);
 void handle_replay(const int client_socket, const ReplayData *replayData);
+void handle_accept_replay(const int client_socket, const AcceptReplayData *acceptReplayData);
+void handle_get_history(int client_socket, const GetGameHistory *getGameHistory);
 #endif

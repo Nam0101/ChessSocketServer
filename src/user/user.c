@@ -8,8 +8,12 @@
 #include <pthread.h>
 #include <math.h>
 #include "user.h"
+#include "../game/game.h"
 #include "../database/database.h"
 #include "../log/log.h"
+//for sleep
+#include <unistd.h>
+
 #define SERVER_ERROR 'E'
 #define USERNAME_EXISTS 'U'
 #define REGISTER_SUCCESS 'S'
@@ -33,7 +37,6 @@
 #define TAG "USER"
 loged_in_user_t *online_user_list = NULL;
 pthread_mutex_t online_list_mutex = PTHREAD_MUTEX_INITIALIZER;
-static pthread_mutex_t elo_update_mutex = PTHREAD_MUTEX_INITIALIZER;
 void add_online_user(int user_id, int elo, int client_socket, char *username)
 {
     loged_in_user_t *new_user = (loged_in_user_t *)malloc(sizeof(loged_in_user_t));
@@ -771,7 +774,6 @@ void handle_get_top_player(const int client_socket, const GetTopPlayerData *getT
     char *sql = GET_TOP_PLAYER_QUERY;
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
-    int i = 0;
     if (rc != SQLITE_OK)
     {
         char *error = (char *)malloc(100);

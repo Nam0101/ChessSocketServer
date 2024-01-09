@@ -48,4 +48,5 @@ void get_user_info_by_user_name(const char *username, int *elo, int *user_id, in
 void elo_calculation(int winner_id, int loser_id, float result);
 void elo_update(int winner_id, int elo);
 void handle_chat(const int client_socket, const ChatData *chatData);
+void handle_get_top_player(const int client_socket, const GetTopPlayerData *getTopPlayerData);
 #endif

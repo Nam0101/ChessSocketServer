@@ -424,6 +424,12 @@ void handle_accept_or_decline_invitation(const int client_socket, const AcceptOr
     char *white_username = (char *)malloc(sizeof(char) * 20);
     char *black_username = (char *)malloc(sizeof(char) * 20);
     room_t *room = get_room_by_id(get_list_room(), acceptOrDeclineInvitationData->room_id);
+    if (room == NULL)
+    {
+        sprintf(log_msg, "Room %d not found", acceptOrDeclineInvitationData->room_id);
+        Log(TAG, "e", log_msg);
+        return;
+    }
     room->white_socket = get_client_socket_by_user_id(response->data.startGameData.white_user_id);
     room->black_socket = get_client_socket_by_user_id(response->data.startGameData.black_user_id);
     room->white_user_id = response->data.startGameData.white_user_id;
@@ -484,6 +490,9 @@ void handle_start_game(const int client_socket, const StartGame *startGame)
     // print room inf
     if (room == NULL)
     {
+        sprintf(log_msg, "Room %d not found", room_id);
+        Log(TAG, "e", log_msg);
+        free(log_msg);
         return;
     }
     send_reponse(room->black_socket, response);
@@ -493,7 +502,6 @@ void handle_start_game(const int client_socket, const StartGame *startGame)
     update_playing_status(room->black_user_id, 1);
     sprintf(log_msg, "Started game for room %d", room_id);
     Log(TAG, "i", log_msg);
-    free(log_msg);
 }
 void move_db(int room_id, float from_x, float from_y, float to_x, float to_y, int piece_type)
 {
@@ -519,6 +527,10 @@ void handle_move(const int client_socket, const Move *move)
     room_t *room = get_room_by_id(get_list_room(), room_id);
     if (room == NULL)
     {
+        char *log_msg = (char *)malloc(sizeof(char) * 100);
+        sprintf(log_msg, "Room %d not found", room_id);
+        Log(TAG, "e", log_msg);
+        free(log_msg);
         return;
     }
     if (room->white_socket == client_socket)
@@ -588,7 +600,13 @@ void handle_end_game(const int client_socket, const EndGameData *endGameData)
     int opponent_id;
     room_t *current_room = get_room_by_id(get_list_room(), room_id);
     if (current_room == NULL)
+    {   
+        char* log_msg = (char*)malloc(sizeof(char)*100);
+        sprintf(log_msg, "Room %d not found", room_id);
+        Log(TAG, "e", log_msg);
+        free(log_msg);
         return;
+    }
     if (current_room->white_socket == client_socket)
         opponent_id = current_room->black_user_id;
     else
@@ -848,7 +866,8 @@ void handle_accept_replay(const int client_socket, const AcceptReplayData *accep
         send_reponse(client_socket, response);
         start_game_db(room_id, user_id, opponent_id, DEFAULT_TOTAL_TIME);
     }
-    else{
+    else
+    {
         response->type = START_GAME;
         response->data.startGameData.white_user_id = -1;
         response->data.startGameData.black_user_id = -1;
