@@ -396,6 +396,11 @@ room_t *get_room_by_id(room_t *room_list, int room_id)
 }
 void handle_accept_or_decline_invitation(const int client_socket, const AcceptOrDeclineInvitationData *acceptOrDeclineInvitationData)
 {
+    printf("accept or decline invitation\n");
+    printf("Room id: %d\n", acceptOrDeclineInvitationData->room_id);
+    printf("Invited user id: %d\n", acceptOrDeclineInvitationData->invited_user_id);
+    printf("User id: %d\n", acceptOrDeclineInvitationData->user_id);
+    printf("Is accept: %d\n", acceptOrDeclineInvitationData->is_accept);
     char *log_msg = (char *)malloc(sizeof(char) * 100);
     int invited_user_socket = get_client_socket_by_user_id(acceptOrDeclineInvitationData->invited_user_id);
     Response *response = (Response *)malloc(sizeof(Response));
