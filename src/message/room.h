@@ -94,4 +94,19 @@ typedef struct
     int is_accept;
     int opponent_id;
 } AcceptReplayData;
+typedef struct
+{
+    int user_id;// your id
+    int room_id;// room id which you want to get history
+} GetMoveHistory;
+typedef struct
+{
+    int room_id;
+    int move_id;
+    int piece_type;
+    float from_x;
+    float from_y;
+    float to_x;
+    float to_y;
+} MoveHistory;
 #endif

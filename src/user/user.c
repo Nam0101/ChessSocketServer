@@ -13,6 +13,8 @@
 #include "../log/log.h"
 //for sleep
 #include <unistd.h>
+//for random
+#include <time.h>
 
 #define SERVER_ERROR 'E'
 #define USERNAME_EXISTS 'U'
@@ -592,13 +594,13 @@ char *get_user_name_by_user_id(int user_id)
 void handle_get_online_friends(const int client_socket, const GetOnlineFriendsData *getOnlineFriendsData)
 {
     loged_in_user_t *current = online_user_list;
-    FriendDataResponse *friendDataResponse = (FriendDataResponse *)malloc(sizeof(FriendDataResponse) * 100);
+    //mảng chứa danh sách bạn bè
+    FriendDataResponse *friendDataResponse = (FriendDataResponse *)malloc(50 * sizeof(FriendDataResponse));
     if (friendDataResponse == NULL)
     {
         char *error = (char *)malloc(100);
         sprintf(error, "Cannot allocate memory for friendDataResponse\n");
         Log(TAG, "e", error);
-        free(error);
         free(error);
     }
     int number_of_friends = get_friend_list(getOnlineFriendsData->user_id, friendDataResponse);
@@ -688,6 +690,8 @@ void elo_update(int user_id, int elo)
     sqlite3_stmt *stmt;
     int rc;
     int max_retries = 5;
+    char error[100]; // Use stack allocation instead of heap for better performance
+
     for (int attempt = 0; attempt < max_retries; attempt++)
     {
         rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
@@ -697,30 +701,36 @@ void elo_update(int user_id, int elo)
         }
         else if (rc == SQLITE_BUSY || rc == SQLITE_LOCKED)
         {
-            char *error = (char *)malloc(100);
             sprintf(error, "Cannot prepare statement on func elo_update: %s\n", sqlite3_errmsg(db));
             Log(TAG, "e", error);
-            free(error);
             sleep(0.2); 
         }
         else
         {
-            char *error = (char *)malloc(100);
             sprintf(error, "Cannot prepare statement on func elo_update: %s\n", sqlite3_errmsg(db));
             Log(TAG, "e", error);
-            free(error);
+            sqlite3_finalize(stmt); // Finalize the statement before closing the connection
             close_database_connection(db);
             return;
         }
     }
+
     if (rc != SQLITE_OK)
     {
+        sqlite3_finalize(stmt); // Finalize the statement before closing the connection
         close_database_connection(db);
         return;
     }
+
     sqlite3_bind_int(stmt, 1, elo);
     sqlite3_bind_int(stmt, 2, user_id);
     rc = sqlite3_step(stmt);
+
+    if (rc != SQLITE_DONE) {
+        sprintf(error, "Execution failed: %s\n", sqlite3_errmsg(db));
+        Log(TAG, "e", error);
+    }
+
     sqlite3_finalize(stmt);
     close_database_connection(db);
 }

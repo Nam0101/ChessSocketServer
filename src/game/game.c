@@ -32,6 +32,7 @@
                                 WHEN winer_user = ? THEN 1 WHEN winer_user = 0 THEN 2 ELSE 0 END AS game_result\
                             FROM room JOIN user ON((room.black_user_id = user.id OR room.white_user_id = user.id) AND user.id != ?)\
                                                 WHERE(black_user_id = ? OR white_user_id = ?);"
+#define GET_MOVE_HISTORY_QUERY "SELECT move_id,piece_id,from_x,from_y,to_x,to_y FROM move WHERE room_id = ? ORDER BY move_id;"
 #define TAG "GAME"
 // mutex
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -600,8 +601,8 @@ void handle_end_game(const int client_socket, const EndGameData *endGameData)
     int opponent_id;
     room_t *current_room = get_room_by_id(get_list_room(), room_id);
     if (current_room == NULL)
-    {   
-        char* log_msg = (char*)malloc(sizeof(char)*100);
+    {
+        char *log_msg = (char *)malloc(sizeof(char) * 100);
         sprintf(log_msg, "Room %d not found", room_id);
         Log(TAG, "e", log_msg);
         free(log_msg);
@@ -835,7 +836,6 @@ void handle_replay(const int client_socket, const ReplayData *replayData)
 {
     int user_id = replayData->user_id;
     int opponent_id = replayData->opponent_id;
-    // check if 2 user ae sent replay request
     int opponent_socket = get_client_socket_by_user_id(opponent_id);
     Response *response = (Response *)malloc(sizeof(Response));
     response->type = REPLAY;
@@ -876,4 +876,41 @@ void handle_accept_replay(const int client_socket, const AcceptReplayData *accep
         send_reponse(opponent_socket, response);
     }
     free(response);
+}
+void handle_get_move_history(int client_socket, const GetMoveHistory *getMoveHistory)
+{
+    int user_id = getMoveHistory->user_id;
+    int room_id = getMoveHistory->room_id;
+    sqlite3 *db = get_database_connection();
+    sqlite3_stmt *stmt;
+    char *sql = GET_MOVE_HISTORY_QUERY;
+    sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL);
+    sqlite3_bind_int(stmt, 1, room_id);
+    // array of move
+    Response *response = (Response *)malloc(sizeof(Response));
+    response->type = MOVE_HISTORY_RESPONSE;
+    MoveHistory *moveHistory = (MoveHistory *)malloc(sizeof(MoveHistory));
+    while (sqlite3_step(stmt) == SQLITE_ROW)
+    {
+        moveHistory->room_id = room_id;
+        moveHistory->move_id = sqlite3_column_int(stmt, 0);
+        moveHistory->piece_type = sqlite3_column_int(stmt, 1);
+        moveHistory->from_x = sqlite3_column_double(stmt, 2);
+        moveHistory->from_y = sqlite3_column_double(stmt, 3);
+        moveHistory->to_x = sqlite3_column_double(stmt, 4);
+        moveHistory->to_y = sqlite3_column_double(stmt, 5);
+        response->data.moveHistory = *moveHistory;
+        send_reponse(client_socket, response);
+    }
+    moveHistory->room_id = -1;
+    moveHistory->move_id = -1;
+    moveHistory->piece_type = -1;
+    moveHistory->from_x = -1;
+    moveHistory->from_y = -1;
+    moveHistory->to_x = -1;
+    moveHistory->to_y = -1;
+    response->data.moveHistory = *moveHistory;
+    send_reponse(client_socket, response);
+    free(response);
+    free(moveHistory);
 }

@@ -26,7 +26,6 @@ pthread_t online_user_list_thread;
 pthread_t thread_pool_online_user[THREAD_POOL_SIZE];
 queue_t *client_queue;
 task_queue_t *task_queue;
-
 void check(int code)
 {
     if (code == -1)
@@ -157,6 +156,10 @@ void *thread_function_logedin()
         case CHAT:
             Log(TAG, "i", "Received chat request");
             handle_chat(task->client_socket, &task->message.data.chatData);
+            break;
+        case GET_MOVE_HISTORY:
+            Log(TAG, "i", "Received get move history request");
+            handle_get_move_history(task->client_socket, &task->message.data.getMoveHistory);
             break;
         default:
             break;

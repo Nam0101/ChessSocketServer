@@ -943,6 +943,52 @@ void send_draw(int client_socket)
         break;
     }
 }
+void get_move(int client_socket)
+{
+    Message message;
+    message.type = GET_MOVE_HISTORY;
+    message.data.getMoveHistory.user_id = user_id;
+    printf("Enter room id: ");
+    scanf("%d", &message.data.getMoveHistory.room_id);
+    int bytes_sent = send(client_socket, &message, sizeof(message), 0);
+    if (bytes_sent <= 0)
+    {
+        printf("Connection closed\n");
+    }
+    else
+    {
+        printf("Sent: %d bytes\n", bytes_sent);
+    }
+    Response response;
+    while (1)
+    {
+        int bytes_received = recv(client_socket, &response, sizeof(response), 0);
+        if (bytes_received <= 0)
+        {
+            printf("Connection closed\n");
+            exit(EXIT_FAILURE);
+        }
+        else
+        {
+            printf("Received: %d bytes\n", bytes_received);
+        }
+        if (response.type == MOVE_HISTORY_RESPONSE)
+        {
+            printf("Room id: %d\n", response.data.moveHistory.room_id);
+            printf("Move id: %d\n", response.data.moveHistory.move_id);
+            printf("From x: %f\n", response.data.moveHistory.from_x);
+            printf("From y: %f\n", response.data.moveHistory.from_y);
+            printf("To x: %f\n", response.data.moveHistory.to_x);
+            printf("To y: %f\n", response.data.moveHistory.to_y);
+            printf("Piece type: %d\n", response.data.moveHistory.piece_type);
+
+        }
+        else
+        {
+            break;
+        }
+    }
+}
 void waiting_for_draw(int client_socket)
 {
     Response response;
@@ -1022,7 +1068,8 @@ void waiting_for_draw(int client_socket)
     }
 }
 
-void send_replay(int client_socket){
+void send_replay(int client_socket)
+{
     int opponent_id;
     printf("Enter opponent id: ");
     scanf("%d", &opponent_id);
@@ -1034,54 +1081,62 @@ void send_replay(int client_socket){
     // get response
     Response response;
     int bytes_received = recv(client_socket, &response, sizeof(response), 0);
-    if(bytes_received <= 0){
+    if (bytes_received <= 0)
+    {
         printf("Connection closed\n");
         exit(EXIT_FAILURE);
     }
-    else{
+    else
+    {
         printf("Received: %d bytes\n", bytes_received);
     }
     switch (response.type)
     {
-        case ACCEPT_REPLAY:
-            if(response.data.acceptReplayData.is_accept==1){
-                printf("Accept replay\n");
-                // receive start game
-                Response response1;
-                int bytes_received1 = recv(client_socket, &response1, sizeof(response1), 0);
-                if(bytes_received1 <= 0){
-                    printf("Connection closed\n");
-                    exit(EXIT_FAILURE);
-                }
-                else{
-                    printf("Received: %d bytes\n", bytes_received1);
-                }
-                switch (response1.type)
-                {
-                    case START_GAME:
-                        printf("Start game\n");
-                        printf("White user id: %d\n", response1.data.startGameData.white_user_id);
-                        printf("Black user id: %d\n", response1.data.startGameData.black_user_id);
-                        printf("Room id: %d\n", response1.data.startGameData.room_id);
-                        printf("Total time: %d\n", response1.data.startGameData.total_time);
-                        break;
-                }
-
+    case ACCEPT_REPLAY:
+        if (response.data.acceptReplayData.is_accept == 1)
+        {
+            printf("Accept replay\n");
+            // receive start game
+            Response response1;
+            int bytes_received1 = recv(client_socket, &response1, sizeof(response1), 0);
+            if (bytes_received1 <= 0)
+            {
+                printf("Connection closed\n");
+                exit(EXIT_FAILURE);
             }
-            break;
+            else
+            {
+                printf("Received: %d bytes\n", bytes_received1);
+            }
+            switch (response1.type)
+            {
+            case START_GAME:
+                printf("Start game\n");
+                printf("White user id: %d\n", response1.data.startGameData.white_user_id);
+                printf("Black user id: %d\n", response1.data.startGameData.black_user_id);
+                printf("Room id: %d\n", response1.data.startGameData.room_id);
+                printf("Total time: %d\n", response1.data.startGameData.total_time);
+                break;
+            }
+        }
+        break;
     }
 }
-void waiting_for_replay(int client_socket){
+void waiting_for_replay(int client_socket)
+{
     Response response;
     int bytes_received = recv(client_socket, &response, sizeof(response), 0);
-    if(bytes_received <= 0){
+    if (bytes_received <= 0)
+    {
         printf("Connection closed\n");
         exit(EXIT_FAILURE);
     }
-    else{
+    else
+    {
         printf("Received: %d bytes\n", bytes_received);
     }
-    if(response.type == REPLAY){
+    if (response.type == REPLAY)
+    {
         printf("User %d want to replay\n", response.data.replayData.user_id);
         printf("Opponent id: %d\n", response.data.replayData.opponent_id);
         int choice;
@@ -1093,50 +1148,55 @@ void waiting_for_replay(int client_socket){
         message.data.acceptReplayData.opponent_id = response.data.replayData.user_id;
         message.data.acceptReplayData.is_accept = choice;
         send(client_socket, &message, sizeof(message), 0);
-        if(choice == 1){
+        if (choice == 1)
+        {
             // receive start game
             Response response1;
             int bytes_received1 = recv(client_socket, &response1, sizeof(response1), 0);
-            if(bytes_received1 <= 0){
+            if (bytes_received1 <= 0)
+            {
                 printf("Connection closed\n");
                 exit(EXIT_FAILURE);
             }
-            else{
+            else
+            {
                 printf("Received: %d bytes\n", bytes_received1);
             }
             switch (response1.type)
             {
-                case START_GAME:
-                    printf("Start game\n");
-                    printf("White user id: %d\n", response1.data.startGameData.white_user_id);
-                    printf("Black user id: %d\n", response1.data.startGameData.black_user_id);
-                    printf("Black username: %s\n", response1.data.startGameData.black_username);
-                    printf("White username: %s\n", response1.data.startGameData.white_username);
-                    printf("Room id: %d\n", response1.data.startGameData.room_id);
-                    printf("Total time: %d\n", response1.data.startGameData.total_time);
+            case START_GAME:
+                printf("Start game\n");
+                printf("White user id: %d\n", response1.data.startGameData.white_user_id);
+                printf("Black user id: %d\n", response1.data.startGameData.black_user_id);
+                printf("Black username: %s\n", response1.data.startGameData.black_username);
+                printf("White username: %s\n", response1.data.startGameData.white_username);
+                printf("Room id: %d\n", response1.data.startGameData.room_id);
+                printf("Total time: %d\n", response1.data.startGameData.total_time);
 
-                    break;
+                break;
             }
         }
     }
-
 }
-void get_top_player(int client_socket){
+void get_top_player(int client_socket)
+{
     Message message;
     message.type = GET_TOP_PLAYER;
     message.data.getTopPlayerData.user_id = user_id;
     int bytes_sent = send(client_socket, &message, sizeof(message), 0);
-    if(bytes_sent <= 0){
+    if (bytes_sent <= 0)
+    {
         printf("Connection closed\n");
         exit(EXIT_FAILURE);
     }
-    else{
+    else
+    {
         printf("Sent: %d bytes\n", bytes_sent);
     }
     // get response
-   
 }
-void chat(int client_socket){
+void chat(int client_socket)
+{
     Message message;
     message.type = CHAT;
     message.data.chatData.user_id = user_id;
@@ -1147,22 +1207,26 @@ void chat(int client_socket){
     char message_content[100];
     printf("Enter message: ");
     fgets(message_content, 100, stdin);
-    message_content[strlen(message_content)-1] = '\0';
+    message_content[strlen(message_content) - 1] = '\0';
     strcpy(message.data.chatData.message, message_content);
     send(client_socket, &message, sizeof(message), 0);
     getchar();
 }
-void get_message(int client_socket){
+void get_message(int client_socket)
+{
     Response response;
     int bytes_received = recv(client_socket, &response, sizeof(response), 0);
-    if(bytes_received <= 0){
+    if (bytes_received <= 0)
+    {
         printf("Connection closed\n");
         exit(EXIT_FAILURE);
     }
-    else{
+    else
+    {
         printf("Received: %d bytes\n", bytes_received);
     }
-    if(response.type == CHAT){
+    if (response.type == CHAT)
+    {
         printf("User %d send message: %s\n", response.data.chatData.user_id, response.data.chatData.message);
     }
 }
@@ -1208,6 +1272,7 @@ int main()
         printf("23. Get top player\n");
         printf("24. Chat\n");
         printf("25. Get message\n");
+        printf("26. Get Move\n");
         printf("Enter your choice: ");
         scanf("%d", &choice);
         switch (choice)
@@ -1286,6 +1351,9 @@ int main()
             break;
         case 25:
             get_message(client_socket);
+            break;
+        case 26:
+            get_move(client_socket);
             break;
         default:
             printf("Invalid choice\n");

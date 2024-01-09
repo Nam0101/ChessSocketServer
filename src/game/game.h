@@ -35,4 +35,5 @@ void handle_accept_or_decline_draw(const int client_socket, const AcceptOrDeclin
 void handle_replay(const int client_socket, const ReplayData *replayData);
 void handle_accept_replay(const int client_socket, const AcceptReplayData *acceptReplayData);
 void handle_get_history(int client_socket, const GetGameHistory *getGameHistory);
+void handle_get_move_history(int client_socket, const GetMoveHistory *getMoveHistory);
 #endif
