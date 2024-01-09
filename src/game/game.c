@@ -900,7 +900,7 @@ void handle_get_move_history(int client_socket, const GetMoveHistory *getMoveHis
         moveHistory->to_y = sqlite3_column_double(stmt, 5);
         response->data.moveHistory = *moveHistory;
         send_reponse(client_socket, response);
-        sleep(0.3);
+        sleep(1);
     }
     moveHistory->room_id = -1;
     moveHistory->move_id = -1;
