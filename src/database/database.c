@@ -38,6 +38,18 @@ sqlite3 *get_database_connection()
         pthread_mutex_unlock(&db_lock);
         return NULL;
     }
+
+    // Enable Write-Ahead Logging (WAL) mode
+    char *zErrMsg = 0;
+    if (sqlite3_exec(db, "PRAGMA journal_mode=WAL;", 0, 0, &zErrMsg) != SQLITE_OK)
+    {
+        char* msg = (char*)malloc(100);
+        sprintf(msg,"Cannot enable WAL mode: %s\n", zErrMsg);
+        Log("DB","e",msg);
+        free(msg);
+        sqlite3_free(zErrMsg);
+    }
+
     pthread_mutex_unlock(&db_lock);
     return db;
 }

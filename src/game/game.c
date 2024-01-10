@@ -33,9 +33,11 @@
                             FROM room JOIN user ON((room.black_user_id = user.id OR room.white_user_id = user.id) AND user.id != ?)\
                                                 WHERE(black_user_id = ? OR white_user_id = ?);"
 #define GET_MOVE_HISTORY_QUERY "SELECT move_id,piece_id,from_x,from_y,to_x,to_y FROM move WHERE room_id = ? ORDER BY move_id;"
+#define UPDATE_ELO_BY_USER_ID "UPDATE user SET elo = ? WHERE id = ?;"
 #define TAG "GAME"
 // mutex
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t update_end_game_mutex = PTHREAD_MUTEX_INITIALIZER;
 // list of room
 static room_t *list_room = NULL;
 room_t *create_room(int white_user_id, int total_time)
@@ -517,6 +519,12 @@ void move_db(int room_id, float from_x, float from_y, float to_x, float to_y, in
     sqlite3_bind_double(stmt, 5, to_x);
     sqlite3_bind_double(stmt, 6, to_y);
     sqlite3_step(stmt);
+    if(sqlite3_step(stmt) != SQLITE_DONE){
+        char *error = (char *)malloc(sizeof(char) * 100);
+        sprintf(error, "Cannot prepare statement on move_db: %s\n", sqlite3_errmsg(db));
+        Log(TAG, "e", error);
+        free(error);
+    }
     sqlite3_finalize(stmt);
     close_database_connection(db);
 }
@@ -541,6 +549,10 @@ void handle_move(const int client_socket, const Move *move)
     else
     {
         opponent_socket = room->white_socket;
+    }
+    if(move == NULL){
+        printf("move null\n");
+        return;
     }
     Response *response = (Response *)malloc(sizeof(Response));
     response->type = MOVE;
@@ -569,29 +581,89 @@ void update_playing(int user_id, int is_playing)
         current = current->next;
     }
 }
-void end_game_db(int room_id, int winner_id)
+// void end_game_db(int room_id, int winner_id)
+// {
+//     pthread_mutex_lock(&update_end_game_mutex);
+//     sqlite3 *db = get_database_connection();
+//     sqlite3_stmt *stmt;
+//     char *sql = UPDATE_ROOM_END_GAME;
+//     sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL);
+//     char *current_time = currtent_time();
+//     sqlite3_bind_text(stmt, 1, current_time, strlen(current_time), SQLITE_STATIC);
+//     sqlite3_bind_int(stmt, 2, winner_id);
+//     sqlite3_bind_int(stmt, 3, room_id);
+
+//     sqlite3_step(stmt);
+//     // check for error
+//     if (sqlite3_step(stmt) != SQLITE_DONE)
+//     {
+//         char *error = (char *)malloc(sizeof(char) * 100);
+//         sprintf(error, "Cannot prepare statement on end_game_db: %s\n", sqlite3_errmsg(db));
+//         Log(TAG, "e", error);
+//         free(error);
+//         close_database_connection(db);
+//     }
+//     sqlite3_finalize(stmt);
+//     close_database_connection(db);
+//     free(current_time);
+//     pthread_mutex_lock(&update_end_game_mutex);
+// }
+void end_game_and_update_elo(int room_id, int winner_id, int winner_elo, int loser_id, int loser_elo)
 {
+    sleep(1);
+    pthread_mutex_lock(&update_end_game_mutex);
     sqlite3 *db = get_database_connection();
+    char *sql;
     sqlite3_stmt *stmt;
-    char *sql = UPDATE_ROOM_END_GAME;
-    sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL);
     char *current_time = currtent_time();
+    char error[100];
+
+    // Begin transaction
+    sql = "BEGIN TRANSACTION;";
+    sqlite3_exec(db, sql, 0, 0, 0);
+
+    // Update end game
+    sql = UPDATE_ROOM_END_GAME;
+    sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL);
     sqlite3_bind_text(stmt, 1, current_time, strlen(current_time), SQLITE_STATIC);
     sqlite3_bind_int(stmt, 2, winner_id);
     sqlite3_bind_int(stmt, 3, room_id);
-    sqlite3_step(stmt);
-    // check for error
     if (sqlite3_step(stmt) != SQLITE_DONE)
     {
-        char *error = (char *)malloc(sizeof(char) * 100);
-        sprintf(error, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        sprintf(error, "Cannot prepare statement on end_game_db: %s\n", sqlite3_errmsg(db));
         Log(TAG, "e", error);
-        free(error);
-        close_database_connection(db);
     }
     sqlite3_finalize(stmt);
+    // Update winner elo
+    sql = UPDATE_ELO_BY_USER_ID;
+    sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    sqlite3_bind_int(stmt, 1, winner_elo);
+    sqlite3_bind_int(stmt, 2, winner_id);
+    if (sqlite3_step(stmt) != SQLITE_DONE)
+    {
+        sprintf(error, "Cannot prepare statement on func elo_update: %s\n", sqlite3_errmsg(db));
+        Log(TAG, "e", error);
+    }
+    sqlite3_finalize(stmt);
+
+    // Update loser elo
+    sql = UPDATE_ELO_BY_USER_ID;
+    sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    sqlite3_bind_int(stmt, 1, loser_elo);
+    sqlite3_bind_int(stmt, 2, loser_id);
+    if (sqlite3_step(stmt) != SQLITE_DONE)
+    {
+        sprintf(error, "Cannot prepare statement on func elo_update: %s\n", sqlite3_errmsg(db));
+        Log(TAG, "e", error);
+    }
+    sqlite3_finalize(stmt);
+
+    // Commit transaction
+    sql = "COMMIT;";
+    sqlite3_exec(db, sql, 0, 0, 0);
     close_database_connection(db);
     free(current_time);
+    pthread_mutex_unlock(&update_end_game_mutex);
 }
 void handle_end_game(const int client_socket, const EndGameData *endGameData)
 {
@@ -617,14 +689,12 @@ void handle_end_game(const int client_socket, const EndGameData *endGameData)
         if (status == 1)
         {
             elo_calculation(user_id, opponent_id, 1);
-            end_game_db(room_id, user_id);
+            end_game_and_update_elo(room_id, user_id, get_elo_by_user_id(user_id), opponent_id, get_elo_by_user_id(opponent_id));
         }
-        else if (status == 0)
-            elo_calculation(user_id, opponent_id, 0);
         else
         {
             elo_calculation(user_id, opponent_id, 0.5);
-            end_game_db(room_id, 0);
+            end_game_and_update_elo(room_id, user_id, get_elo_by_user_id(user_id), opponent_id, get_elo_by_user_id(opponent_id));
         }
     }
     update_playing(user_id, 0);
@@ -651,6 +721,10 @@ void handle_surrender(const int client_socket, const SurrenderData *surrenderDat
     room_t *room = get_room_by_id(get_list_room(), room_id);
     if (room == NULL)
     {
+        char *log_msg = (char *)malloc(sizeof(char) * 100);
+        sprintf(log_msg, "Room %d not found", room_id);
+        Log(TAG, "e", log_msg);
+        free(log_msg);
         return;
     }
     if (room->white_socket == client_socket)
@@ -732,49 +806,29 @@ void handle_get_history(int client_socket, const GetGameHistory *getGameHistory)
     sqlite3_bind_int(stmt, 2, user_id);
     sqlite3_bind_int(stmt, 3, user_id);
     sqlite3_bind_int(stmt, 4, user_id);
-
-    // Count the number of rows
-    int count = 0;
-    while (sqlite3_step(stmt) == SQLITE_ROW)
-    {
-        count++;
-    }
-
-    // Reset the statement and bind parameters again
-    sqlite3_reset(stmt);
-    sqlite3_bind_int(stmt, 1, user_id);
-    sqlite3_bind_int(stmt, 2, user_id);
-    sqlite3_bind_int(stmt, 3, user_id);
-    sqlite3_bind_int(stmt, 4, user_id);
-
-    // Create and send the response with the number of game histories
-    Response *response = (Response *)malloc(sizeof(Response));
-    response->type = NUMBER_OF_HISTORY;
-    response->data.numberOfGameHistory.number_of_game = count;
-    response->data.numberOfGameHistory.user_id = user_id;
-    send_reponse(client_socket, response);
-    free(response);
-
-    // Retrieve and print the game histories
-    for (int i = 0; i < count; i++)
-    {
-        sqlite3_step(stmt);
+    
+    while (sqlite3_step(stmt) == SQLITE_ROW){
         Response *response = (Response *)malloc(sizeof(Response));
+        if(response == NULL){
+            printf("response null\n");
+            return;
+        }
         response->type = HISTORY_RESPONSE;
-        // check if any column is null
         if (sqlite3_column_type(stmt, 0) == SQLITE_NULL || sqlite3_column_type(stmt, 1) == SQLITE_NULL || sqlite3_column_type(stmt, 2) == SQLITE_NULL || sqlite3_column_type(stmt, 3) == SQLITE_NULL || sqlite3_column_type(stmt, 4) == SQLITE_NULL || sqlite3_column_type(stmt, 5) == SQLITE_NULL)
         {
+            free(response);
             continue;
         }
         response->data.gameHistoryResponse.room_id = sqlite3_column_int(stmt, 0);
-        strcpy(response->data.gameHistoryResponse.opponent_name, (char*)sqlite3_column_text(stmt, 1));
+        strcpy(response->data.gameHistoryResponse.opponent_name, (char *)sqlite3_column_text(stmt, 1));
         response->data.gameHistoryResponse.opponent_id = sqlite3_column_int(stmt, 2);
-        strcpy(response->data.gameHistoryResponse.start_time, (char*)sqlite3_column_text(stmt, 3));
-        strcpy(response->data.gameHistoryResponse.end_time, (char*)sqlite3_column_text(stmt, 4));
+        strcpy(response->data.gameHistoryResponse.start_time, (char *)sqlite3_column_text(stmt, 3));
+        strcpy(response->data.gameHistoryResponse.end_time, (char *)sqlite3_column_text(stmt, 4));
         response->data.gameHistoryResponse.result = sqlite3_column_int(stmt, 5);
         send_reponse(client_socket, response);
         free(response);
     }
+    
 
     sqlite3_finalize(stmt);
     close_database_connection(db);

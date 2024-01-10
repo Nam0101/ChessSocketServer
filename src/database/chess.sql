@@ -29,12 +29,6 @@ CREATE TABLE "room" (
   FOREIGN KEY (black_user_id) REFERENCES user(id),
   FOREIGN KEY (white_user_id) REFERENCES user(id)
 )
--- Tạo bảng piece
-CREATE TABLE piece (
-  pieceId   INTEGER PRIMARY KEY,
-  type      CHAR(1),
-  colour    CHAR(1)
-)
 -- Tạo bảng move
 CREATE TABLE move (
   move_id    INTEGER PRIMARY KEY AUTOINCREMENT,

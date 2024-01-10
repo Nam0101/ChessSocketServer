@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra
+CFLAGS = -Wall -Wextra -g
 LIBS = -lpthread -lsqlite3 -lssl -lcrypto -lm
 SRC_DIR = src
 BIN_DIR = bin

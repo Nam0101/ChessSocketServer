@@ -39,6 +39,7 @@
 #define TAG "USER"
 loged_in_user_t *online_user_list = NULL;
 pthread_mutex_t online_list_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t up_date_elo_mutex = PTHREAD_MUTEX_INITIALIZER;
 void add_online_user(int user_id, int elo, int client_socket, char *username)
 {
     loged_in_user_t *new_user = (loged_in_user_t *)malloc(sizeof(loged_in_user_t));
@@ -683,63 +684,69 @@ void updateElo(int *Ra, int *Rb, int Ka, int Kb, double Aa, double Ab, float res
     *Ra = *Ra + Ka * (result - Aa);
     *Rb = *Rb + Kb * ((1.0 - result) - Ab);
 }
-void elo_update(int user_id, int elo)
-{
-    sqlite3 *db = get_database_connection();
-    char *sql = UPDATE_ELO_BY_USER_ID;
-    sqlite3_stmt *stmt;
-    int rc;
-    int max_retries = 5;
-    char error[100]; // Use stack allocation instead of heap for better performance
+// void elo_update(int user_id, int elo)
+// {
+//     sqlite3 *db = get_database_connection();
+//     char *sql = UPDATE_ELO_BY_USER_ID;
+//     sqlite3_stmt *stmt;
+//     int rc;
+//     int max_retries = 5;
+//     char error[100]; // Use stack allocation instead of heap for better performance
+//     pthread_mutex_lock(&up_date_elo_mutex);
+//     for (int attempt = 0; attempt < max_retries; attempt++)
+//     {
+//         rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+//         if (rc == SQLITE_OK)
+//         {
+//             break;
+//         }
+//         else if (rc == SQLITE_BUSY || rc == SQLITE_LOCKED)
+//         {
+//             sprintf(error, "Cannot prepare statement on func elo_update: %s\n", sqlite3_errmsg(db));
+//             Log(TAG, "e", error);
+//             sleep(0.2); 
+//         }
+//         else
+//         {
+//             sprintf(error, "Cannot prepare statement on func elo_update(canot update): %s\n", sqlite3_errmsg(db));
+//             Log(TAG, "e", error);
+//             sqlite3_finalize(stmt); // Finalize the statement before closing the connection
+//             pthread_mutex_unlock(&up_date_elo_mutex);
+//             close_database_connection(db);
+//             return;
+//         }
+//     }
 
-    for (int attempt = 0; attempt < max_retries; attempt++)
-    {
-        rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
-        if (rc == SQLITE_OK)
-        {
-            break;
-        }
-        else if (rc == SQLITE_BUSY || rc == SQLITE_LOCKED)
-        {
-            sprintf(error, "Cannot prepare statement on func elo_update: %s\n", sqlite3_errmsg(db));
-            Log(TAG, "e", error);
-            sleep(0.2); 
-        }
-        else
-        {
-            sprintf(error, "Cannot prepare statement on func elo_update: %s\n", sqlite3_errmsg(db));
-            Log(TAG, "e", error);
-            sqlite3_finalize(stmt); // Finalize the statement before closing the connection
-            close_database_connection(db);
-            return;
-        }
-    }
+//     if (rc != SQLITE_OK)
+//     {
+//         pthread_mutex_unlock(&up_date_elo_mutex);
+//         sqlite3_finalize(stmt); // Finalize the statement before closing the connection
+//         close_database_connection(db);
+//         return;
+//     }
 
-    if (rc != SQLITE_OK)
-    {
-        sqlite3_finalize(stmt); // Finalize the statement before closing the connection
-        close_database_connection(db);
-        return;
-    }
+//     sqlite3_bind_int(stmt, 1, elo);
+//     sqlite3_bind_int(stmt, 2, user_id);
+//     rc = sqlite3_step(stmt);
 
-    sqlite3_bind_int(stmt, 1, elo);
-    sqlite3_bind_int(stmt, 2, user_id);
-    rc = sqlite3_step(stmt);
-
-    if (rc != SQLITE_DONE) {
-        sprintf(error, "Execution failed: %s\n", sqlite3_errmsg(db));
-        Log(TAG, "e", error);
-    }
-
-    sqlite3_finalize(stmt);
-    close_database_connection(db);
-}
+//     if (rc != SQLITE_DONE) {
+//         sprintf(error, "Execution failed: %s\n", sqlite3_errmsg(db));
+//         Log(TAG, "e", error);
+//     }
+//     else{
+//         printf("Update elo success\n");
+//     }
+//     pthread_mutex_unlock(&up_date_elo_mutex);
+//     sqlite3_finalize(stmt);
+//     close_database_connection(db);
+// }
 /// @brief update elo after match if winner_id win, result is 1 and if draw result is 0.5
 /// @param winner_id
 /// @param loser_id
 /// @param result
 void update_elo_on_caching(int user_id, int elo)
 {
+    printf("Update elo on caching for user_id: %d, elo: %d\n", user_id, elo);
     loged_in_user_t *current = online_user_list;
     while (current != NULL)
     {
@@ -753,6 +760,7 @@ void update_elo_on_caching(int user_id, int elo)
 }
 void elo_calculation(int winner_id, int loser_id, float result)
 {
+    printf("Update elo for winner: %d, loser: %d, result: %f\n", winner_id, loser_id, result);
     loged_in_user_t *current = online_user_list;
     int winner_elo = 0;
     int loser_elo = 0;
@@ -773,9 +781,18 @@ void elo_calculation(int winner_id, int loser_id, float result)
     double Aa = calculateEloA(winner_elo, loser_elo);
     double Ab = calculateEloB(winner_elo, loser_elo);
     updateElo(&winner_elo, &loser_elo, k_winner, k_loser, Aa, Ab, result);
-    update_elo_on_caching(winner_id, winner_elo);
-    update_elo_on_caching(loser_id, loser_elo);
-    elo_update(winner_id, winner_elo);
+    if(result == 1)
+    {
+        updateElo(&winner_elo, &loser_elo, k_winner, k_loser, Aa, Ab, result);
+        update_elo_on_caching(winner_id, winner_elo);
+        update_elo_on_caching(loser_id, loser_elo);
+    }
+    else if(result == 0.5)
+    {
+        updateElo(&winner_elo, &loser_elo, k_winner, k_loser, Aa, Ab, result);
+        update_elo_on_caching(winner_id, winner_elo);
+        update_elo_on_caching(loser_id, loser_elo);
+    }
 
 }
 void handle_get_top_player(const int client_socket, const GetTopPlayerData *getTopPlayerData)
