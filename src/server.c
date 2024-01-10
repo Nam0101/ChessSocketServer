@@ -38,8 +38,10 @@ void check(int code)
 void handle_client(int client_socket)
 {
     Message *message = (Message *)malloc(sizeof(Message));
-
-    check(recv(client_socket, message, MAX_BUFFER_SIZE, 0));
+    ssize_t bytes_received = recv(client_socket, message, MAX_BUFFER_SIZE, 0);
+    if(bytes_received <= 0){
+        return;
+    }
     switch (message->type)
     {
     case LOGIN:
@@ -232,6 +234,7 @@ void *listen_online_user_list()
             }
             online_user = online_user->next;
         }
+        online_user = get_list_online_user();
     }
     return NULL;
 }

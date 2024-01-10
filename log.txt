@@ -1,114 +1,88 @@
-[2024-1-10 13:0:30] [SERVER] [i] Server is listening on port 8888
-[2024-1-10 13:0:41] [SERVER] [i] Accepted connection from 127.0.0.1:58094
-[2024-1-10 13:0:44] [SERVER] [i] Accepted connection from 127.0.0.1:58102
-[2024-1-10 13:0:50] [SERVER] [i] Received login request
-[2024-1-10 13:0:56] [SERVER] [i] Received login request
-[2024-1-10 13:0:56] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:0:57] [SERVER] [i] Received finding match request
-[2024-1-10 13:0:58] [SERVER] [i] Received finding match request
-[2024-1-10 13:0:58] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:0:58] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:0:58] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:0:58] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:0:58] [GAME] [i] Found match for user 1 and user 3
-[2024-1-10 13:1:0] [SERVER] [i] Received move request
-[2024-1-10 13:1:0] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:1:2] [SERVER] [i] Received move request
-[2024-1-10 13:1:2] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:1:3] [SERVER] [i] Received move request
-[2024-1-10 13:1:3] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:1:4] [SERVER] [i] Received move request
-[2024-1-10 13:1:4] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:1:6] [SERVER] [i] Received move request
-[2024-1-10 13:1:6] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:1:7] [SERVER] [i] Received move request
-[2024-1-10 13:1:7] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:1:8] [SERVER] [i] Received move request
-[2024-1-10 13:1:8] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:1:10] [SERVER] [i] Received move request
-[2024-1-10 13:1:10] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:1:11] [SERVER] [i] Received move request
-[2024-1-10 13:1:11] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:1:11] [SERVER] [i] Received end game request
-[2024-1-10 13:1:11] [SERVER] [i] Received end game request
-[2024-1-10 13:1:12] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:1:12] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:1:15] [SERVER] [i] Received get history request
-[2024-1-10 13:1:15] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:1:16] [SERVER] [i] Received get top player request
-[2024-1-10 13:1:16] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:1:28] [SERVER] [i] Received finding match request
-[2024-1-10 13:1:29] [SERVER] [i] Received finding match request
-[2024-1-10 13:1:29] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:1:29] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:1:29] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:1:29] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:1:29] [GAME] [i] Found match for user 3 and user 1
-[2024-1-10 13:1:34] [SERVER] [i] Received move request
-[2024-1-10 13:1:34] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:1:35] [SERVER] [i] Received move request
-[2024-1-10 13:1:35] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:1:37] [SERVER] [i] Received move request
-[2024-1-10 13:1:37] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:1:39] [SERVER] [i] Received move request
-[2024-1-10 13:1:39] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:1:40] [SERVER] [i] Received move request
-[2024-1-10 13:1:40] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:1:41] [SERVER] [i] Received move request
-[2024-1-10 13:1:41] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:1:47] [SERVER] [i] Received move request
-[2024-1-10 13:1:47] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:1:57] [SERVER] [i] Received move request
-[2024-1-10 13:1:57] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:1:58] [SERVER] [i] Received move request
-[2024-1-10 13:1:58] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:2:1] [SERVER] [i] Received move request
-[2024-1-10 13:2:1] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:2:3] [SERVER] [i] Received move request
-[2024-1-10 13:2:3] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:2:3] [SERVER] [i] Received end game request
-[2024-1-10 13:2:3] [SERVER] [i] Received end game request
-[2024-1-10 13:2:4] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:2:4] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:2:7] [SERVER] [i] Received get history request
-[2024-1-10 13:2:7] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:2:9] [SERVER] [i] Received get top player request
-[2024-1-10 13:2:9] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:2:17] [SERVER] [i] Received finding match request
-[2024-1-10 13:2:18] [SERVER] [i] Received finding match request
-[2024-1-10 13:2:18] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:2:18] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:2:18] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:2:18] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:2:18] [GAME] [i] Found match for user 3 and user 1
-[2024-1-10 13:2:20] [SERVER] [i] Received surrender request
-[2024-1-10 13:2:20] [SERVER] [i] Received end game request
-[2024-1-10 13:2:21] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:2:24] [SERVER] [i] Received end game request
-[2024-1-10 13:2:33] [SERVER] [i] Received get top player request
-[2024-1-10 13:2:33] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:2:37] [SERVER] [i] Received finding match request
-[2024-1-10 13:2:39] [SERVER] [i] Received finding match request
-[2024-1-10 13:2:39] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:2:39] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:2:39] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:2:39] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:2:39] [GAME] [i] Found match for user 3 and user 1
-[2024-1-10 13:2:40] [SERVER] [i] Received pause request
-[2024-1-10 13:2:42] [SERVER] [i] Received resume request
-[2024-1-10 13:2:43] [SERVER] [i] Received pause request
-[2024-1-10 13:2:43] [SERVER] [i] Received resume request
-[2024-1-10 13:2:44] [SERVER] [i] Received pause request
-[2024-1-10 13:2:45] [SERVER] [i] Received resume request
-[2024-1-10 13:2:46] [SERVER] [i] Received move request
-[2024-1-10 13:2:46] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:2:50] [SERVER] [i] Received draw request
-[2024-1-10 13:2:53] [SERVER] [i] Received accept or decline draw request
-[2024-1-10 13:2:53] [SERVER] [i] Received end game request
-[2024-1-10 13:2:53] [SERVER] [i] Received end game request
-[2024-1-10 13:2:54] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:2:54] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:3:0] [SERVER] [i] Received get top player request
-[2024-1-10 13:3:0] [DB] [i] Number of conn to db: 1
-[2024-1-10 13:3:3] [SERVER] [i] Received exit request
-[2024-1-10 13:3:4] [SERVER] [i] Received exit request
+[2024-1-11 0:52:12] [SERVER] [i] Server is listening on port 8888
+[2024-1-11 0:52:21] [SERVER] [i] Accepted connection from 127.0.0.1:41396
+[2024-1-11 0:52:27] [SERVER] [i] Accepted connection from 127.0.0.1:41398
+[2024-1-11 0:52:37] [SERVER] [i] Received login request
+[2024-1-11 0:52:43] [SERVER] [i] Received login request
+[2024-1-11 0:52:43] [DB] [i] Number of conn to db: 1
+[2024-1-11 0:52:44] [SERVER] [i] Received finding match request
+[2024-1-11 0:52:44] [SERVER] [i] Received finding match request
+[2024-1-11 0:52:44] [DB] [i] Number of conn to db: 1
+[2024-1-11 0:52:44] [DB] [i] Number of conn to db: 1
+[2024-1-11 0:52:44] [DB] [i] Number of conn to db: 1
+[2024-1-11 0:52:44] [DB] [i] Number of conn to db: 1
+[2024-1-11 0:52:44] [GAME] [i] Found match for user 3 and user 2
+[2024-1-11 0:52:47] [SERVER] [i] Received move request
+[2024-1-11 0:52:47] [DB] [i] Number of conn to db: 1
+[2024-1-11 0:52:48] [SERVER] [i] Received move request
+[2024-1-11 0:52:48] [DB] [i] Number of conn to db: 1
+[2024-1-11 0:52:49] [SERVER] [i] Received move request
+[2024-1-11 0:52:49] [DB] [i] Number of conn to db: 1
+[2024-1-11 0:52:50] [SERVER] [i] Received move request
+[2024-1-11 0:52:50] [DB] [i] Number of conn to db: 1
+[2024-1-11 0:52:52] [SERVER] [i] Received move request
+[2024-1-11 0:52:52] [DB] [i] Number of conn to db: 1
+[2024-1-11 0:52:53] [SERVER] [i] Received move request
+[2024-1-11 0:52:53] [DB] [i] Number of conn to db: 1
+[2024-1-11 0:52:54] [SERVER] [i] Received move request
+[2024-1-11 0:52:54] [DB] [i] Number of conn to db: 1
+[2024-1-11 0:52:55] [SERVER] [i] Received move request
+[2024-1-11 0:52:55] [DB] [i] Number of conn to db: 1
+[2024-1-11 0:52:56] [SERVER] [i] Received move request
+[2024-1-11 0:52:56] [DB] [i] Number of conn to db: 1
+[2024-1-11 0:52:56] [SERVER] [i] Received end game request
+[2024-1-11 0:52:56] [SERVER] [i] Received end game request
+[2024-1-11 0:52:57] [DB] [i] Number of conn to db: 1
+[2024-1-11 0:52:58] [SERVER] [i] Received get friends request
+[2024-1-11 0:52:58] [DB] [i] Number of conn to db: 1
+[2024-1-11 0:52:58] [SERVER] [i] Received get friends request
+[2024-1-11 0:52:58] [DB] [i] Number of conn to db: 1
+[2024-1-11 0:52:58] [SERVER] [i] Received get friends request
+[2024-1-11 0:52:58] [DB] [i] Number of conn to db: 1
+[2024-1-11 0:52:59] [SERVER] [i] Received get friends request
+[2024-1-11 0:52:59] [DB] [i] Number of conn to db: 1
+[2024-1-11 0:52:59] [SERVER] [i] Received get friends request
+[2024-1-11 0:52:59] [DB] [i] Number of conn to db: 1
+[2024-1-11 0:52:59] [SERVER] [i] Received get friends request
+[2024-1-11 0:52:59] [DB] [i] Number of conn to db: 1
+[2024-1-11 0:52:59] [SERVER] [i] Received get friends request
+[2024-1-11 0:52:59] [DB] [i] Number of conn to db: 1
+[2024-1-11 0:52:59] [SERVER] [i] Received get friends request
+[2024-1-11 0:52:59] [DB] [i] Number of conn to db: 1
+[2024-1-11 0:52:59] [SERVER] [i] Received get history request
+[2024-1-11 0:52:59] [DB] [i] Number of conn to db: 1
+[2024-1-11 0:53:0] [SERVER] [i] Received get history request
+[2024-1-11 0:53:0] [DB] [i] Number of conn to db: 1
+[2024-1-11 0:53:0] [SERVER] [i] Received get history request
+[2024-1-11 0:53:0] [DB] [i] Number of conn to db: 1
+[2024-1-11 0:53:0] [SERVER] [i] Received get history request
+[2024-1-11 0:53:0] [DB] [i] Number of conn to db: 1
+[2024-1-11 0:53:0] [SERVER] [i] Received get top player request
+[2024-1-11 0:53:0] [DB] [i] Number of conn to db: 1
+[2024-1-11 0:53:0] [SERVER] [i] Received get top player request
+[2024-1-11 0:53:0] [DB] [i] Number of conn to db: 1
+[2024-1-11 0:53:0] [SERVER] [i] Received get top player request
+[2024-1-11 0:53:0] [DB] [i] Number of conn to db: 1
+[2024-1-11 0:53:1] [SERVER] [i] Received get history request
+[2024-1-11 0:53:1] [DB] [i] Number of conn to db: 1
+[2024-1-11 0:53:1] [SERVER] [i] Received get history request
+[2024-1-11 0:53:1] [DB] [i] Number of conn to db: 1
+[2024-1-11 0:53:1] [SERVER] [i] Received get history request
+[2024-1-11 0:53:1] [DB] [i] Number of conn to db: 1
+[2024-1-11 0:53:1] [SERVER] [i] Received get history request
+[2024-1-11 0:53:1] [DB] [i] Number of conn to db: 1
+[2024-1-11 0:53:1] [SERVER] [i] Received get top player request
+[2024-1-11 0:53:1] [DB] [i] Number of conn to db: 1
+[2024-1-11 0:53:1] [SERVER] [i] Received get top player request
+[2024-1-11 0:53:1] [DB] [i] Number of conn to db: 1
+[2024-1-11 0:53:2] [SERVER] [i] Received get top player request
+[2024-1-11 0:53:2] [DB] [i] Number of conn to db: 1
+[2024-1-11 0:53:3] [SERVER] [i] Received get history request
+[2024-1-11 0:53:3] [DB] [i] Number of conn to db: 1
+[2024-1-11 0:53:3] [SERVER] [i] Received get friends request
+[2024-1-11 0:53:3] [DB] [i] Number of conn to db: 1
+[2024-1-11 0:53:3] [SERVER] [i] Received get friends request
+[2024-1-11 0:53:3] [DB] [i] Number of conn to db: 1
+[2024-1-11 0:53:3] [SERVER] [i] Received get friends request
+[2024-1-11 0:53:3] [DB] [i] Number of conn to db: 1
+[2024-1-11 0:53:14] [SERVER] [i] Received exit request
+[2024-1-11 0:53:15] [SERVER] [i] Received exit request

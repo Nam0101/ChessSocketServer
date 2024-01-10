@@ -38,6 +38,8 @@
 // mutex
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t update_end_game_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t handle_end_game_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t user_mutex = PTHREAD_MUTEX_INITIALIZER;
 // list of room
 static room_t *list_room = NULL;
 room_t *create_room(int white_user_id, int total_time)
@@ -46,6 +48,7 @@ room_t *create_room(int white_user_id, int total_time)
     room->white_user_id = white_user_id;
     room->black_user_id = -1;
     room->total_time = total_time;
+    room->status = 0;
     room->next = NULL;
     return room;
 }
@@ -190,17 +193,21 @@ void handle_invite_friend(const int client_socket, const InviteFriendData *invit
 
 void set_finding(int user_id, int is_finding)
 {
+    pthread_mutex_lock(&user_mutex);
     loged_in_user_t *current = get_list_online_user();
 
     while (current != NULL)
     {
         if (current->user_id == user_id)
         {
+            
             current->is_finding = is_finding;
+            pthread_mutex_unlock(&user_mutex);
             break;
         }
         current = current->next;
     }
+    pthread_mutex_unlock(&user_mutex);
 }
 int is_between(int value, int min, int max)
 {
@@ -208,41 +215,50 @@ int is_between(int value, int min, int max)
 }
 int finding_match(int user_id, int elo)
 {
+    pthread_mutex_lock(&user_mutex);
     loged_in_user_t *current = get_list_online_user();
     while (current != NULL)
     {
         if (current->user_id != user_id && current->is_finding == 1 && is_between(current->elo, elo - ELO_THRESHOLD, elo + ELO_THRESHOLD))
         {
+            pthread_mutex_unlock(&user_mutex);
             return current->user_id;
         }
         current = current->next;
     }
+    pthread_mutex_unlock(&user_mutex);
     return -1;
 }
 int get_client_socket_by_user_id(int user_id)
 {
+    pthread_mutex_lock(&user_mutex);
     loged_in_user_t *current = get_list_online_user();
     while (current != NULL)
     {
         if (current->user_id == user_id)
         {
+            pthread_mutex_unlock(&user_mutex);
             return current->client_socket;
         }
         current = current->next;
     }
+    pthread_mutex_unlock(&user_mutex);
     return -1;
 }
 int get_elo_by_user_id(int user_id)
 {
+    pthread_mutex_lock(&user_mutex);
     loged_in_user_t *current = get_list_online_user();
     while (current != NULL)
     {
         if (current->user_id == user_id)
         {
+            pthread_mutex_unlock(&user_mutex);
             return current->elo;
         }
         current = current->next;
     }
+    pthread_mutex_unlock(&user_mutex);
     return -1;
 }
 
@@ -275,15 +291,18 @@ void assign_usernames(Response *response)
 }
 int get_finding(int user_id)
 {
+    pthread_mutex_lock(&user_mutex);
     loged_in_user_t *current = get_list_online_user();
     while (current != NULL)
     {
         if (current->user_id == user_id)
         {
+            pthread_mutex_unlock(&user_mutex);
             return current->is_finding;
         }
         current = current->next;
     }
+    pthread_mutex_unlock(&user_mutex);
     return -1;
 }
 void handle_finding_match(const int client_socket, const FindingMatchData *findingMatchData)
@@ -386,24 +405,22 @@ void start_game_db(int room_id, int white_user_id, int black_user_id, int total_
 }
 room_t *get_room_by_id(room_t *room_list, int room_id)
 {
+    pthread_mutex_lock(&mutex);
     room_t *current = room_list;
     while (current != NULL)
     {
         if (current->room_id == room_id)
         {
+            pthread_mutex_unlock(&mutex);
             return current;
         }
         current = current->next;
     }
+    pthread_mutex_unlock(&mutex);
     return NULL;
 }
 void handle_accept_or_decline_invitation(const int client_socket, const AcceptOrDeclineInvitationData *acceptOrDeclineInvitationData)
 {
-    printf("accept or decline invitation\n");
-    printf("Room id: %d\n", acceptOrDeclineInvitationData->room_id);
-    printf("Invited user id: %d\n", acceptOrDeclineInvitationData->invited_user_id);
-    printf("User id: %d\n", acceptOrDeclineInvitationData->user_id);
-    printf("Is accept: %d\n", acceptOrDeclineInvitationData->is_accept);
     char *log_msg = (char *)malloc(sizeof(char) * 100);
     int invited_user_socket = get_client_socket_by_user_id(acceptOrDeclineInvitationData->invited_user_id);
     Response *response = (Response *)malloc(sizeof(Response));
@@ -519,7 +536,8 @@ void move_db(int room_id, float from_x, float from_y, float to_x, float to_y, in
     sqlite3_bind_double(stmt, 5, to_x);
     sqlite3_bind_double(stmt, 6, to_y);
     sqlite3_step(stmt);
-    if(sqlite3_step(stmt) != SQLITE_DONE){
+    if (sqlite3_step(stmt) != SQLITE_DONE)
+    {
         char *error = (char *)malloc(sizeof(char) * 100);
         sprintf(error, "Cannot prepare statement on move_db: %s\n", sqlite3_errmsg(db));
         Log(TAG, "e", error);
@@ -531,6 +549,11 @@ void move_db(int room_id, float from_x, float from_y, float to_x, float to_y, in
 
 void handle_move(const int client_socket, const Move *move)
 {
+    if (move == NULL)
+    {
+        printf("move null\n");
+        return;
+    }
     int room_id = move->room_id;
     int opponent_socket;
     room_t *room = get_room_by_id(get_list_room(), room_id);
@@ -550,11 +573,17 @@ void handle_move(const int client_socket, const Move *move)
     {
         opponent_socket = room->white_socket;
     }
-    if(move == NULL){
+    if (move == NULL)
+    {
         printf("move null\n");
         return;
     }
     Response *response = (Response *)malloc(sizeof(Response));
+    if (response == NULL)
+    {
+        printf("response null\n");
+        return;
+    }
     response->type = MOVE;
     response->data.move.user_id = move->user_id;
     response->data.move.room_id = move->room_id;
@@ -667,6 +696,13 @@ void end_game_and_update_elo(int room_id, int winner_id, int winner_elo, int los
 }
 void handle_end_game(const int client_socket, const EndGameData *endGameData)
 {
+    pthread_mutex_lock(&handle_end_game_mutex);
+    if (endGameData == NULL)
+    {
+        pthread_mutex_unlock(&handle_end_game_mutex);
+        printf("end game data null\n");
+        return;
+    }
     int room_id = endGameData->room_id;
     int user_id = endGameData->user_id;
     int status = endGameData->status;
@@ -678,6 +714,7 @@ void handle_end_game(const int client_socket, const EndGameData *endGameData)
         sprintf(log_msg, "Room %d not found", room_id);
         Log(TAG, "e", log_msg);
         free(log_msg);
+        pthread_mutex_unlock(&handle_end_game_mutex);
         return;
     }
     if (current_room->white_socket == client_socket)
@@ -709,7 +746,7 @@ void handle_end_game(const int client_socket, const EndGameData *endGameData)
         remove_room(get_list_room(), room_id);
     else
         current_room->status++;
-
+    pthread_mutex_unlock(&handle_end_game_mutex);
     free(response);
 }
 
@@ -806,10 +843,12 @@ void handle_get_history(int client_socket, const GetGameHistory *getGameHistory)
     sqlite3_bind_int(stmt, 2, user_id);
     sqlite3_bind_int(stmt, 3, user_id);
     sqlite3_bind_int(stmt, 4, user_id);
-    
-    while (sqlite3_step(stmt) == SQLITE_ROW){
+
+    while (sqlite3_step(stmt) == SQLITE_ROW)
+    {
         Response *response = (Response *)malloc(sizeof(Response));
-        if(response == NULL){
+        if (response == NULL)
+        {
             printf("response null\n");
             return;
         }
@@ -828,7 +867,6 @@ void handle_get_history(int client_socket, const GetGameHistory *getGameHistory)
         send_reponse(client_socket, response);
         free(response);
     }
-    
 
     sqlite3_finalize(stmt);
     close_database_connection(db);

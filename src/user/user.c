@@ -594,15 +594,21 @@ char *get_user_name_by_user_id(int user_id)
 
 void handle_get_online_friends(const int client_socket, const GetOnlineFriendsData *getOnlineFriendsData)
 {
+    if(getOnlineFriendsData == NULL)
+    {
+        printf("getOnlineFriendsData is NULL\n");
+        return;
+    }
     loged_in_user_t *current = online_user_list;
     //mảng chứa danh sách bạn bè
-    FriendDataResponse *friendDataResponse = (FriendDataResponse *)malloc(50 * sizeof(FriendDataResponse));
+    FriendDataResponse *friendDataResponse = (FriendDataResponse *)malloc(10 * sizeof(FriendDataResponse));
     if (friendDataResponse == NULL)
     {
         char *error = (char *)malloc(100);
         sprintf(error, "Cannot allocate memory for friendDataResponse\n");
         Log(TAG, "e", error);
         free(error);
+        return;
     }
     int number_of_friends = get_friend_list(getOnlineFriendsData->user_id, friendDataResponse);
     Response *response = (Response *)malloc(sizeof(Response));
@@ -797,6 +803,11 @@ void elo_calculation(int winner_id, int loser_id, float result)
 }
 void handle_get_top_player(const int client_socket, const GetTopPlayerData *getTopPlayerData)
 {
+    if(getTopPlayerData == NULL)
+    {
+        printf("getTopPlayerData is NULL\n");
+        return;
+    }
     sqlite3 *db = get_database_connection();
     char *sql = GET_TOP_PLAYER_QUERY;
     sqlite3_stmt *stmt;
