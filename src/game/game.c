@@ -200,7 +200,7 @@ void set_finding(int user_id, int is_finding)
     {
         if (current->user_id == user_id)
         {
-            
+
             current->is_finding = is_finding;
             pthread_mutex_unlock(&user_mutex);
             break;
@@ -472,6 +472,7 @@ void handle_accept_or_decline_invitation(const int client_socket, const AcceptOr
 
 void get_user_id_by_room_id(int room_id, int *white_user_id, int *black_user_id)
 {
+    pthread_mutex_lock(&mutex);
     room_t *current = get_list_room();
     while (current != NULL)
     {
@@ -479,26 +480,30 @@ void get_user_id_by_room_id(int room_id, int *white_user_id, int *black_user_id)
         {
             *white_user_id = current->white_user_id;
             *black_user_id = current->black_user_id;
+            pthread_mutex_unlock(&mutex);
             return;
         }
         current = current->next;
     }
-
+    pthread_mutex_unlock(&mutex);
     *white_user_id = -1;
     *black_user_id = -1;
 }
 void update_playing_status(int user_id, int is_playing)
 {
+    pthread_mutex_lock(&user_mutex);
     loged_in_user_t *current = get_list_online_user();
     while (current != NULL)
     {
         if (current->user_id == user_id)
         {
+            pthread_mutex_unlock(&user_mutex);
             current->is_playing = is_playing;
             break;
         }
         current = current->next;
     }
+    pthread_mutex_unlock(&user_mutex);
 }
 void handle_start_game(const int client_socket, const StartGame *startGame)
 {
@@ -593,22 +598,25 @@ void handle_move(const int client_socket, const Move *move)
     response->data.move.to_y = move->to_y;
     response->data.move.piece_type = move->piece_type;
     response->data.move.current_time = move->current_time;
-    send_reponse(opponent_socket, response);
+    send(opponent_socket, response, sizeof(Response), 0);
     move_db(move->room_id, move->from_x, move->from_y, move->to_x, move->to_y, move->piece_type);
     free(response);
 }
 void update_playing(int user_id, int is_playing)
 {
+    pthread_mutex_lock(&user_mutex);
     loged_in_user_t *current = get_list_online_user();
     while (current != NULL)
     {
         if (current->user_id == user_id)
         {
+            pthread_mutex_unlock(&user_mutex);
             current->is_playing = is_playing;
             break;
         }
         current = current->next;
     }
+    pthread_mutex_unlock(&user_mutex);
 }
 // void end_game_db(int room_id, int winner_id)
 // {

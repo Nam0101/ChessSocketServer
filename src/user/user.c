@@ -11,9 +11,9 @@
 #include "../game/game.h"
 #include "../database/database.h"
 #include "../log/log.h"
-//for sleep
+// for sleep
 #include <unistd.h>
-//for random
+// for random
 #include <time.h>
 
 #define SERVER_ERROR 'E'
@@ -101,7 +101,7 @@ user_t *login(const char *username, const char *password)
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
     if (rc != SQLITE_OK)
-    {   
+    {
         char *error = (char *)malloc(100);
         sprintf(error, "Cannot prepare statement on func login: %s\n", sqlite3_errmsg(db));
         close_database_connection(db);
@@ -160,15 +160,18 @@ void print_user(user_t *user)
 // Kiểm tra xem người dùng đã đăng nhập hay chưa
 int isUserAlreadyLoggedIn(const char *username)
 {
+    pthread_mutex_lock(&online_list_mutex);
     loged_in_user_t *current = online_user_list;
     while (current != NULL)
     {
         if (strcmp(current->username, username) == 0)
         {
+            pthread_mutex_unlock(&online_list_mutex);
             return 1; // Người dùng đã đăng nhập
         }
         current = current->next;
     }
+    pthread_mutex_unlock(&online_list_mutex);
     return 0; // Người dùng chưa đăng nhập
 }
 
@@ -480,7 +483,7 @@ void get_user_info_by_user_name(const char *username, int *elo, int *user_id, in
     int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
     if (rc != SQLITE_OK)
     {
-        char* error = (char*)malloc(100);
+        char *error = (char *)malloc(100);
         sprintf(error, "Cannot prepare statement on func get_user_info_by_user_name : %s\n", sqlite3_errmsg(db));
         Log(TAG, "e", error);
         free(error);
@@ -594,13 +597,13 @@ char *get_user_name_by_user_id(int user_id)
 
 void handle_get_online_friends(const int client_socket, const GetOnlineFriendsData *getOnlineFriendsData)
 {
-    if(getOnlineFriendsData == NULL)
+    if (getOnlineFriendsData == NULL)
     {
         printf("getOnlineFriendsData is NULL\n");
         return;
     }
     loged_in_user_t *current = online_user_list;
-    //mảng chứa danh sách bạn bè
+    // mảng chứa danh sách bạn bè
     FriendDataResponse *friendDataResponse = (FriendDataResponse *)malloc(10 * sizeof(FriendDataResponse));
     if (friendDataResponse == NULL)
     {
@@ -619,6 +622,10 @@ void handle_get_online_friends(const int client_socket, const GetOnlineFriendsDa
     {
         while (current != NULL)
         {
+            if (friendDataResponse[i].friend_id == 0)
+            {
+                continue;
+            }
             if (current->user_id == friendDataResponse[i].friend_id)
             {
                 friendDataResponse[i].is_online = 1;
@@ -644,7 +651,13 @@ void handle_get_online_friends(const int client_socket, const GetOnlineFriendsDa
     response->type = FRIEND_DATA_RESPONSE;
     for (int i = 0; i < number_of_friends; i++)
     {
+        // check if friendDataResponse[i] is null
+        if (friendDataResponse[i].friend_id == 0)
+        {
+            continue;
+        }
         response->data.friendDataResponse = friendDataResponse[i];
+
         send(client_socket, response, sizeof(Response), 0);
     }
     free(friendDataResponse);
@@ -710,7 +723,7 @@ void updateElo(int *Ra, int *Rb, int Ka, int Kb, double Aa, double Ab, float res
 //         {
 //             sprintf(error, "Cannot prepare statement on func elo_update: %s\n", sqlite3_errmsg(db));
 //             Log(TAG, "e", error);
-//             sleep(0.2); 
+//             sleep(0.2);
 //         }
 //         else
 //         {
@@ -787,23 +800,22 @@ void elo_calculation(int winner_id, int loser_id, float result)
     double Aa = calculateEloA(winner_elo, loser_elo);
     double Ab = calculateEloB(winner_elo, loser_elo);
     updateElo(&winner_elo, &loser_elo, k_winner, k_loser, Aa, Ab, result);
-    if(result == 1)
+    if (result == 1)
     {
         updateElo(&winner_elo, &loser_elo, k_winner, k_loser, Aa, Ab, result);
         update_elo_on_caching(winner_id, winner_elo);
         update_elo_on_caching(loser_id, loser_elo);
     }
-    else if(result == 0.5)
+    else if (result == 0.5)
     {
         updateElo(&winner_elo, &loser_elo, k_winner, k_loser, Aa, Ab, result);
         update_elo_on_caching(winner_id, winner_elo);
         update_elo_on_caching(loser_id, loser_elo);
     }
-
 }
 void handle_get_top_player(const int client_socket, const GetTopPlayerData *getTopPlayerData)
 {
-    if(getTopPlayerData == NULL)
+    if (getTopPlayerData == NULL)
     {
         printf("getTopPlayerData is NULL\n");
         return;
@@ -840,7 +852,7 @@ void handle_chat(const int client_socket, const ChatData *chatData)
     int user_id = chatData->user_id;
     int friend_id = chatData->friend_id;
     int friend_socket = get_client_socket_by_user_id(friend_id);
-    if(friend_socket == -1)
+    if (friend_socket == -1)
     {
         return;
     }
@@ -850,5 +862,4 @@ void handle_chat(const int client_socket, const ChatData *chatData)
     strcpy(response->data.chatData.message, chatData->message);
     send(friend_socket, response, sizeof(Response), 0);
     free(response);
-
 }
