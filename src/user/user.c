@@ -548,7 +548,7 @@ int get_friend_list(const int user_id, FriendDataResponse *friend_list)
     sqlite3_stmt *stmt;
     int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
     int i = 0;
-    if (rc != SQLITE_OK)
+    if (rc != SQLITE_OK || stmt == NULL)
     {
         char *error = (char *)malloc(100);
         sprintf(error, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
@@ -615,6 +615,13 @@ void handle_get_online_friends(const int client_socket, const GetOnlineFriendsDa
     }
     int number_of_friends = get_friend_list(getOnlineFriendsData->user_id, friendDataResponse);
     Response *response = (Response *)malloc(sizeof(Response));
+    if(response == NULL){
+        char *error = (char *)malloc(100);
+        sprintf(error, "Cannot allocate memory for response\n");
+        Log(TAG, "e", error);
+        free(error);
+        return;
+    }
     response->type = ONLINE_FRIENDS_RESPONSE;
     response->data.onlineFriendsResponse.number_of_friends = number_of_friends;
     send(client_socket, response, sizeof(Response), 0);
@@ -657,8 +664,12 @@ void handle_get_online_friends(const int client_socket, const GetOnlineFriendsDa
             continue;
         }
         response->data.friendDataResponse = friendDataResponse[i];
+        ssize_t bytes_sent = send(client_socket, response, sizeof(Response), 0);
+        if (bytes_sent <= 0)
+        {
+            printf("Connection closed\n");
+        }
 
-        send(client_socket, response, sizeof(Response), 0);
     }
     free(friendDataResponse);
     free(response);

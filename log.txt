@@ -1,0 +1,237 @@
+[2024-1-11 20:34:57] [SERVER] [i] Server is listening on port 8888
+[2024-1-11 20:35:8] [SERVER] [i] Accepted connection from 127.0.0.1:36854
+[2024-1-11 20:35:11] [SERVER] [i] Received login request
+[2024-1-11 20:35:26] [SERVER] [i] Accepted connection from 127.0.0.1:48856
+[2024-1-11 20:36:18] [SERVER] [i] Accepted connection from 127.0.0.1:37886
+[2024-1-11 20:36:25] [SERVER] [i] Received login request
+[2024-1-11 20:36:29] [SERVER] [i] Received login request
+[2024-1-11 20:36:41] [SERVER] [i] Received finding match request
+[2024-1-11 20:36:43] [SERVER] [i] Received finding match request
+[2024-1-11 20:36:43] [GAME] [i] Found match for user 3 and user 1
+[2024-1-11 20:36:46] [SERVER] [i] Received get friends request
+[2024-1-11 20:36:48] [SERVER] [i] Received get friends request
+[2024-1-11 20:36:49] [SERVER] [i] Received get friends request
+[2024-1-11 20:36:50] [SERVER] [i] Received get friends request
+[2024-1-11 20:36:54] [SERVER] [i] Received move request
+[2024-1-11 20:36:56] [SERVER] [i] Received move request
+[2024-1-11 20:37:0] [SERVER] [i] Received move request
+[2024-1-11 20:37:6] [SERVER] [i] Received move request
+[2024-1-11 20:37:7] [SERVER] [i] Received move request
+[2024-1-11 20:37:9] [SERVER] [i] Received move request
+[2024-1-11 20:37:10] [SERVER] [i] Received move request
+[2024-1-11 20:37:12] [SERVER] [i] Received move request
+[2024-1-11 20:37:13] [SERVER] [i] Received move request
+[2024-1-11 20:37:13] [SERVER] [i] Received end game request
+[2024-1-11 20:37:13] [SERVER] [i] Received end game request
+[2024-1-11 20:37:17] [SERVER] [i] Received get friends request
+[2024-1-11 20:37:17] [SERVER] [i] Received create room request
+[2024-1-11 20:37:17] [GAME] [i] Created room 498
+[2024-1-11 20:37:21] [SERVER] [i] Received invite friend request
+[2024-1-11 20:37:24] [SERVER] [i] Received accept or decline invitation request
+[2024-1-11 20:37:24] [GAME] [i] Accepted invitation from user 1 to room 498
+[2024-1-11 20:37:26] [SERVER] [i] Received start game request
+[2024-1-11 20:37:26] [GAME] [i] Started game for room 498
+[2024-1-11 20:37:28] [SERVER] [i] Received surrender request
+[2024-1-11 20:37:28] [SERVER] [i] Received end game request
+[2024-1-11 20:37:33] [SERVER] [i] Received end game request
+[2024-1-11 20:37:40] [SERVER] [i] Received get friends request
+[2024-1-11 20:37:40] [SERVER] [i] Received create room request
+[2024-1-11 20:37:40] [GAME] [i] Created room 499
+[2024-1-11 20:37:42] [SERVER] [i] Received invite friend request
+[2024-1-11 20:37:43] [SERVER] [i] Received accept or decline invitation request
+[2024-1-11 20:37:43] [GAME] [i] Accepted invitation from user 1 to room 499
+[2024-1-11 20:37:44] [SERVER] [i] Received start game request
+[2024-1-11 20:37:44] [GAME] [i] Started game for room 499
+[2024-1-11 20:37:45] [SERVER] [i] Received pause request
+[2024-1-11 20:37:46] [SERVER] [i] Received resume request
+[2024-1-11 20:37:47] [SERVER] [i] Received pause request
+[2024-1-11 20:37:47] [SERVER] [i] Received resume request
+[2024-1-11 20:37:48] [SERVER] [i] Received pause request
+[2024-1-11 20:37:48] [SERVER] [i] Received resume request
+[2024-1-11 20:37:49] [SERVER] [i] Received pause request
+[2024-1-11 20:37:49] [SERVER] [i] Received resume request
+[2024-1-11 20:37:50] [SERVER] [i] Received pause request
+[2024-1-11 20:37:50] [SERVER] [i] Received resume request
+[2024-1-11 20:37:51] [SERVER] [i] Received pause request
+[2024-1-11 20:37:51] [SERVER] [i] Received resume request
+[2024-1-11 20:37:51] [SERVER] [i] Received draw request
+[2024-1-11 20:37:52] [SERVER] [i] Received draw request
+[2024-1-11 20:37:53] [SERVER] [i] Received accept or decline draw request
+[2024-1-11 20:37:54] [SERVER] [i] Received draw request
+[2024-1-11 20:37:55] [SERVER] [i] Received accept or decline draw request
+[2024-1-11 20:37:57] [SERVER] [i] Received pause request
+[2024-1-11 20:37:58] [SERVER] [i] Received resume request
+[2024-1-11 20:37:59] [SERVER] [i] Received draw request
+[2024-1-11 20:38:0] [SERVER] [i] Received accept or decline draw request
+[2024-1-11 20:38:0] [SERVER] [i] Received end game request
+[2024-1-11 20:38:0] [SERVER] [i] Received end game request
+[2024-1-11 20:38:2] [SERVER] [i] Received get friends request
+[2024-1-11 20:38:3] [SERVER] [i] Received get friends request
+[2024-1-11 20:38:3] [SERVER] [i] Received get history request
+[2024-1-11 20:38:4] [SERVER] [i] Received get history request
+[2024-1-11 20:38:4] [SERVER] [i] Received get history request
+[2024-1-11 20:38:4] [SERVER] [i] Received get history request
+[2024-1-11 20:38:5] [SERVER] [i] Received get top player request
+[2024-1-11 20:38:8] [SERVER] [i] Received get history request
+[2024-1-11 20:38:8] [SERVER] [i] Received get friends request
+[2024-1-11 20:38:9] [SERVER] [i] Received get friends request
+[2024-1-11 20:38:9] [SERVER] [i] Received get history request
+[2024-1-11 20:38:23] [SERVER] [i] Received get move history request
+[2024-1-11 20:38:24] [SERVER] [i] Received get move history request
+[2024-1-11 20:38:24] [SERVER] [i] Received get move history request
+[2024-1-11 20:38:25] [SERVER] [i] Received get move history request
+[2024-1-11 20:38:43] [SERVER] [i] Received finding match request
+[2024-1-11 20:38:44] [SERVER] [i] Received finding match request
+[2024-1-11 20:38:44] [GAME] [i] Found match for user 3 and user 2
+[2024-1-11 20:38:45] [SERVER] [i] Received move request
+[2024-1-11 20:38:49] [SERVER] [i] Received move request
+[2024-1-11 20:38:50] [SERVER] [i] Received move request
+[2024-1-11 20:38:51] [SERVER] [i] Received move request
+[2024-1-11 20:38:52] [SERVER] [i] Received move request
+[2024-1-11 20:38:53] [SERVER] [i] Received move request
+[2024-1-11 20:38:54] [SERVER] [i] Received move request
+[2024-1-11 20:38:55] [SERVER] [i] Received move request
+[2024-1-11 20:38:56] [SERVER] [i] Received move request
+[2024-1-11 20:38:56] [SERVER] [i] Received end game request
+[2024-1-11 20:38:56] [SERVER] [i] Received end game request
+[2024-1-11 20:38:59] [SERVER] [i] Received create room request
+[2024-1-11 20:38:59] [GAME] [i] Created room 501
+[2024-1-11 20:38:59] [SERVER] [i] Received invite friend request
+[2024-1-11 20:38:59] [SERVER] [i] Received accept or decline invitation request
+[2024-1-11 20:38:59] [GAME] [i] Accepted invitation from user 3 to room 501
+[2024-1-11 20:39:1] [SERVER] [i] Received start game request
+[2024-1-11 20:39:1] [GAME] [i] Started game for room 501
+[2024-1-11 20:39:3] [SERVER] [i] Received move request
+[2024-1-11 20:39:5] [SERVER] [i] Received move request
+[2024-1-11 20:39:6] [SERVER] [i] Received move request
+[2024-1-11 20:39:7] [SERVER] [i] Received move request
+[2024-1-11 20:39:8] [SERVER] [i] Received move request
+[2024-1-11 20:39:9] [SERVER] [i] Received move request
+[2024-1-11 20:39:10] [SERVER] [i] Received move request
+[2024-1-11 20:39:11] [SERVER] [i] Received move request
+[2024-1-11 20:39:12] [SERVER] [i] Received move request
+[2024-1-11 20:39:14] [SERVER] [i] Received move request
+[2024-1-11 20:39:15] [SERVER] [i] Received move request
+[2024-1-11 20:39:15] [SERVER] [i] Received end game request
+[2024-1-11 20:39:15] [SERVER] [i] Received end game request
+[2024-1-11 20:39:18] [SERVER] [i] Received get history request
+[2024-1-11 20:39:21] [SERVER] [i] Received get move history request
+[2024-1-11 20:39:46] [SERVER] [i] Received get move history request
+[2024-1-11 20:39:59] [SERVER] [i] Received get top player request
+[2024-1-11 20:40:0] [SERVER] [i] Received get friends request
+[2024-1-11 20:40:1] [SERVER] [i] Received get friends request
+[2024-1-11 20:40:3] [SERVER] [i] Received get friends request
+[2024-1-11 20:40:8] [SERVER] [i] Received chat request
+[2024-1-11 20:40:12] [SERVER] [i] Received get friends request
+[2024-1-11 20:40:17] [SERVER] [i] Received get friends request
+[2024-1-11 20:40:18] [SERVER] [i] Received get friends request
+[2024-1-11 20:40:18] [SERVER] [i] Received get history request
+[2024-1-11 20:40:18] [SERVER] [i] Received get top player request
+[2024-1-11 20:40:19] [SERVER] [i] Received get history request
+[2024-1-11 20:40:19] [SERVER] [i] Received get history request
+[2024-1-11 20:40:19] [SERVER] [i] Received get history request
+[2024-1-11 20:40:19] [SERVER] [i] Received get top player request
+[2024-1-11 20:40:19] [SERVER] [i] Received get top player request
+[2024-1-11 20:40:31] [SERVER] [i] Received get friends request
+[2024-1-11 20:40:32] [SERVER] [i] Received get friends request
+[2024-1-11 20:40:33] [SERVER] [i] Received get friends request
+[2024-1-11 20:40:34] [SERVER] [i] Received get history request
+[2024-1-11 20:40:34] [SERVER] [i] Received get top player request
+[2024-1-11 20:40:35] [SERVER] [i] Received get history request
+[2024-1-11 20:40:35] [SERVER] [i] Received get history request
+[2024-1-11 20:40:35] [SERVER] [i] Received get history request
+[2024-1-11 20:40:35] [SERVER] [i] Received get history request
+[2024-1-11 20:40:36] [SERVER] [i] Received get history request
+[2024-1-11 20:40:36] [SERVER] [i] Received get friends request
+[2024-1-11 20:40:39] [SERVER] [i] Received get friends request
+[2024-1-11 20:40:40] [SERVER] [i] Received get friends request
+[2024-1-11 20:40:42] [SERVER] [i] Received get history request
+[2024-1-11 20:40:42] [SERVER] [i] Received get top player request
+[2024-1-11 20:40:43] [SERVER] [i] Received get history request
+[2024-1-11 20:40:47] [SERVER] [i] Received get move history request
+[2024-1-11 20:40:58] [SERVER] [i] Received get move history request
+[2024-1-11 20:41:18] [SERVER] [i] Received pause request
+[2024-1-11 20:41:19] [SERVER] [i] Received resume request
+[2024-1-11 20:41:19] [SERVER] [i] Received draw request
+[2024-1-11 20:41:20] [SERVER] [i] Received pause request
+[2024-1-11 20:41:21] [SERVER] [i] Received resume request
+[2024-1-11 20:41:22] [SERVER] [i] Received pause request
+[2024-1-11 20:41:30] [SERVER] [i] Received get friends request
+[2024-1-11 20:41:30] [SERVER] [i] Received get friends request
+[2024-1-11 20:41:30] [SERVER] [i] Received get friends request
+[2024-1-11 20:41:30] [SERVER] [i] Received get friends request
+[2024-1-11 20:41:30] [SERVER] [i] Received get friends request
+[2024-1-11 20:41:31] [SERVER] [i] Received get friends request
+[2024-1-11 20:41:31] [SERVER] [i] Received get friends request
+[2024-1-11 20:41:31] [SERVER] [i] Received get history request
+[2024-1-11 20:41:31] [SERVER] [i] Received get history request
+[2024-1-11 20:41:32] [SERVER] [i] Received get history request
+[2024-1-11 20:41:32] [SERVER] [i] Received get history request
+[2024-1-11 20:41:38] [SERVER] [i] Received get top player request
+[2024-1-11 20:41:39] [SERVER] [i] Received get history request
+[2024-1-11 20:41:40] [SERVER] [i] Received get history request
+[2024-1-11 20:41:40] [SERVER] [i] Received get history request
+[2024-1-11 20:41:40] [SERVER] [i] Received get history request
+[2024-1-11 20:41:41] [SERVER] [i] Received get history request
+[2024-1-11 20:41:41] [SERVER] [i] Received get friends request
+[2024-1-11 20:41:42] [SERVER] [i] Received get friends request
+[2024-1-11 20:41:43] [SERVER] [i] Received get friends request
+[2024-1-11 20:41:48] [SERVER] [i] Received finding match request
+[2024-1-11 20:41:49] [SERVER] [i] Received finding match request
+[2024-1-11 20:41:49] [GAME] [i] Found match for user 2 and user 3
+[2024-1-11 20:41:53] [SERVER] [i] Received move request
+[2024-1-11 20:41:54] [SERVER] [i] Received move request
+[2024-1-11 20:41:56] [SERVER] [i] Received move request
+[2024-1-11 20:41:57] [SERVER] [i] Received move request
+[2024-1-11 20:41:59] [SERVER] [i] Received move request
+[2024-1-11 20:42:0] [SERVER] [i] Received move request
+[2024-1-11 20:42:3] [SERVER] [i] Received move request
+[2024-1-11 20:42:4] [SERVER] [i] Received move request
+[2024-1-11 20:42:7] [SERVER] [i] Received move request
+[2024-1-11 20:42:8] [SERVER] [i] Received move request
+[2024-1-11 20:42:8] [SERVER] [i] Received end game request
+[2024-1-11 20:42:8] [SERVER] [i] Received end game request
+[2024-1-11 20:42:11] [SERVER] [i] Received create room request
+[2024-1-11 20:42:11] [GAME] [i] Created room 503
+[2024-1-11 20:42:11] [SERVER] [i] Received invite friend request
+[2024-1-11 20:42:12] [SERVER] [i] Received accept or decline invitation request
+[2024-1-11 20:42:12] [GAME] [i] Accepted invitation from user 3 to room 503
+[2024-1-11 20:42:13] [SERVER] [i] Received start game request
+[2024-1-11 20:42:13] [GAME] [i] Started game for room 503
+[2024-1-11 20:42:15] [SERVER] [i] Received move request
+[2024-1-11 20:42:16] [SERVER] [i] Received move request
+[2024-1-11 20:42:17] [SERVER] [i] Received move request
+[2024-1-11 20:42:18] [SERVER] [i] Received move request
+[2024-1-11 20:42:20] [SERVER] [i] Received move request
+[2024-1-11 20:42:22] [SERVER] [i] Received move request
+[2024-1-11 20:42:24] [SERVER] [i] Received move request
+[2024-1-11 20:42:25] [SERVER] [i] Received move request
+[2024-1-11 20:42:26] [SERVER] [i] Received move request
+[2024-1-11 20:42:26] [SERVER] [i] Received end game request
+[2024-1-11 20:42:26] [SERVER] [i] Received end game request
+[2024-1-11 20:42:30] [SERVER] [i] Received finding match request
+[2024-1-11 20:42:31] [SERVER] [i] Received finding match request
+[2024-1-11 20:42:40] [GAME] [i] Failed to find match for user 2
+[2024-1-11 20:42:41] [GAME] [i] Failed to find match for user 3
+[2024-1-11 20:42:44] [SERVER] [i] Received get friends request
+[2024-1-11 20:42:44] [SERVER] [i] Received get friends request
+[2024-1-11 20:42:46] [SERVER] [i] Received get friends request
+[2024-1-11 20:42:54] [SERVER] [i] Received chat request
+[2024-1-11 20:43:4] [SERVER] [i] Received get friends request
+[2024-1-11 20:43:6] [SERVER] [i] Received get friends request
+[2024-1-11 20:43:10] [SERVER] [i] Received get friends request
+[2024-1-11 20:43:12] [SERVER] [i] Received get friends request
+[2024-1-11 20:43:14] [SERVER] [i] Received get friends request
+[2024-1-11 20:43:18] [SERVER] [i] Received chat request
+[2024-1-11 20:43:24] [SERVER] [i] Received chat request
+[2024-1-11 20:43:25] [SERVER] [i] Received get top player request
+[2024-1-11 20:43:25] [SERVER] [i] Received get history request
+[2024-1-11 20:43:26] [SERVER] [i] Received get history request
+[2024-1-11 20:43:26] [SERVER] [i] Received get friends request
+[2024-1-11 20:43:26] [SERVER] [i] Received get friends request
+[2024-1-11 20:43:27] [SERVER] [i] Received get friends request
+[2024-1-11 20:43:47] [SERVER] [i] Received get move history request
+[2024-1-11 20:43:48] [SERVER] [i] Received resume request
+[2024-1-11 20:44:15] [SERVER] [i] Received get friends request
+[2024-1-11 20:44:16] [SERVER] [i] Received get friends request
+[2024-1-11 20:44:16] [SERVER] [i] Received get friends request

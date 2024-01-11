@@ -36,6 +36,8 @@
 #define UPDATE_ELO_BY_USER_ID "UPDATE user SET elo = ? WHERE id = ?;"
 #define TAG "GAME"
 // mutex
+#define MAX_NAME_LENGTH 20
+#define MAX_TIME_LENGTH 30
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t update_end_game_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t handle_end_game_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -52,10 +54,7 @@ room_t *create_room(int white_user_id, int total_time)
     room->next = NULL;
     return room;
 }
-void send_reponse(const int client_socket, const Response *response)
-{
-    send(client_socket, response, sizeof(Response), 0);
-}
+
 void add_room(room_t *room_list, room_t *room)
 {
     pthread_mutex_lock(&mutex);
@@ -139,7 +138,14 @@ void handle_create_room(const int client_socket, const CreateRoomData *createRoo
         room->status = 0;
         add_room(get_list_room(), room);
         response->data.createRoomResponse.room_id = room_id;
-        send_reponse(client_socket, response);
+        ssize_t send_result = send(client_socket, response, sizeof(Response), 0);
+        if (send_result == -1)
+        {
+            char *log_msg = (char *)malloc(sizeof(char) * 100);
+            sprintf(log_msg, "Failed to send response to client socket %d", client_socket);
+            Log(TAG, "e", log_msg);
+            free(log_msg);
+        }
         char *log_msg = (char *)malloc(sizeof(char) * 100);
         sprintf(log_msg, "Created room %d", room_id);
         Log(TAG, "i", log_msg);
@@ -149,7 +155,14 @@ void handle_create_room(const int client_socket, const CreateRoomData *createRoo
     {
         response->data.createRoomResponse.is_success = 0;
         response->data.createRoomResponse.message_code = 1;
-        send_reponse(client_socket, response);
+        ssize_t send_result = send(client_socket, response, sizeof(Response), 0);
+        if (send_result == -1)
+        {
+            char *log_msg = (char *)malloc(sizeof(char) * 100);
+            sprintf(log_msg, "Failed to send response to client socket %d", client_socket);
+            Log(TAG, "e", log_msg);
+            free(log_msg);
+        }
         char *log_msg = (char *)malloc(sizeof(char) * 100);
         sprintf(log_msg, "Failed to create room");
         Log(TAG, "e", log_msg);
@@ -161,14 +174,20 @@ void handle_create_room(const int client_socket, const CreateRoomData *createRoo
 
 void send_invite_friend(int friend_socket, int user_id, int room_id, int total_time, char *username)
 {
-    Response *response = (Response *)malloc(sizeof(Response));
+    Response *response;
     response->type = INVITE_FRIEND_RESPONSE;
     response->data.inviteFriendResponse.user_id = user_id;
     response->data.inviteFriendResponse.room_id = room_id;
     response->data.inviteFriendResponse.total_time = total_time;
     strcpy(response->data.inviteFriendResponse.username, username);
-    send_reponse(friend_socket, response);
-    free(response);
+    ssize_t send_result = send(friend_socket, response, sizeof(Response), 0);
+    if (send_result == -1)
+    {
+        char *log_msg = (char *)malloc(sizeof(char) * 100);
+        sprintf(log_msg, "Failed to send response to client socket %d", friend_socket);
+        Log(TAG, "e", log_msg);
+        free(log_msg);
+    }
 }
 void handle_invite_friend(const int client_socket, const InviteFriendData *inviteFriendData)
 {
@@ -178,17 +197,20 @@ void handle_invite_friend(const int client_socket, const InviteFriendData *invit
     int total_time = inviteFriendData->total_time;
     int friend_socket = get_client_socket_by_user_id(friend_id);
     char *username = get_user_name_by_user_id(user_id);
-    char *log_msg = (char *)malloc(sizeof(char) * 100);
     if (friend_socket != -1)
     {
-        sprintf(log_msg, "Invited friend %d to room %d", friend_id, room_id);
-        Log(TAG, "i", log_msg);
-        free(log_msg);
-        send_invite_friend(friend_socket, user_id, room_id, total_time, username);
+        Response *response;
+        response->type = INVITE_FRIEND_RESPONSE;
+        response->data.inviteFriendResponse.user_id = user_id;
+        response->data.inviteFriendResponse.room_id = room_id;
+        response->data.inviteFriendResponse.total_time = total_time;
+        strcpy(response->data.inviteFriendResponse.username, username);
+        ssize_t send_result = send(friend_socket, response, sizeof(Response), 0);
+        if (send_result == -1)
+        {
+            printf("send failed\n");
+        }
     }
-    sprintf(log_msg, "Failed to invite friend %d to room %d", friend_id, room_id);
-    Log(TAG, "e", log_msg);
-    free(log_msg);
 }
 
 void set_finding(int user_id, int is_finding)
@@ -334,6 +356,13 @@ void handle_finding_match(const int client_socket, const FindingMatchData *findi
             response->data.startGameData.status = 1;
 
             room_t *room = create_room(response->data.startGameData.white_user_id, DEFAULT_TOTAL_TIME);
+            if (room == NULL)
+            {
+                sprintf(log_msg, "Failed to create room");
+                Log(TAG, "e", log_msg);
+                free(log_msg);
+                return;
+            }
             room->room_id = room_id;
             room->black_user_id = response->data.startGameData.black_user_id;
             room->white_socket = get_client_socket_by_user_id(response->data.startGameData.white_user_id);
@@ -342,8 +371,18 @@ void handle_finding_match(const int client_socket, const FindingMatchData *findi
             room->status = 0;
             add_room(get_list_room(), room);
 
-            send_reponse(client_socket, response);
-            send_reponse(get_client_socket_by_user_id(opponent_id), response);
+            ssize_t send_result = send(client_socket, response, sizeof(Response), 0);
+            if (send_result == -1)
+            {
+                sprintf(log_msg, "Failed to send response to client socket %d", client_socket);
+                Log(TAG, "e", log_msg);
+            }
+            ssize_t send_result2 = send(get_client_socket_by_user_id(opponent_id), response, sizeof(Response), 0);
+            if (send_result2 == -1)
+            {
+                sprintf(log_msg, "Failed to send response to client socket %d", get_client_socket_by_user_id(opponent_id));
+                Log(TAG, "e", log_msg);
+            }
             start_game_db(room_id, response->data.startGameData.white_user_id, response->data.startGameData.black_user_id, DEFAULT_TOTAL_TIME);
             sprintf(log_msg, "Found match for user %d and user %d", findingMatchData->user_id, opponent_id);
             Log(TAG, "i", log_msg);
@@ -367,7 +406,12 @@ void handle_finding_match(const int client_socket, const FindingMatchData *findi
             response->data.startGameData.total_time = -1;
             sprintf(log_msg, "Failed to find match for user %d", findingMatchData->user_id);
             Log(TAG, "i", log_msg);
-            send_reponse(client_socket, response);
+            ssize_t send_result = send(client_socket, response, sizeof(Response), 0);
+            if (send_result == -1)
+            {
+                sprintf(log_msg, "Failed to send response to client socket %d", client_socket);
+                Log(TAG, "e", log_msg);
+            }
             free(response);
             return;
         }
@@ -431,7 +475,12 @@ void handle_accept_or_decline_invitation(const int client_socket, const AcceptOr
         response->data.startGameData.black_user_id = -1;
         response->data.startGameData.room_id = -1;
         response->data.startGameData.total_time = -1;
-        send_reponse(invited_user_socket, response);
+        ssize_t send_result = send(invited_user_socket, response, sizeof(Response), 0);
+        if (send_result == -1)
+        {
+            sprintf(log_msg, "Failed to send response to client socket %d", invited_user_socket);
+            Log(TAG, "e", log_msg);
+        }
         sprintf(log_msg, "Declined invitation from user %d to room %d", acceptOrDeclineInvitationData->invited_user_id, acceptOrDeclineInvitationData->room_id);
         Log(TAG, "i", log_msg);
         return;
@@ -461,8 +510,18 @@ void handle_accept_or_decline_invitation(const int client_socket, const AcceptOr
     response->data.startGameData.white_elo = get_elo_by_user_id(response->data.startGameData.white_user_id);
     response->data.startGameData.black_elo = get_elo_by_user_id(response->data.startGameData.black_user_id);
     response->data.startGameData.status = 0;
-    send_reponse(invited_user_socket, response);
-    send_reponse(client_socket, response);
+    ssize_t send_result = send(invited_user_socket, response, sizeof(Response), 0);
+    if (send_result == -1)
+    {
+        sprintf(log_msg, "Failed to send response to client socket %d", invited_user_socket);
+        Log(TAG, "e", log_msg);
+    }
+    ssize_t send_result2 = send(client_socket, response, sizeof(Response), 0);
+    if (send_result2 == -1)
+    {
+        sprintf(log_msg, "Failed to send response to client socket %d", client_socket);
+        Log(TAG, "e", log_msg);
+    }
     sprintf(log_msg, "Accepted invitation from user %d to room %d", acceptOrDeclineInvitationData->invited_user_id, acceptOrDeclineInvitationData->room_id);
     Log(TAG, "i", log_msg);
     free(response);
@@ -520,8 +579,18 @@ void handle_start_game(const int client_socket, const StartGame *startGame)
         free(log_msg);
         return;
     }
-    send_reponse(room->black_socket, response);
-    send_reponse(room->white_socket, response);
+    ssize_t send_result = send(room->black_socket, response, sizeof(Response), 0);
+    if (send_result == -1)
+    {
+        sprintf(log_msg, "Failed to send response to client socket %d", room->black_socket);
+        Log(TAG, "e", log_msg);
+    }
+    ssize_t send_result2 = send(room->white_socket, response, sizeof(Response), 0);
+    if (send_result2 == -1)
+    {
+        sprintf(log_msg, "Failed to send response to client socket %d", room->white_socket);
+        Log(TAG, "e", log_msg);
+    }
     start_game_db(room_id, room->white_user_id, room->black_user_id, room->total_time);
     update_playing_status(room->white_user_id, 1);
     update_playing_status(room->black_user_id, 1);
@@ -533,7 +602,12 @@ void move_db(int room_id, float from_x, float from_y, float to_x, float to_y, in
     sqlite3 *db = get_database_connection();
     sqlite3_stmt *stmt;
     char *sql = LOG_MOVE_QUERY;
-    sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL);
+    int rc = sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL);
+    if (rc != SQLITE_OK || stmt == NULL)
+    {
+        printf("prepare failed\n");
+        return;
+    }
     sqlite3_bind_int(stmt, 1, room_id);
     sqlite3_bind_int(stmt, 2, piece_type);
     sqlite3_bind_double(stmt, 3, from_x);
@@ -564,10 +638,7 @@ void handle_move(const int client_socket, const Move *move)
     room_t *room = get_room_by_id(get_list_room(), room_id);
     if (room == NULL)
     {
-        char *log_msg = (char *)malloc(sizeof(char) * 100);
-        sprintf(log_msg, "Room %d not found", room_id);
-        Log(TAG, "e", log_msg);
-        free(log_msg);
+        printf("room null\n");
         return;
     }
     if (room->white_socket == client_socket)
@@ -578,17 +649,7 @@ void handle_move(const int client_socket, const Move *move)
     {
         opponent_socket = room->white_socket;
     }
-    if (move == NULL)
-    {
-        printf("move null\n");
-        return;
-    }
-    Response *response = (Response *)malloc(sizeof(Response));
-    if (response == NULL)
-    {
-        printf("response null\n");
-        return;
-    }
+    Response *response;
     response->type = MOVE;
     response->data.move.user_id = move->user_id;
     response->data.move.room_id = move->room_id;
@@ -598,9 +659,13 @@ void handle_move(const int client_socket, const Move *move)
     response->data.move.to_y = move->to_y;
     response->data.move.piece_type = move->piece_type;
     response->data.move.current_time = move->current_time;
-    send(opponent_socket, response, sizeof(Response), 0);
+    ssize_t byte_sent = send(opponent_socket, response, sizeof(Response), 0);
+    if (byte_sent == -1)
+    {
+        printf("send failed\n");
+        return;
+    }
     move_db(move->room_id, move->from_x, move->from_y, move->to_x, move->to_y, move->piece_type);
-    free(response);
 }
 void update_playing(int user_id, int is_playing)
 {
@@ -785,7 +850,14 @@ void handle_surrender(const int client_socket, const SurrenderData *surrenderDat
     response->type = SURRENDER;
     response->data.surrenderData.user_id = user_id;
     response->data.surrenderData.room_id = room_id;
-    send_reponse(opponent_socket, response);
+    ssize_t send_result = send(opponent_socket, response, sizeof(Response), 0);
+    if (send_result == -1)
+    {
+        char *log_msg = (char *)malloc(sizeof(char) * 100);
+        sprintf(log_msg, "Failed to send response to client socket %d", opponent_socket);
+        Log(TAG, "e", log_msg);
+        free(log_msg);
+    }
     free(response);
 }
 void handle_pause(const int client_socket, const PauseData *pauseData)
@@ -811,7 +883,14 @@ void handle_pause(const int client_socket, const PauseData *pauseData)
     response->type = PAUSE;
     response->data.pauseData.user_id = user_id;
     response->data.pauseData.room_id = room_id;
-    send_reponse(opponent_socket, response);
+    ssize_t send_result = send(opponent_socket, response, sizeof(Response), 0);
+    if (send_result == -1)
+    {
+        char *log_msg = (char *)malloc(sizeof(char) * 100);
+        sprintf(log_msg, "Failed to send response to client socket %d", opponent_socket);
+        Log(TAG, "e", log_msg);
+        free(log_msg);
+    }
     free(response);
 }
 void handle_resume(const int client_socket, const ResumeData *resumeData)
@@ -837,16 +916,38 @@ void handle_resume(const int client_socket, const ResumeData *resumeData)
     response->type = RESUME;
     response->data.resumeData.user_id = user_id;
     response->data.resumeData.room_id = room_id;
-    send_reponse(opponent_socket, response);
+    ssize_t send_result = send(opponent_socket, response, sizeof(Response), 0);
+    if (send_result == -1)
+    {
+        char *log_msg = (char *)malloc(sizeof(char) * 100);
+        sprintf(log_msg, "Failed to send response to client socket %d", opponent_socket);
+        Log(TAG, "e", log_msg);
+        free(log_msg);
+    }
     free(response);
 }
 void handle_get_history(int client_socket, const GetGameHistory *getGameHistory)
 {
+    if (getGameHistory == NULL)
+    {
+        printf("get game history null\n");
+        return;
+    }
     int user_id = getGameHistory->user_id;
     sqlite3 *db = get_database_connection();
+    if (db == NULL)
+    {
+        printf("db null\n");
+        return;
+    }
     sqlite3_stmt *stmt;
     char *sql = GET_HISTORY_QUERY;
-    sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL);
+    int rc = sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL);
+    if (rc != SQLITE_OK || stmt == NULL)
+    {
+        printf("prepare failed\n");
+        return;
+    }
     sqlite3_bind_int(stmt, 1, user_id);
     sqlite3_bind_int(stmt, 2, user_id);
     sqlite3_bind_int(stmt, 3, user_id);
@@ -867,15 +968,18 @@ void handle_get_history(int client_socket, const GetGameHistory *getGameHistory)
             continue;
         }
         response->data.gameHistoryResponse.room_id = sqlite3_column_int(stmt, 0);
-        strcpy(response->data.gameHistoryResponse.opponent_name, (char *)sqlite3_column_text(stmt, 1));
+        strncpy(response->data.gameHistoryResponse.opponent_name, (char *)sqlite3_column_text(stmt, 1), 20);
         response->data.gameHistoryResponse.opponent_id = sqlite3_column_int(stmt, 2);
-        strcpy(response->data.gameHistoryResponse.start_time, (char *)sqlite3_column_text(stmt, 3));
-        strcpy(response->data.gameHistoryResponse.end_time, (char *)sqlite3_column_text(stmt, 4));
+        strncpy(response->data.gameHistoryResponse.start_time, (char *)sqlite3_column_text(stmt, 3), 20);
+        strncpy(response->data.gameHistoryResponse.end_time, (char *)sqlite3_column_text(stmt, 4), 20);
         response->data.gameHistoryResponse.result = sqlite3_column_int(stmt, 5);
-        send_reponse(client_socket, response);
+        ssize_t send_result = send(client_socket, response, sizeof(Response), 0);
+        if (send_result == -1)
+        {
+            printf("send result -1\n");
+        }
         free(response);
     }
-
     sqlite3_finalize(stmt);
     close_database_connection(db);
 }
@@ -903,7 +1007,14 @@ void handle_accept_or_decline_draw(const int client_socket, const AcceptOrDeclin
     response->data.acceptOrDeclineDrawData.user_id = user_id;
     response->data.acceptOrDeclineDrawData.room_id = room_id;
     response->data.acceptOrDeclineDrawData.is_accept = acceptOrDeclineDrawData->is_accept;
-    send_reponse(opponent_socket, response);
+    ssize_t send_result = send(opponent_socket, response, sizeof(Response), 0);
+    if (send_result == -1)
+    {
+        char *log_msg = (char *)malloc(sizeof(char) * 100);
+        sprintf(log_msg, "Failed to send response to client socket %d", opponent_socket);
+        Log(TAG, "e", log_msg);
+        free(log_msg);
+    }
     free(response);
 }
 void handle_draw(const int client_socket, const DrawData *drawData)
@@ -929,7 +1040,14 @@ void handle_draw(const int client_socket, const DrawData *drawData)
     response->type = DRAW;
     response->data.drawData.user_id = user_id;
     response->data.drawData.room_id = room_id;
-    send_reponse(opponent_socket, response);
+    ssize_t send_result = send(opponent_socket, response, sizeof(Response), 0);
+    if (send_result == -1)
+    {
+        char *log_msg = (char *)malloc(sizeof(char) * 100);
+        sprintf(log_msg, "Failed to send response to client socket %d", opponent_socket);
+        Log(TAG, "e", log_msg);
+        free(log_msg);
+    }
     free(response);
 }
 void handle_replay(const int client_socket, const ReplayData *replayData)
@@ -941,7 +1059,14 @@ void handle_replay(const int client_socket, const ReplayData *replayData)
     response->type = REPLAY;
     response->data.replayData.user_id = user_id;
     response->data.replayData.opponent_id = opponent_id;
-    send_reponse(opponent_socket, response);
+    ssize_t send_result = send(opponent_socket, response, sizeof(Response), 0);
+    if (send_result == -1)
+    {
+        char *log_msg = (char *)malloc(sizeof(char) * 100);
+        sprintf(log_msg, "Failed to send response to client socket %d", opponent_socket);
+        Log(TAG, "e", log_msg);
+        free(log_msg);
+    }
 }
 void handle_accept_replay(const int client_socket, const AcceptReplayData *acceptReplayData)
 {
@@ -962,8 +1087,22 @@ void handle_accept_replay(const int client_socket, const AcceptReplayData *accep
         strcpy(response->data.startGameData.black_username, get_user_name_by_user_id(opponent_id));
         response->data.startGameData.white_elo = get_elo_by_user_id(user_id);
         response->data.startGameData.black_elo = get_elo_by_user_id(opponent_id);
-        send_reponse(opponent_socket, response);
-        send_reponse(client_socket, response);
+        ssize_t send_result1 = send(opponent_socket, response, sizeof(Response), 0);
+        if (send_result1 == -1)
+        {
+            char *log_msg = (char *)malloc(sizeof(char) * 100);
+            sprintf(log_msg, "Failed to send response to client socket %d", client_socket);
+            Log(TAG, "e", log_msg);
+            free(log_msg);
+        }
+        ssize_t send_result = send(client_socket, response, sizeof(Response), 0);
+        if (send_result == -1)
+        {
+            char *log_msg = (char *)malloc(sizeof(char) * 100);
+            sprintf(log_msg, "Failed to send response to client socket %d", client_socket);
+            Log(TAG, "e", log_msg);
+            free(log_msg);
+        }
         start_game_db(room_id, user_id, opponent_id, DEFAULT_TOTAL_TIME);
     }
     else
@@ -973,7 +1112,14 @@ void handle_accept_replay(const int client_socket, const AcceptReplayData *accep
         response->data.startGameData.black_user_id = -1;
         response->data.startGameData.room_id = -1;
         response->data.startGameData.total_time = -1;
-        send_reponse(opponent_socket, response);
+        ssize_t send_result = send(opponent_socket, response, sizeof(Response), 0);
+        if (send_result == -1)
+        {
+            char *log_msg = (char *)malloc(sizeof(char) * 100);
+            sprintf(log_msg, "Failed to send response to client socket %d", client_socket);
+            Log(TAG, "e", log_msg);
+            free(log_msg);
+        }
     }
     free(response);
 }
@@ -983,7 +1129,12 @@ void handle_get_move_history(int client_socket, const GetMoveHistory *getMoveHis
     sqlite3 *db = get_database_connection();
     sqlite3_stmt *stmt;
     char *sql = GET_MOVE_HISTORY_QUERY;
-    sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL);
+    int rc = sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL);
+    if (rc != SQLITE_OK || stmt == NULL)
+    {
+        printf("prepare failed\n");
+        return;
+    }
     sqlite3_bind_int(stmt, 1, room_id);
     // array of move
     Response *response = (Response *)malloc(sizeof(Response));
@@ -999,7 +1150,12 @@ void handle_get_move_history(int client_socket, const GetMoveHistory *getMoveHis
         moveHistory->to_x = sqlite3_column_double(stmt, 4);
         moveHistory->to_y = sqlite3_column_double(stmt, 5);
         response->data.moveHistory = *moveHistory;
-        send_reponse(client_socket, response);
+        ssize_t bytes_sent = send(client_socket, response, sizeof(Response), 0);
+        if (bytes_sent <= 0)
+        {
+            printf("bytes sent <= 0\n");
+            return;
+        }
         sleep(1);
     }
     moveHistory->room_id = -1;
@@ -1010,7 +1166,12 @@ void handle_get_move_history(int client_socket, const GetMoveHistory *getMoveHis
     moveHistory->to_x = -1;
     moveHistory->to_y = -1;
     response->data.moveHistory = *moveHistory;
-    send_reponse(client_socket, response);
+    ssize_t bytes_sent = send(client_socket, response, sizeof(Response), 0);
+    if (bytes_sent <= 0)
+    {
+        printf("bytes sent <= 0\n");
+        return;
+    }
     free(response);
     free(moveHistory);
 }

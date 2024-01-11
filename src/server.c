@@ -38,10 +38,19 @@ void check(int code)
 void handle_client(int client_socket)
 {
     Message *message = (Message *)malloc(sizeof(Message));
-    ssize_t bytes_received = recv(client_socket, message, MAX_BUFFER_SIZE, 0);
-    if(bytes_received <= 0){
+    if (message == NULL)
+    {
+        perror("Failed to allocate memory for message");
         return;
     }
+
+    ssize_t bytes_received = recv(client_socket, message, sizeof(Message), 0);
+    if (bytes_received <= 0)
+    {
+        free(message);
+        return;
+    }
+
     switch (message->type)
     {
     case LOGIN:
@@ -55,9 +64,9 @@ void handle_client(int client_socket)
     default:
         break;
     }
+
     free(message);
 }
-
 void *thread_function_logedin()
 {
     while (1)
@@ -133,6 +142,11 @@ void *thread_function_logedin()
             break;
         case GET_HISTORY:
             Log(TAG, "i", "Received get history request");
+            // check null
+            if(task->message.data.getGameHistory.user_id == 0){
+                printf("NULL");
+            }
+            printf("%d\n", task->message.data.getGameHistory.user_id);
             handle_get_history(task->client_socket, &task->message.data.getGameHistory);
             break;
         case DRAW:
@@ -280,15 +294,15 @@ int main()
     server_address.sin_family = AF_INET;
     server_address.sin_addr.s_addr = INADDR_ANY;
     server_address.sin_port = htons(PORT);
-
-    check(bind(server_socket, (struct sockaddr *)&server_address, sizeof(server_address)));
-    // set option
     int opt = 1;
     if (setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1)
     {
         close(server_socket);
         exit(EXIT_FAILURE);
     }
+    check(bind(server_socket, (struct sockaddr *)&server_address, sizeof(server_address)));
+    // set option
+
     // Listen for incoming connections
     check(listen(server_socket, BACKLOG));
 

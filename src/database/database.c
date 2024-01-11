@@ -10,18 +10,13 @@ static sqlite3 *connection_pool[MAX_CONNECTIONS];
 static int connection_count = 0;
 
 
-// Function to open the database connection from the pool
 sqlite3 *get_database_connection()
 {
     pthread_mutex_lock(&db_lock);
-
-    // Check if there's a connection in the pool
     if (connection_count > 0)
     {
-        char* msg = (char*)malloc(100);
-        sprintf(msg,"Number of conn to db: %d", connection_count);
-        Log("DB","i",msg);
-        free(msg);
+        // sprintf(msg,"Number of conn to db: %d", connection_count);
+        // Log("DB","i",msg);
         sqlite3 *db = connection_pool[--connection_count];
         pthread_mutex_unlock(&db_lock);
         return db;
@@ -30,12 +25,11 @@ sqlite3 *get_database_connection()
     sqlite3 *db = NULL;
     if (sqlite3_open(DATABASE_NAME, &db) != SQLITE_OK)
     {
-        char* msg = (char*)malloc(100);
-        sprintf(msg,"Cannot open database: %s\n", sqlite3_errmsg(db));
-        Log("DB","e",msg);
-        free(msg);
+        // sprintf(msg,"Cannot open database: %s\n", sqlite3_errmsg(db));
+        // Log("DB","e",msg);
         sqlite3_close(db);
         pthread_mutex_unlock(&db_lock);
+        // free(msg); // Move free(msg) here to ensure it's always freed
         return NULL;
     }
 
@@ -43,17 +37,14 @@ sqlite3 *get_database_connection()
     char *zErrMsg = 0;
     if (sqlite3_exec(db, "PRAGMA journal_mode=WAL;", 0, 0, &zErrMsg) != SQLITE_OK)
     {
-        char* msg = (char*)malloc(100);
-        sprintf(msg,"Cannot enable WAL mode: %s\n", zErrMsg);
-        Log("DB","e",msg);
-        free(msg);
+        // sprintf(msg,"Cannot enable WAL mode: %s\n", zErrMsg);
+        // Log("DB","e",msg);
         sqlite3_free(zErrMsg);
     }
-
-    pthread_mutex_unlock(&db_lock);
+    pthread_mutex_unlock(&db_lock); // Add unlock here to avoid potential deadlock
+    // free(msg); // Add free(msg) here to ensure it's always freed
     return db;
 }
-
 // Function to close the database connection
 void close_database_connection(sqlite3 *db)
 {
