@@ -146,7 +146,6 @@ void *thread_function_logedin()
             if(task->message.data.getGameHistory.user_id == 0){
                 printf("NULL");
             }
-            printf("%d\n", task->message.data.getGameHistory.user_id);
             handle_get_history(task->client_socket, &task->message.data.getGameHistory);
             break;
         case DRAW:

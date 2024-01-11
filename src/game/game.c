@@ -710,7 +710,7 @@ void update_playing(int user_id, int is_playing)
 //     free(current_time);
 //     pthread_mutex_lock(&update_end_game_mutex);
 // }
-void end_game_and_update_elo(int room_id, int winner_id, int winner_elo, int loser_id, int loser_elo)
+void end_game_and_update_elo(int room_id, int winner_id, int winner_elo, int loser_id, int loser_elo,float result)
 {
     sleep(1);
     pthread_mutex_lock(&update_end_game_mutex);
@@ -728,7 +728,10 @@ void end_game_and_update_elo(int room_id, int winner_id, int winner_elo, int los
     sql = UPDATE_ROOM_END_GAME;
     sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL);
     sqlite3_bind_text(stmt, 1, current_time, strlen(current_time), SQLITE_STATIC);
-    sqlite3_bind_int(stmt, 2, winner_id);
+    if(result == 1)
+        sqlite3_bind_int(stmt, 2, winner_id);
+    else
+        sqlite3_bind_int(stmt, 2, 0);
     sqlite3_bind_int(stmt, 3, room_id);
     if (sqlite3_step(stmt) != SQLITE_DONE)
     {
@@ -799,12 +802,12 @@ void handle_end_game(const int client_socket, const EndGameData *endGameData)
         if (status == 1)
         {
             elo_calculation(user_id, opponent_id, 1);
-            end_game_and_update_elo(room_id, user_id, get_elo_by_user_id(user_id), opponent_id, get_elo_by_user_id(opponent_id));
+            end_game_and_update_elo(room_id, user_id, get_elo_by_user_id(user_id), opponent_id, get_elo_by_user_id(opponent_id),1);
         }
         else
         {
             elo_calculation(user_id, opponent_id, 0.5);
-            end_game_and_update_elo(room_id, user_id, get_elo_by_user_id(user_id), opponent_id, get_elo_by_user_id(opponent_id));
+            end_game_and_update_elo(room_id, user_id, get_elo_by_user_id(user_id), opponent_id, get_elo_by_user_id(opponent_id),0.5);
         }
     }
     update_playing(user_id, 0);
